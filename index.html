@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="icon" type="image/jpeg" href="imagenes/foto.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Valera Sport | Tienda Oficial</title>
@@ -68,7 +69,7 @@
 
             <!-- Botón de Contacto Directo General (ícono más discreto) -->
             <div>
-                <a href="https://wa.me/584245788733?text=Hola%20Valera%20Sport,%20estoy%20viendo%20su%20p%C3%A1gina%20web%20y%20quiero%20m%C3%A1s%20informaci%C3%B3n" target="_blank" class="icon-touch bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold px-4 py-2 rounded-full text-xs tracking-wider uppercase transition flex items-center gap-1.5 shadow-md shadow-cyan-500/10">
+                <a href="https://wa.me/584245939407?text=Hola%20Valera%20Sport,%20estoy%20viendo%20su%20p%C3%A1gina%20web%20y%20quiero%20m%C3%A1s%20informaci%C3%B3n" target="_blank" class="icon-touch bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold px-4 py-2 rounded-full text-xs tracking-wider uppercase transition flex items-center gap-1.5 shadow-md shadow-cyan-500/10">
                     <i class="fa-brands fa-whatsapp text-sm"></i> Consultar
                 </a>
             </div>
@@ -301,7 +302,7 @@
             { id: 1, nombre: "Sudadera de Dama", categoria: "Damas", precio: 5.00, descripcion: "Sudadera deportiva de dama, cómoda y ligera para entrenar.", imagen: "imagenes/sudadera_dama.jpg", tallas: ["Única", "S", "M"], colores: ["Variados"], badge: "Colección", badgeColor: "purple" },
             { id: 2, nombre: "Leggings Plus", categoria: "Damas", precio: 10.00, descripcion: "Licra deportiva talla plus de alta compresión y resistencia.", imagen: "imagenes/leggings_plus.jpg", tallas: ["XL", "XXL"], colores: ["Negro", "Gris"], badge: "Plus Size", badgeColor: "purple" },
             { id: 3, nombre: "Leggings Modelo", categoria: "Damas", precio: 10.00, descripcion: "Leggings clásico de entrenamiento, ajuste premium para damas.", imagen: "imagenes/leggings_modelo.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Popular", badgeColor: "purple" },
-            { id: 4, font_brand: true, nombre: "Leggings Bota Campana", categoria: "Damas", precio: 10.00, descripcion: "Leggings estilo bota campana con soporte de cintura alta.", imagen: "imagenes/bota_campana.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Tendencia", badgeColor: "purple" },
+            { id: 4, font_brand: true, nombre: "Leggings Bota Campana", categoria: "Damas", precio: 10.00, descripcion: "Leggings estilo bota campana con soporte de cintura alta.", imagen: "sudadera_dama.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Tendencia", badgeColor: "purple" },
             { id: 5, nombre: "Sudadera de Niño", categoria: "Combos", precio: 6.00, descripcion: "Sudadera cómoda y resistente para los más pequeños.", imagen: "imagenes/sudadera_nino.jpg", tallas: ["4", "6", "8", "10"], colores: ["Variados"], badge: "Infantil", badgeColor: "emerald" },
             { id: 6, nombre: "Short de Dama", categoria: "Damas", precio: 6.00, descripcion: "Short deportivo ergonómico, transpirabilidad y frescura.", imagen: "imagenes/short_dama.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Básico", badgeColor: "purple" },
             { id: 7, nombre: "Biker (Calza Corta)", categoria: "Damas", precio: 6.00, descripcion: "Calza corta tipo biker stretch ideal para entrenamientos exigentes.", imagen: "imagenes/biker.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Running", badgeColor: "purple" },
@@ -343,31 +344,36 @@
             emerald: { borderHover: "hover:border-emerald-500/30", badgeBg: "bg-emerald-500", badgeText: "text-gray-950", btnBg: "bg-emerald-950", btnText: "text-emerald-400", btnBorder: "border-emerald-800/30", btnHover: "hover:bg-emerald-500 hover:text-gray-950" }
         };
 
-        function crearTarjetaHTML(p) {
-            const c = estilosColor[p.badgeColor] || estilosColor.cyan;
-            const tallasJSON = JSON.stringify(p.tallas).replace(/"/g, "'");
-            const coloresJSON = JSON.stringify(p.colores).replace(/"/g, "'");
+       function crearTarjetaHTML(p) {
+    const c = estilosColor[p.badgeColor] || estilosColor.cyan;
+    const tallasJSON = JSON.stringify(p.tallas).replace(/"/g, "'");
+    const coloresJSON = JSON.stringify(p.colores).replace(/"/g, "'");
 
-            return `
-            <div class="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden ${c.borderHover} transition flex flex-col justify-between">
-                <div>
-                    <div class="h-64 overflow-hidden relative">
-                        <img src="${p.imagen}" alt="${p.nombre}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x400/0a0a0a/ffffff?text=${encodeURIComponent(p.nombre)}'">
-                        ${p.badge ? `<span class="absolute top-4 left-4 ${c.badgeBg} ${c.badgeText} text-xs font-bold px-2.5 py-1 rounded-md uppercase">${p.badge}</span>` : ""}
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <h3 class="text-xl font-bold text-white">${p.nombre}</h3>
-                        <p class="text-sm text-slate-400">${p.descripcion}</p>
-                    </div>
-                </div>
-                <div class="p-6 pt-0 flex items-center justify-between border-t border-zinc-900 mt-4">
-                    <span class="text-2xl font-black text-white">$${p.precio.toFixed(2)}</span>
-                    <button onclick="abrirModal('${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, ${tallasJSON}, ${coloresJSON})" class="icon-touch ${c.btnBg} ${c.btnText} border ${c.btnBorder} ${c.btnHover} font-bold px-4 py-2.5 rounded-lg text-xs tracking-wider uppercase">
-                        <i class="fa-solid fa-cart-shopping mr-1.5 text-[11px]"></i> Ordenar
-                    </button>
-                </div>
-            </div>`;
-        }
+    return `
+    <div class="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden ${c.borderHover} transition flex flex-col justify-between">
+        <div>
+            <!-- IMAGEN DEL PRODUCTO (Reemplaza el título arriba) -->
+            <div class="h-64 overflow-hidden relative">
+                <img src="${p.imagen}" alt="${p.nombre}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x400/0a0a0a/ffffff?text=${encodeURIComponent(p.nombre)}'">
+                ${p.badge ? `<span class="absolute top-4 left-4 ${c.badgeBg} ${c.badgeText} text-xs font-bold px-2.5 py-1 rounded-md uppercase">${p.badge}</span>` : ""}
+            </div>
+            
+            <!-- INFORMACIÓN (Lo verde que querías dejar) -->
+            <div class="p-6 space-y-2">
+                <h3 class="text-xl font-bold text-white">${p.nombre}</h3>
+                <p class="text-sm text-slate-400">${p.descripcion}</p>
+            </div>
+        </div>
+        
+        <!-- PRECIO Y BOTÓN -->
+        <div class="p-6 pt-0 flex items-center justify-between border-t border-zinc-900 mt-2">
+            <span class="text-2xl font-black text-white">$${p.precio.toFixed(2)}</span>
+            <button onclick="abrirModal('${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, ${tallasJSON}, ${coloresJSON})" class="icon-touch ${c.btnBg} ${c.btnText} border ${c.btnBorder} ${c.btnHover} font-bold px-4 py-2.5 rounded-lg text-xs tracking-wider uppercase">
+                <i class="fa-solid fa-cart-shopping mr-1.5 text-[11px]"></i> Ordenar
+            </button>
+        </div>
+    </div>`;
+}
 
         function renderizarProductos() {
             const texto = document.getElementById('buscador').value.trim().toLowerCase();
