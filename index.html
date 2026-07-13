@@ -47,6 +47,32 @@
 
         /* Estado vacío del buscador */
         #sinResultados { display: none; }
+
+        /* Sello de agotado (nuevo) */
+        .sello-agotado {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #7f1d1d;
+            color: #fca5a5;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .tarjeta-agotada { opacity: 0.55; }
+        .boton-deshabilitado {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        #estadoCarga {
+            text-align: center;
+            color: #71717a;
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
     </style>
 </head>
 <body class="text-slate-300 antialiased min-h-screen flex flex-col justify-between">
@@ -170,6 +196,9 @@
                 </button>
             </div>
         </div>
+
+        <!-- Estado de carga del Sheet (nuevo) -->
+        <p id="estadoCarga">Cargando catálogo...</p>
 
         <!-- Contador de resultados -->
         <p id="contadorResultados" class="text-center text-xs text-slate-600 uppercase tracking-wider mb-10"></p>
@@ -297,40 +326,126 @@
 
     <!-- LÓGICA DE PROGRAMACIÓN INTERACTIVA -->
     <script>
-        // BASE DE DATOS MAESTRA LIMPIA Y CONSOLIDADA DESDE EL INVENTARIO REAL
-        const productos = [
-            { id: 1, nombre: "Sudadera de Dama", categoria: "Damas", precio: 5.00, descripcion: "Sudadera deportiva de dama, cómoda y ligera para entrenar.", imagen: "imagenes/sudadera_dama.jpg", tallas: ["Única", "S", "M"], colores: ["Variados"], badge: "Colección", badgeColor: "purple" },
-            { id: 2, nombre: "Leggings Plus", categoria: "Damas", precio: 10.00, descripcion: "Licra deportiva talla plus de alta compresión y resistencia.", imagen: "imagenes/leggings_plus.jpg", tallas: ["XL", "XXL"], colores: ["Negro", "Gris"], badge: "Plus Size", badgeColor: "purple" },
-            { id: 3, nombre: "Leggings Modelo", categoria: "Damas", precio: 10.00, descripcion: "Leggings clásico de entrenamiento, ajuste premium para damas.", imagen: "imagenes/leggings_modelo.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Popular", badgeColor: "purple" },
-            { id: 4, font_brand: true, nombre: "Leggings Bota Campana", categoria: "Damas", precio: 10.00, descripcion: "Leggings estilo bota campana con soporte de cintura alta.", imagen: "sudadera_dama.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Tendencia", badgeColor: "purple" },
-            { id: 5, nombre: "Sudadera de Niño", categoria: "Combos", precio: 6.00, descripcion: "Sudadera cómoda y resistente para los más pequeños.", imagen: "imagenes/sudadera_nino.jpg", tallas: ["4", "6", "8", "10"], colores: ["Variados"], badge: "Infantil", badgeColor: "emerald" },
-            { id: 6, nombre: "Short de Dama", categoria: "Damas", precio: 6.00, descripcion: "Short deportivo ergonómico, transpirabilidad y frescura.", imagen: "imagenes/short_dama.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Básico", badgeColor: "purple" },
-            { id: 7, nombre: "Biker (Calza Corta)", categoria: "Damas", precio: 6.00, descripcion: "Calza corta tipo biker stretch ideal para entrenamientos exigentes.", imagen: "imagenes/biker.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Running", badgeColor: "purple" },
-            { id: 8, nombre: "Franelilla Microperforada", categoria: "Caballeros", precio: 6.00, descripcion: "Franelilla running ultra-transpirable de secado rápido.", imagen: "imagenes/microperforada.jpg", tallas: ["S", "M", "L", "XL"], colores: ["Negro", "Blanco", "Gris"], badge: "Dry Fit", badgeColor: "cyan" },
-            { id: 9, nombre: "Vestido Deportivo", categoria: "Damas", precio: 15.00, descripcion: "Vestido con licra interna integrada para máxima libertad física.", imagen: "imagenes/vestido_deportivo.jpg", tallas: ["S", "M"], colores: ["Variados"], badge: "Premium", badgeColor: "purple" },
-            { id: 10, nombre: "Conjunto De Shorts", categoria: "Damas", precio: 10.00, descripcion: "Conjunto deportivo de dos piezas (Top + Short coordinado).", imagen: "imagenes/conjunto_short.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Set Completo", badgeColor: "purple" },
-            { id: 11, nombre: "Top Deportivo", categoria: "Damas", precio: 5.00, descripcion: "Top elástico de alto impacto con soporte muscular reforzado.", imagen: "imagenes/top_deportivo.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Fitness", badgeColor: "purple" },
-            { id: 12, nombre: "Mono Cargo", categoria: "Caballeros", precio: 15.00, descripcion: "Pantalón tipo mono cargo deportivo con bolsillos técnicos.", imagen: "imagenes/mono_cargo.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Verde Oliva"], badge: "Streetwear", badgeColor: "cyan" },
-            { id: 13, nombre: "Jogger de Caballero", categoria: "Caballeros", precio: 10.00, descripcion: "Jogger slim fit ultra-cómodo con cordón ajustable.", imagen: "imagenes/jogger_caballero.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Gris Oscuro"], badge: "Sport", badgeColor: "cyan" },
-            { id: 14, nombre: "Bóxer de Caballero", categoria: "Caballeros", precio: 2.50, descripcion: "Bóxer premium de microfibra elástica y ajuste ergonómico.", imagen: "imagenes/boxer_caballero.jpg", tallas: ["M", "L", "XL"], colores: ["Variados"], badge: "Interior", badgeColor: "cyan" },
-            { id: 15, nombre: "Short de Algodón", categoria: "Caballeros", precio: 5.00, descripcion: "Short deportivo de algodón suave para descanso o gimnasio.", imagen: "imagenes/short_algodon.jpg", tallas: ["M", "L", "XL"], colores: ["Gris", "Negro"], badge: "Casual", badgeColor: "cyan" },
-            { id: 16, nombre: "Chaqueta Cortaviento Imperial", categoria: "Caballeros", precio: 16.00, descripcion: "Chaqueta rompevientos térmica impermeable de alta gama.", imagen: "imagenes/cortaviento.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Azul"], badge: "Windbreaker", badgeColor: "cyan" },
-            { id: 17, nombre: "Camiseta de Dama Shein", categoria: "Damas", precio: 4.00, descripcion: "Franela ligera de corte moderno importada marca Shein.", imagen: "imagenes/camiseta_shein.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Moda", badgeColor: "purple" },
-            { id: 18, nombre: "Short Ovejita de Niño", categoria: "Combos", precio: 2.00, descripcion: "Short infantil de algodón Ovejita, suavidad garantizada.", imagen: "imagenes/short_ovejita.jpg", tallas: ["2", "4", "6"], colores: ["Variados"], badge: "Algodón", badgeColor: "emerald" },
-            { id: 19, nombre: "Bóxer de Niño", categoria: "Combos", precio: 1.50, descripcion: "Bóxer infantil de textura suave sin costuras molestas.", imagen: "imagenes/boxer_nino.jpg", tallas: ["4", "6", "8"], colores: ["Variados"], badge: "Kids", badgeColor: "emerald" },
-            { id: 20, nombre: "Media Tobillera Pack", categoria: "Combos", precio: 3.50, descripcion: "Pack de medias tobilleras elásticas de alto rendimiento.", imagen: "imagenes/pack_medias.jpg", tallas: ["Única"], colores: ["Blanco", "Negro", "Surtido"], badge: "Pack", badgeColor: "emerald" },
-            { id: 21, nombre: "Pantalón de Dama Impermeable", categoria: "Damas", precio: 12.00, descripcion: "Pantalón impermeable liviano para outdoor o running.", imagen: "imagenes/pantalones_impermeables.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Outdoor", badgeColor: "purple" },
-            { id: 22, nombre: "Enterizo Acanalado", categoria: "Damas", precio: 24.00, descripcion: "Enterizo deportivo premium enteramente de tela acanalada.", imagen: "imagenes/enterizo_acanalado.jpg", tallas: ["S", "M"], colores: ["Negro", "Marrón"], badge: "Premium Set", badgeColor: "purple" },
-            { id: 23, nombre: "Enterizo Corto (Tela Suple)", categoria: "Damas", precio: 15.00, descripcion: "Enterizo corto elástico, máxima flexibilidad y compresión.", imagen: "imagenes/enterizo_corto.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Suple", badgeColor: "purple" },
-            { id: 24, nombre: "Enterizo Largo (Tela Suple)", categoria: "Damas", precio: 16.00, descripcion: "Enterizo largo anatómico para entrenamientos completos.", imagen: "imagenes/enterizo_largo.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Full Body", badgeColor: "purple" },
-            { id: 25, nombre: "Enterizo Shein Corto", categoria: "Damas", precio: 10.00, descripcion: "Enterizo corto casual-deportivo con estampados modernos.", imagen: "imagenes/shein_corto.jpg", tallas: ["S", "M"], colores: ["Estampados"], badge: "Shein", badgeColor: "purple" },
-            { id: 26, nombre: "Enterizo Shein Largo", categoria: "Damas", precio: 10.00, descripcion: "Enterizo largo versátil, ideal para yoga o uso diario.", imagen: "imagenes/shein_largo.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Gris"], badge: "Shein Fit", badgeColor: "purple" },
-            { id: 27, nombre: "Enterizo Largo (Tela Yoga)", categoria: "Damas", precio: 27.00, descripcion: "Enterizo profesional confeccionado en tela yoga ultra-suave.", imagen: "imagenes/tela_yoga.jpg", tallas: ["S", "M", "L"], colores: ["Azul Profundo", "Negro"], badge: "Yoga Pro", badgeColor: "purple" },
-            { id: 28, nombre: "Falda Deportiva", categoria: "Damas", precio: 6.00, descripcion: "Falda ligera con short interno para tenis, pádel o gym.", imagen: "imagenes/falda_deportiva.jpg", tallas: ["S", "M"], colores: ["Blanco", "Negro"], badge: "Match", badgeColor: "purple" },
-            { id: 29, nombre: "Franela de Caballero (Algodón)", categoria: "Caballeros", precio: 12.00, descripcion: "Franela clásica de algodón peinado premium de alta duración.", imagen: "imagenes/franela_algodon.jpg", tallas: ["S", "M", "L", "XL"], colores: ["Variados"], badge: "100% Algodón", badgeColor: "cyan" },
-            { id: 30, nombre: "Franelilla de Caballero", categoria: "Caballeros", precio: 6.00, descripcion: "Franelilla clásica de entrenamiento para levantamiento de pesas.", imagen: "imagenes/franelilla_caballero.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Gris"], badge: "Gym", badgeColor: "cyan" },
-            { id: 31, nombre: "Leggings Bota Ancha Yoga", categoria: "Damas", precio: 15.00, descripcion: "Pantalón leggings bota ancha para máxima relajación y confort.", imagen: "imagenes/bota_ancha_yoga.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Relax Fit", badgeColor: "purple" }
+        // =====================================================================
+        // ZONA EDITABLE — SOLO TOCA ESTA LÍNEA
+        // Pega aquí el link CSV de tu Google Sheet publicado (ver instrucciones).
+        // Mientras esté vacío, la web usa productosRespaldo de más abajo.
+        // =====================================================================
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1TwZrwyishSHNJzVidUSSFEfGLhViTqwsgX2t70jtd2s/export?format=csv"
+
+        // Numero de WhatsApp que recibe los pedidos configurados en el modal
+        const _0xec4d = "NTg0MjQ1OTM5NDA3";
+        const WHATSAPP_PEDIDOS = atob(_0xec4d);
+
+        // productos empieza vacío: se llena solo con cargarProductosDesdeSheet()
+        let productos = [];
+
+        // Respaldo local por si el Sheet aún no está conectado o falla la conexión,
+        // para que la página nunca se vea rota. Es tu inventario actual tal cual estaba.
+        const productosRespaldo = [
+            { id: 1, nombre: "Sudadera de Dama", categoria: "Damas", precio: 5.00, descripcion: "Sudadera deportiva de dama, cómoda y ligera para entrenar.", imagen: "imagenes/sudadera_dama.jpg", tallas: ["Única", "S", "M"], colores: ["Variados"], badge: "Colección", badgeColor: "purple", disponible: true },
+            { id: 2, nombre: "Leggings Plus", categoria: "Damas", precio: 10.00, descripcion: "Licra deportiva talla plus de alta compresión y resistencia.", imagen: "imagenes/leggings_plus.jpg", tallas: ["XL", "XXL"], colores: ["Negro", "Gris"], badge: "Plus Size", badgeColor: "purple", disponible: true },
+            { id: 3, nombre: "Leggings Modelo", categoria: "Damas", precio: 10.00, descripcion: "Leggings clásico de entrenamiento, ajuste premium para damas.", imagen: "imagenes/leggings_modelo.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Popular", badgeColor: "purple", disponible: true },
+            { id: 4, nombre: "Leggings Bota Campana", categoria: "Damas", precio: 10.00, descripcion: "Leggings estilo bota campana con soporte de cintura alta.", imagen: "imagenes/sudadera_dama.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Tendencia", badgeColor: "purple", disponible: true },
+            { id: 5, nombre: "Sudadera de Niño", categoria: "Combos", precio: 6.00, descripcion: "Sudadera cómoda y resistente para los más pequeños.", imagen: "imagenes/sudadera_nino.jpg", tallas: ["4", "6", "8", "10"], colores: ["Variados"], badge: "Infantil", badgeColor: "emerald", disponible: true },
+            { id: 6, nombre: "Short de Dama", categoria: "Damas", precio: 6.00, descripcion: "Short deportivo ergonómico, transpirabilidad y frescura.", imagen: "imagenes/short_dama.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Básico", badgeColor: "purple", disponible: true },
+            { id: 7, nombre: "Biker (Calza Corta)", categoria: "Damas", precio: 6.00, descripcion: "Calza corta tipo biker stretch ideal para entrenamientos exigentes.", imagen: "imagenes/biker.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Running", badgeColor: "purple", disponible: true },
+            { id: 8, nombre: "Franelilla Microperforada", categoria: "Caballeros", precio: 6.00, descripcion: "Franelilla running ultra-transpirable de secado rápido.", imagen: "imagenes/microperforada.jpg", tallas: ["S", "M", "L", "XL"], colores: ["Negro", "Blanco", "Gris"], badge: "Dry Fit", badgeColor: "cyan", disponible: true },
+            { id: 9, nombre: "Vestido Deportivo", categoria: "Damas", precio: 15.00, descripcion: "Vestido con licra interna integrada para máxima libertad física.", imagen: "imagenes/vestido_deportivo.jpg", tallas: ["S", "M"], colores: ["Variados"], badge: "Premium", badgeColor: "purple", disponible: true },
+            { id: 10, nombre: "Conjunto De Shorts", categoria: "Damas", precio: 10.00, descripcion: "Conjunto deportivo de dos piezas (Top + Short coordinado).", imagen: "imagenes/conjunto_short.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Set Completo", badgeColor: "purple", disponible: true },
+            { id: 11, nombre: "Top Deportivo", categoria: "Damas", precio: 5.00, descripcion: "Top elástico de alto impacto con soporte muscular reforzado.", imagen: "imagenes/top_deportivo.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Fitness", badgeColor: "purple", disponible: true },
+            { id: 12, nombre: "Mono Cargo", categoria: "Caballeros", precio: 15.00, descripcion: "Pantalón tipo mono cargo deportivo con bolsillos técnicos.", imagen: "imagenes/mono_cargo.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Verde Oliva"], badge: "Streetwear", badgeColor: "cyan", disponible: true },
+            { id: 13, nombre: "Jogger de Caballero", categoria: "Caballeros", precio: 10.00, descripcion: "Jogger slim fit ultra-cómodo con cordón ajustable.", imagen: "imagenes/jogger_caballero.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Gris Oscuro"], badge: "Sport", badgeColor: "cyan", disponible: true },
+            { id: 14, nombre: "Bóxer de Caballero", categoria: "Caballeros", precio: 2.50, descripcion: "Bóxer premium de microfibra elástica y ajuste ergonómico.", imagen: "imagenes/boxer_caballero.jpg", tallas: ["M", "L", "XL"], colores: ["Variados"], badge: "Interior", badgeColor: "cyan", disponible: true },
+            { id: 15, nombre: "Short de Algodón", categoria: "Caballeros", precio: 5.00, descripcion: "Short deportivo de algodón suave para descanso o gimnasio.", imagen: "imagenes/short_algodon.jpg", tallas: ["M", "L", "XL"], colores: ["Gris", "Negro"], badge: "Casual", badgeColor: "cyan", disponible: true },
+            { id: 16, nombre: "Chaqueta Cortaviento Imperial", categoria: "Caballeros", precio: 16.00, descripcion: "Chaqueta rompevientos térmica impermeable de alta gama.", imagen: "imagenes/cortaviento.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Azul"], badge: "Windbreaker", badgeColor: "cyan", disponible: true },
+            { id: 17, nombre: "Camiseta de Dama Shein", categoria: "Damas", precio: 4.00, descripcion: "Franela ligera de corte moderno importada marca Shein.", imagen: "imagenes/camiseta_shein.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Moda", badgeColor: "purple", disponible: true },
+            { id: 18, nombre: "Short Ovejita de Niño", categoria: "Combos", precio: 2.00, descripcion: "Short infantil de algodón Ovejita, suavidad garantizada.", imagen: "imagenes/short_ovejita.jpg", tallas: ["2", "4", "6"], colores: ["Variados"], badge: "Algodón", badgeColor: "emerald", disponible: true },
+            { id: 19, nombre: "Bóxer de Niño", categoria: "Combos", precio: 1.50, descripcion: "Bóxer infantil de textura suave sin costuras molestas.", imagen: "imagenes/boxer_nino.jpg", tallas: ["4", "6", "8"], colores: ["Variados"], badge: "Kids", badgeColor: "emerald", disponible: true },
+            { id: 20, nombre: "Media Tobillera Pack", categoria: "Combos", precio: 3.50, descripcion: "Pack de medias tobilleras elásticas de alto rendimiento.", imagen: "imagenes/pack_medias.jpg", tallas: ["Única"], colores: ["Blanco", "Negro", "Surtido"], badge: "Pack", badgeColor: "emerald", disponible: true },
+            { id: 21, nombre: "Pantalón de Dama Impermeable", categoria: "Damas", precio: 12.00, descripcion: "Pantalón impermeable liviano para outdoor o running.", imagen: "imagenes/pantalones_impermeables.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Outdoor", badgeColor: "purple", disponible: true },
+            { id: 22, nombre: "Enterizo Acanalado", categoria: "Damas", precio: 24.00, descripcion: "Enterizo deportivo premium enteramente de tela acanalada.", imagen: "imagenes/enterizo_acanalado.jpg", tallas: ["S", "M"], colores: ["Negro", "Marrón"], badge: "Premium Set", badgeColor: "purple", disponible: true },
+            { id: 23, nombre: "Enterizo Corto (Tela Suple)", categoria: "Damas", precio: 15.00, descripcion: "Enterizo corto elástico, máxima flexibilidad y compresión.", imagen: "imagenes/enterizo_corto.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Suple", badgeColor: "purple", disponible: true },
+            { id: 24, nombre: "Enterizo Largo (Tela Suple)", categoria: "Damas", precio: 16.00, descripcion: "Enterizo largo anatómico para entrenamientos completos.", imagen: "imagenes/enterizo_largo.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Full Body", badgeColor: "purple", disponible: true },
+            { id: 25, nombre: "Enterizo Shein Corto", categoria: "Damas", precio: 10.00, descripcion: "Enterizo corto casual-deportivo con estampados modernos.", imagen: "imagenes/shein_corto.jpg", tallas: ["S", "M"], colores: ["Estampados"], badge: "Shein", badgeColor: "purple", disponible: true },
+            { id: 26, nombre: "Enterizo Shein Largo", categoria: "Damas", precio: 10.00, descripcion: "Enterizo largo versátil, ideal para yoga o uso diario.", imagen: "imagenes/shein_largo.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Gris"], badge: "Shein Fit", badgeColor: "purple", disponible: true },
+            { id: 27, nombre: "Enterizo Largo (Tela Yoga)", categoria: "Damas", precio: 27.00, descripcion: "Enterizo profesional confeccionado en tela yoga ultra-suave.", imagen: "imagenes/tela_yoga.jpg", tallas: ["S", "M", "L"], colores: ["Azul Profundo", "Negro"], badge: "Yoga Pro", badgeColor: "purple", disponible: true },
+            { id: 28, nombre: "Falda Deportiva", categoria: "Damas", precio: 6.00, descripcion: "Falda ligera con short interno para tenis, pádel o gym.", imagen: "imagenes/falda_deportiva.jpg", tallas: ["S", "M"], colores: ["Blanco", "Negro"], badge: "Match", badgeColor: "purple", disponible: true },
+            { id: 29, nombre: "Franela de Caballero (Algodón)", categoria: "Caballeros", precio: 12.00, descripcion: "Franela clásica de algodón peinado premium de alta duración.", imagen: "imagenes/franela_algodon.jpg", tallas: ["S", "M", "L", "XL"], colores: ["Variados"], badge: "100% Algodón", badgeColor: "cyan", disponible: true },
+            { id: 30, nombre: "Franelilla de Caballero", categoria: "Caballeros", precio: 6.00, descripcion: "Franelilla clásica de entrenamiento para levantamiento de pesas.", imagen: "imagenes/franelilla_caballero.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Gris"], badge: "Gym", badgeColor: "cyan", disponible: true },
+            { id: 31, nombre: "Leggings Bota Ancha Yoga", categoria: "Damas", precio: 15.00, descripcion: "Pantalón leggings bota ancha para máxima relajación y confort.", imagen: "imagenes/bota_ancha_yoga.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Relax Fit", badgeColor: "purple", disponible: true }
         ];
+
+        // =====================================================================
+        // LECTOR DE CSV (respeta comillas y comas dentro de la descripción,
+        // tal como las exporta Google Sheets automáticamente)
+        // =====================================================================
+        function parseCSV(texto) {
+            const filas = [];
+            let fila = [], campo = "", entreComillas = false;
+            for (let i = 0; i < texto.length; i++) {
+                const c = texto[i];
+                if (entreComillas) {
+                    if (c === '"' && texto[i + 1] === '"') { campo += '"'; i++; }
+                    else if (c === '"') { entreComillas = false; }
+                    else { campo += c; }
+                } else {
+                    if (c === '"') entreComillas = true;
+                    else if (c === ',') { fila.push(campo); campo = ""; }
+                    else if (c === '\n' || c === '\r') {
+                        if (campo !== "" || fila.length) { fila.push(campo); filas.push(fila); }
+                        fila = []; campo = "";
+                        if (c === '\r' && texto[i + 1] === '\n') i++;
+                    } else { campo += c; }
+                }
+            }
+            if (campo !== "" || fila.length) { fila.push(campo); filas.push(fila); }
+            return filas.filter(f => f.length && f.some(v => v.trim() !== ""));
+        }
+
+        // Convierte las filas del Sheet al mismo formato que ya usa crearTarjetaHTML()
+        function filasAProductos(filas) {
+            const encabezados = filas[0].map(h => h.trim().toLowerCase());
+            return filas.slice(1).map((fila, index) => {
+                const obj = {};
+                encabezados.forEach((h, i) => obj[h] = (fila[i] || "").trim());
+                return {
+                    id: index + 1,
+                    nombre: obj.nombre || "",
+                    categoria: obj.categoria || "",
+                    precio: parseFloat(obj.precio) || 0,
+                    descripcion: obj.descripcion || "",
+                    imagen: obj.imagen || "",
+                    tallas: (obj.tallas || "Única").split("|").map(s => s.trim()).filter(Boolean),
+                    colores: (obj.colores || "Variados").split("|").map(s => s.trim()).filter(Boolean),
+                    badge: obj.badge || "",
+                    badgeColor: obj.badgecolor || "cyan",
+                    disponible: (obj.disponible || "si").toLowerCase() !== "no"
+                };
+            });
+        }
+
+        async function cargarProductosDesdeSheet() {
+            const estado = document.getElementById('estadoCarga');
+            if (!SHEET_CSV_URL) {
+                productos = productosRespaldo;
+                estado.textContent = "";
+                renderizarProductos();
+                return;
+            }
+            try {
+                const res = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+                const texto = await res.text();
+                const filas = parseCSV(texto);
+                const cargados = filasAProductos(filas);
+                productos = cargados.length ? cargados : productosRespaldo;
+                estado.textContent = "";
+            } catch (e) {
+                productos = productosRespaldo;
+                estado.textContent = "No se pudo conectar con el Sheet, mostrando catálogo local.";
+            }
+            renderizarProductos();
+        }
 
         // CONFIGURACIÓN DE MOSTRAR DE 5 EN 5 COMO PEDISTE
         const productosPorPagina = 5;
@@ -348,14 +463,16 @@
     const c = estilosColor[p.badgeColor] || estilosColor.cyan;
     const tallasJSON = JSON.stringify(p.tallas).replace(/"/g, "'");
     const coloresJSON = JSON.stringify(p.colores).replace(/"/g, "'");
+    const agotado = p.disponible === false;
 
     return `
-    <div class="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden ${c.borderHover} transition flex flex-col justify-between">
+    <div class="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden ${c.borderHover} transition flex flex-col justify-between ${agotado ? 'tarjeta-agotada' : ''}">
         <div>
             <!-- IMAGEN DEL PRODUCTO (Reemplaza el título arriba) -->
             <div class="h-64 overflow-hidden relative">
                 <img src="${p.imagen}" alt="${p.nombre}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x400/0a0a0a/ffffff?text=${encodeURIComponent(p.nombre)}'">
                 ${p.badge ? `<span class="absolute top-4 left-4 ${c.badgeBg} ${c.badgeText} text-xs font-bold px-2.5 py-1 rounded-md uppercase">${p.badge}</span>` : ""}
+                ${agotado ? `<span class="sello-agotado">Agotado</span>` : ""}
             </div>
             
             <!-- INFORMACIÓN (Lo verde que querías dejar) -->
@@ -368,8 +485,8 @@
         <!-- PRECIO Y BOTÓN -->
         <div class="p-6 pt-0 flex items-center justify-between border-t border-zinc-900 mt-2">
             <span class="text-2xl font-black text-white">$${p.precio.toFixed(2)}</span>
-            <button onclick="abrirModal('${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, ${tallasJSON}, ${coloresJSON})" class="icon-touch ${c.btnBg} ${c.btnText} border ${c.btnBorder} ${c.btnHover} font-bold px-4 py-2.5 rounded-lg text-xs tracking-wider uppercase">
-                <i class="fa-solid fa-cart-shopping mr-1.5 text-[11px]"></i> Ordenar
+            <button ${agotado ? 'disabled' : ''} onclick="abrirModal('${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, ${tallasJSON}, ${coloresJSON})" class="icon-touch ${c.btnBg} ${c.btnText} border ${c.btnBorder} ${c.btnHover} font-bold px-4 py-2.5 rounded-lg text-xs tracking-wider uppercase ${agotado ? 'boton-deshabilitado' : ''}">
+                <i class="fa-solid fa-cart-shopping mr-1.5 text-[11px]"></i> ${agotado ? 'Agotado' : 'Ordenar'}
             </button>
         </div>
     </div>`;
@@ -389,7 +506,7 @@
             });
 
             // Recorte para mostrar solo el segmento correspondiente (de 5 en 5)
-            const segmentados = filtrados.slice(0, quantityMostrada = cantidadMostrada);
+            const segmentados = filtrados.slice(0, cantidadMostrada);
 
             const grid = document.getElementById('gridProductos');
             const vacio = document.getElementById('sinResultados');
@@ -439,8 +556,8 @@
             reiniciarYRenderizar();
         }
 
-        // Render inicial
-        renderizarProductos();
+        // Render inicial: ahora arranca cargando desde el Sheet (o el respaldo)
+        cargarProductosDesdeSheet();
 
         let productoSeleccionado = "";
         let precioSeleccionado = 0;
@@ -515,7 +632,6 @@
         }
 
         function enviarWhatsApp() {
-            const numeroSistemas = "584245788733";
             const mensaje = `Hola Valera Sport, quiero ordenar el siguiente artículo deportivo:%0A%0A` +
                             `🛍️ *Prenda:* ${productoSeleccionado}%0A` +
                             `📏 *Talla:* ${tallaElegida}%0A` +
@@ -523,11 +639,11 @@
                             `💵 *Precio:* $${precioSeleccionado.toFixed(2)}%0A%0A` +
                             `_Pedido generado automáticamente desde la web oficial por José_`;
 
-            const link = `https://wa.me/${numeroSistemas}?text=${mensaje}`;
+            const link = `https://wa.me/${WHATSAPP_PEDIDOS}?text=${mensaje}`;
             window.open(link, '_blank');
             cerrarModal();
         }
     </script>
 
 </body>
-</html> 
+</html>
