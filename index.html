@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="icon" type="image/jpeg" href="imagenes/foto.jpg">
+<link rel="icon" type="image/png" href="imagenes/logo.png">">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Valera Sport | Tienda Oficial</title>
@@ -331,7 +331,7 @@
         // Pega aquí el link CSV de tu Google Sheet publicado (ver instrucciones).
         // Mientras esté vacío, la web usa productosRespaldo de más abajo.
         // =====================================================================
-        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1TwZrwyishSHNJzVidUSSFEfGLhViTqwsgX2t70jtd2s/export?format=csv"
+        const SHEET_CSV_URL = ""
 
         // Numero de WhatsApp que recibe los pedidos configurados en el modal
         const _0xec4d = "NTg0MjQ1OTM5NDA3";
@@ -470,7 +470,7 @@
         <div>
             <!-- IMAGEN DEL PRODUCTO (Reemplaza el título arriba) -->
             <div class="h-64 overflow-hidden relative">
-                <img src="${p.imagen}" alt="${p.nombre}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x400/0a0a0a/ffffff?text=${encodeURIComponent(p.nombre)}'">
+                <img src="imagenes/logo.png" alt="Logo Valera Sport">
                 ${p.badge ? `<span class="absolute top-4 left-4 ${c.badgeBg} ${c.badgeText} text-xs font-bold px-2.5 py-1 rounded-md uppercase">${p.badge}</span>` : ""}
                 ${agotado ? `<span class="sello-agotado">Agotado</span>` : ""}
             </div>
