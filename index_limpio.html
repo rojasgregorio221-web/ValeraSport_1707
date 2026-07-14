@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<link rel="icon" type="image/png" href="imagenes/logo.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valera Sport | Tienda Oficial</title>
+
+    <!-- Cargamos Tailwind CSS para diseño rápido y elegante -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts deportivas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome para iconos de redes y deporte -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* Negro absoluto OLED de alta gama */
+            scroll-behavior: smooth;
+        }
+        h1, h2, h3, .font-brand {
+            font-family: 'Outfit', sans-serif;
+        }
+        /* Desvanecido sutil para transiciones del modal */
+        .modal-transition {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        /* Efecto de "toque" reutilizable: ícono discreto que reacciona al hover/touch */
+        .icon-touch {
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+        }
+        .icon-touch:hover, .icon-touch:active {
+            transform: scale(1.08);
+        }
+        .icon-touch:active {
+            transform: scale(0.94);
+        }
+        /* Scrollbar discreto (opcional, mejora estética en escritorio) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+
+        /* Estado vacío del buscador */
+        #sinResultados { display: none; }
+
+        /* Sello de agotado (nuevo) */
+        .sello-agotado {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #7f1d1d;
+            color: #fca5a5;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .tarjeta-agotada { opacity: 0.55; }
+        .boton-deshabilitado {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        #estadoCarga {
+            text-align: center;
+            color: #71717a;
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body class="text-slate-300 antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-900">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+
+            <!-- Logo de la Marca -->
+            <a href="#" class="flex items-center gap-2">
+                <span class="text-2xl font-black tracking-wider text-white">VALERA<span class="text-cyan-500">SPORT</span></span>
+            </a>
+
+            <!-- Enlaces rápidos -->
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+                <a href="#productos" class="text-slate-400 hover:text-white transition">Catálogo</a>
+                <a href="#categorias" class="text-slate-400 hover:text-white transition">Categorías</a>
+                <a href="#contacto" class="text-slate-400 hover:text-cyan-400 transition">Ubicación</a>
+            </nav>
+
+            <!-- Botón de Contacto Directo General (ícono más discreto) -->
+            <div>
+                <a href="https://wa.me/584245939407?text=Hola%20Valera%20Sport,%20estoy%20viendo%20su%20p%C3%A1gina%20web%20y%20quiero%20m%C3%A1s%20informaci%C3%B3n" target="_blank" class="icon-touch bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold px-4 py-2 rounded-full text-xs tracking-wider uppercase transition flex items-center gap-1.5 shadow-md shadow-cyan-500/10">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> Consultar
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- SECCIÓN HERO (BANNER PRINCIPAL) -->
+    <section class="relative overflow-hidden bg-black py-16 lg:py-24">
+        <!-- Efectos de Luces de Fondo (Glows de Apple) -->
+        <div class="absolute -top-10 -right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-4xl mx-auto px-6 flex flex-col items-center text-center space-y-6">
+
+           
+            <h1 class="text-4xl lg:text-5xl font-black text-white leading-tight uppercase">
+                Rendimiento Sin Límites
+            </h1>
+            <p class="text-base lg:text-lg text-slate-400 max-w-xl">
+                Descubre la ropa deportiva más resistente y cómoda de Barquisimeto. Chaquetas rompevientos, conjuntos para damas y bóxers premium diseñados para dar tu 100% todos los días.
+            </p>
+            <div class="pt-2">
+                <a href="#productos" class="inline-block bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-extrabold px-8 py-4 rounded-xl text-sm tracking-wider uppercase shadow-lg shadow-cyan-500/20 transition">
+                    Ver Catálogo de Ropa
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- GRILLA DE CATEGORÍAS (clicables, filtran el catálogo) -->
+    <section id="categorias" class="py-16 bg-black border-y border-zinc-900">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl font-black text-white uppercase tracking-tight mb-10 text-center lg:text-left">Explorar Categorías</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Caballeros (Brillo Cyan) -->
+                <div onclick="filtrarPorCategoria('Caballeros')" class="bg-zinc-950 border border-zinc-900/80 rounded-2xl p-8 hover:border-cyan-500/60 hover:shadow-[0_0_35px_rgba(6,182,212,0.14)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                    <div class="icon-touch w-10 h-10 bg-cyan-950/50 border border-cyan-800/30 rounded-xl flex items-center justify-center text-cyan-400 mb-6 group-hover:bg-cyan-500 group-hover:text-gray-950 group-hover:shadow-[0_0_12px_rgba(6,182,212,0.35)]">
+                        <i class="fa-solid fa-shirt text-base"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Caballeros</h3>
+                    <p class="text-sm text-slate-400">Chaquetas térmicas, camisas dry-fit y bóxers premium para comodidad máxima.</p>
+                </div>
+
+                <!-- Damas (Brillo Morado) -->
+                <div onclick="filtrarPorCategoria('Damas')" class="bg-zinc-950 border border-zinc-900/80 rounded-2xl p-8 hover:border-purple-500/60 hover:shadow-[0_0_35px_rgba(168,85,247,0.14)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                    <div class="icon-touch w-10 h-10 bg-purple-950/50 border border-purple-800/30 rounded-xl flex items-center justify-center text-purple-400 mb-6 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-[0_0_12px_rgba(168,85,247,0.35)]">
+                        <i class="fa-solid fa-vest-patches text-base"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Damas</h3>
+                    <p class="text-sm text-slate-400">Licras de compresión, conjuntos deportivos de alta resistencia y tops de entrenamiento.</p>
+                </div>
+
+                <!-- Combos (Brillo Verde) -->
+                <div onclick="filtrarPorCategoria('Combos')" class="bg-zinc-950 border border-zinc-900/80 rounded-2xl p-8 hover:border-emerald-500/60 hover:shadow-[0_0_35px_rgba(16,185,129,0.14)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                    <div class="icon-touch w-10 h-10 bg-emerald-950/50 border border-emerald-800/30 rounded-xl flex items-center justify-center text-emerald-400 mb-6 group-hover:bg-emerald-500 group-hover:text-gray-950 group-hover:shadow-[0_0_12px_rgba(16,185,129,0.35)]">
+                        <i class="fa-solid fa-tags text-base"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Combos Deportivos</h3>
+                    <p class="text-sm text-slate-400">Ahorra comprando en paquetes. Oferta al mayor para revendedores.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN PRODUCTOS -->
+    <section id="productos" class="py-20 max-w-7xl mx-auto px-6 w-full">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+            <h2 class="text-4xl font-black text-white uppercase tracking-tight">Prendas Destacadas</h2>
+            <p class="text-slate-400 mt-4">Haz clic en ordenar para elegir tu talla e iniciar tu compra directa por WhatsApp.</p>
+        </div>
+
+        <!-- BUSCADOR -->
+        <div class="max-w-xl mx-auto mb-4">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none"></i>
+                <input
+                    type="text"
+                    id="buscador"
+                    oninput="reiniciarYRenderizar()"
+                    placeholder="Buscar por nombre, categoría o descripción..."
+                    class="w-full bg-zinc-950 border border-zinc-900 focus:border-cyan-500/50 rounded-full pl-11 pr-11 py-3 text-sm text-white placeholder:text-slate-600 outline-none transition focus:shadow-[0_0_0_3px_rgba(6,182,212,0.12)]"
+                >
+                <button
+                    id="btnLimpiar"
+                    onclick="limpiarBusqueda()"
+                    class="icon-touch absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white w-6 h-6 flex items-center justify-center rounded-full hidden">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Chip de categoría activa -->
+            <div id="chipCategoria" class="hidden mt-3 flex items-center justify-center gap-2 text-xs text-slate-400">
+                <span>Filtrando por:</span>
+                <span id="chipCategoriaTexto" class="bg-zinc-900 border border-zinc-800 text-white px-3 py-1 rounded-full font-semibold"></span>
+                <button onclick="filtrarPorCategoria(null)" class="icon-touch text-slate-500 hover:text-white w-5 h-5 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Estado de carga del Sheet (nuevo) -->
+        <p id="estadoCarga">Cargando catálogo...</p>
+
+        <!-- Contador de resultados -->
+        <p id="contadorResultados" class="text-center text-xs text-slate-600 uppercase tracking-wider mb-10"></p>
+
+        <!-- Grid de productos (se llena por JavaScript) -->
+        <div id="gridProductos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+
+        <!-- BOTÓN BUSCAR MAS (Muestra de 5 en 5 de forma limpia) -->
+        <div class="text-center mt-12" id="containerVerMas">
+            <button onclick="cargarMasProductos()" class="icon-touch bg-zinc-950 border border-zinc-900 hover:border-zinc-700 text-slate-400 hover:text-white font-extrabold px-8 py-4 rounded-xl text-sm tracking-wider uppercase transition">
+                Buscar más prendas <i class="fa-solid fa-chevron-down ml-1.5 text-xs"></i>
+            </button>
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="sinResultados" class="text-center py-20">
+            <div class="w-14 h-14 mx-auto rounded-full bg-zinc-950 border border-zinc-900 flex items-center justify-center text-slate-600 mb-4">
+                <i class="fa-solid fa-magnifying-glass text-lg"></i>
+            </div>
+            <p class="text-white font-bold">No encontramos prendas para tu búsqueda</p>
+            <p class="text-sm text-slate-500 mt-1">Intenta con otra palabra o quita el filtro de categoría.</p>
+        </div>
+    </section>
+
+    <!-- MODAL DE COMPRA DIRECTA (INTERACTIVO) -->
+    <div id="compraModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-zinc-950 border border-zinc-900 rounded-2xl w-full max-w-md p-6 relative shadow-2xl modal-transition scale-95 opacity-0" id="modalContainer">
+            <!-- Botón Cerrar -->
+            <button onclick="cerrarModal()" class="icon-touch absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-zinc-900 text-sm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <h3 class="text-xl font-bold text-white mb-1 uppercase tracking-tight" id="modalTitulo">Configurar Pedido</h3>
+            <p class="text-xs text-slate-400 mb-6">Selecciona los atributos para generar tu enlace de WhatsApp directo.</p>
+
+            <!-- Formulario del Modal -->
+            <div class="space-y-4">
+                <!-- Tallas -->
+                <div>
+                    <label class="text-xs font-bold text-cyan-400 uppercase tracking-widest block mb-2">Selecciona la Talla:</label>
+                    <div class="flex flex-wrap gap-2" id="tallaContainer"></div>
+                </div>
+
+                <!-- Colores -->
+                <div>
+                    <label class="text-xs font-bold text-cyan-400 uppercase tracking-widest block mb-2">Selecciona el Color:</label>
+                    <div class="flex flex-wrap gap-2" id="colorContainer"></div>
+                </div>
+
+                <!-- Precio -->
+                <div class="bg-black p-4 rounded-xl border border-zinc-900 flex justify-between items-center mt-6">
+                    <span class="text-xs text-slate-500 uppercase font-bold">Total estimado:</span>
+                    <span class="text-2xl font-black text-white" id="modalPrecio">$0.00</span>
+                </div>
+
+                <!-- Botón de Envío -->
+                <button onclick="enviarWhatsApp()" class="icon-touch w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 mt-4 shadow-md shadow-emerald-500/10">
+                    <i class="fa-brands fa-whatsapp text-base"></i> Confirmar pedido por WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN DE CONTACTO Y UBICACIÓN -->
+    <section id="contacto" class="py-16 bg-black border-t border-zinc-900 w-full">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <h2 class="text-3xl font-black text-white uppercase tracking-tight">Visítanos en Tienda</h2>
+                <p class="text-slate-400">
+                    Estamos ubicados en una de las mejores zonas comerciales de Barquisimeto. Acércate para probarte la ropa deportiva en persona y recibir asesoría directa de Clary.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4">
+                        <div class="icon-touch w-9 h-9 rounded-lg bg-zinc-950 border border-zinc-900 flex items-center justify-center text-cyan-400 shrink-0 text-sm">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white text-sm">Dirección física</p>
+                            <p class="text-sm text-slate-400">Calle 28 entre Carreras 19 y 20, C.C. Cosmos (Antiguo Beco), Local 121-122. Barquisimeto, Lara.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="icon-touch w-9 h-9 rounded-lg bg-zinc-950 border border-zinc-900 flex items-center justify-center text-cyan-400 shrink-0 text-sm">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white text-sm">Horario de Atención</p>
+                            <p class="text-sm text-slate-400">Lunes a Sábado: 8:00 AM - 5:30 PM</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mapa simulado interactivo -->
+            <div class="h-64 md:h-80 bg-zinc-950 rounded-2xl border border-zinc-900 flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                <div class="relative space-y-4">
+                    <div class="w-14 h-14 bg-cyan-950 text-cyan-400 rounded-full flex items-center justify-center text-2xl mx-auto border border-cyan-800/30">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Barquisimeto, Lara</h3>
+                    <p class="text-xs text-slate-400 max-w-xs mx-auto">Próximamente integraremos un mapa satelital interactivo para guiarte paso a paso hasta el local de Clary.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BOTÓN FLOTANTE DE WHATSAPP (discreto, con leve pulso) -->
+    <a href="https://wa.me/584245788733" target="_blank"
+       class="icon-touch fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-lg">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- FOOTER -->
+    <footer class="bg-black py-10 border-t border-zinc-900 w-full text-center">
+        <div class="max-w-7xl mx-auto px-6 space-y-4">
+            <p class="text-xs tracking-wider uppercase font-semibold text-slate-500">
+                © 2026 VALERA SPORT. TODOS LOS DERECHOS RESERVADOS.
+            </p>
+            <p class="text-xs text-slate-600">
+                Sitio Web diseñado e integrado por <span class="text-cyan-500/80 font-bold">Gregorio Yepez</span> 
+            </p>
+        </div>
+    </footer>
+
+    <!-- LÓGICA DE PROGRAMACIÓN INTERACTIVA -->
+    <script>
+        // =====================================================================
+        // ZONA EDITABLE — SOLO TOCA ESTA LÍNEA
+        // Pega aquí el link CSV de tu Google Sheet publicado (ver instrucciones).
+        // Mientras esté vacío, la web usa productosRespaldo de más abajo.
+        // =====================================================================
+        const SHEET_CSV_URL = ""
+
+        // Numero de WhatsApp que recibe los pedidos configurados en el modal
+        const _0xec4d = "NTg0MjQ1OTM5NDA3";
+        const WHATSAPP_PEDIDOS = atob(_0xec4d);
+
+        // productos empieza vacío: se llena solo con cargarProductosDesdeSheet()
+        let productos = [];
+
+        // Respaldo local por si el Sheet aún no está conectado o falla la conexión,
+        // para que la página nunca se vea rota. Es tu inventario actual tal cual estaba.
+        const productosRespaldo = [
+            { id: 1, nombre: "Sudadera de Dama", categoria: "Damas", precio: 5.00, descripcion: "Sudadera deportiva de dama, cómoda y ligera para entrenar.", imagen: "imagenes/sudadera_dama.jpg", tallas: ["Única", "S", "M"], colores: ["Variados"], badge: "Colección", badgeColor: "purple", disponible: true },
+            { id: 2, nombre: "Leggings Plus", categoria: "Damas", precio: 10.00, descripcion: "Licra deportiva talla plus de alta compresión y resistencia.", imagen: "imagenes/leggings_plus.jpg", tallas: ["XL", "XXL"], colores: ["Negro", "Gris"], badge: "Plus Size", badgeColor: "purple", disponible: true },
+            { id: 3, nombre: "Leggings Modelo", categoria: "Damas", precio: 10.00, descripcion: "Leggings clásico de entrenamiento, ajuste premium para damas.", imagen: "imagenes/leggings_modelo.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Popular", badgeColor: "purple", disponible: true },
+            { id: 4, nombre: "Leggings Bota Campana", categoria: "Damas", precio: 10.00, descripcion: "Leggings estilo bota campana con soporte de cintura alta.", imagen: "imagenes/sudadera_dama.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Tendencia", badgeColor: "purple", disponible: true },
+            { id: 5, nombre: "Sudadera de Niño", categoria: "Combos", precio: 6.00, descripcion: "Sudadera cómoda y resistente para los más pequeños.", imagen: "imagenes/sudadera_nino.jpg", tallas: ["4", "6", "8", "10"], colores: ["Variados"], badge: "Infantil", badgeColor: "emerald", disponible: true },
+            { id: 6, nombre: "Short de Dama", categoria: "Damas", precio: 6.00, descripcion: "Short deportivo ergonómico, transpirabilidad y frescura.", imagen: "imagenes/short_dama.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Básico", badgeColor: "purple", disponible: true },
+            { id: 7, nombre: "Biker (Calza Corta)", categoria: "Damas", precio: 6.00, descripcion: "Calza corta tipo biker stretch ideal para entrenamientos exigentes.", imagen: "imagenes/biker.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Running", badgeColor: "purple", disponible: true },
+            { id: 8, nombre: "Franelilla Microperforada", categoria: "Caballeros", precio: 6.00, descripcion: "Franelilla running ultra-transpirable de secado rápido.", imagen: "imagenes/microperforada.jpg", tallas: ["S", "M", "L", "XL"], colores: ["Negro", "Blanco", "Gris"], badge: "Dry Fit", badgeColor: "cyan", disponible: true },
+            { id: 9, nombre: "Vestido Deportivo", categoria: "Damas", precio: 15.00, descripcion: "Vestido con licra interna integrada para máxima libertad física.", imagen: "imagenes/vestido_deportivo.jpg", tallas: ["S", "M"], colores: ["Variados"], badge: "Premium", badgeColor: "purple", disponible: true },
+            { id: 10, nombre: "Conjunto De Shorts", categoria: "Damas", precio: 10.00, descripcion: "Conjunto deportivo de dos piezas (Top + Short coordinado).", imagen: "imagenes/conjunto_short.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Set Completo", badgeColor: "purple", disponible: true },
+            { id: 11, nombre: "Top Deportivo", categoria: "Damas", precio: 5.00, descripcion: "Top elástico de alto impacto con soporte muscular reforzado.", imagen: "imagenes/top_deportivo.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Fitness", badgeColor: "purple", disponible: true },
+            { id: 12, nombre: "Mono Cargo", categoria: "Caballeros", precio: 15.00, descripcion: "Pantalón tipo mono cargo deportivo con bolsillos técnicos.", imagen: "imagenes/mono_cargo.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Verde Oliva"], badge: "Streetwear", badgeColor: "cyan", disponible: true },
+            { id: 13, nombre: "Jogger de Caballero", categoria: "Caballeros", precio: 10.00, descripcion: "Jogger slim fit ultra-cómodo con cordón ajustable.", imagen: "imagenes/jogger_caballero.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Gris Oscuro"], badge: "Sport", badgeColor: "cyan", disponible: true },
+            { id: 14, nombre: "Bóxer de Caballero", categoria: "Caballeros", precio: 2.50, descripcion: "Bóxer premium de microfibra elástica y ajuste ergonómico.", imagen: "imagenes/boxer_caballero.jpg", tallas: ["M", "L", "XL"], colores: ["Variados"], badge: "Interior", badgeColor: "cyan", disponible: true },
+            { id: 15, nombre: "Short de Algodón", categoria: "Caballeros", precio: 5.00, descripcion: "Short deportivo de algodón suave para descanso o gimnasio.", imagen: "imagenes/short_algodon.jpg", tallas: ["M", "L", "XL"], colores: ["Gris", "Negro"], badge: "Casual", badgeColor: "cyan", disponible: true },
+            { id: 16, nombre: "Chaqueta Cortaviento Imperial", categoria: "Caballeros", precio: 16.00, descripcion: "Chaqueta rompevientos térmica impermeable de alta gama.", imagen: "imagenes/cortaviento.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Azul"], badge: "Windbreaker", badgeColor: "cyan", disponible: true },
+            { id: 17, nombre: "Camiseta de Dama Shein", categoria: "Damas", precio: 4.00, descripcion: "Franela ligera de corte moderno importada marca Shein.", imagen: "imagenes/camiseta_shein.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Moda", badgeColor: "purple", disponible: true },
+            { id: 18, nombre: "Short Ovejita de Niño", categoria: "Combos", precio: 2.00, descripcion: "Short infantil de algodón Ovejita, suavidad garantizada.", imagen: "imagenes/short_ovejita.jpg", tallas: ["2", "4", "6"], colores: ["Variados"], badge: "Algodón", badgeColor: "emerald", disponible: true },
+            { id: 19, nombre: "Bóxer de Niño", categoria: "Combos", precio: 1.50, descripcion: "Bóxer infantil de textura suave sin costuras molestas.", imagen: "imagenes/boxer_nino.jpg", tallas: ["4", "6", "8"], colores: ["Variados"], badge: "Kids", badgeColor: "emerald", disponible: true },
+            { id: 20, nombre: "Media Tobillera Pack", categoria: "Combos", precio: 3.50, descripcion: "Pack de medias tobilleras elásticas de alto rendimiento.", imagen: "imagenes/pack_medias.jpg", tallas: ["Única"], colores: ["Blanco", "Negro", "Surtido"], badge: "Pack", badgeColor: "emerald", disponible: true },
+            { id: 21, nombre: "Pantalón de Dama Impermeable", categoria: "Damas", precio: 12.00, descripcion: "Pantalón impermeable liviano para outdoor o running.", imagen: "imagenes/pantalones_impermeables.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Outdoor", badgeColor: "purple", disponible: true },
+            { id: 22, nombre: "Enterizo Acanalado", categoria: "Damas", precio: 24.00, descripcion: "Enterizo deportivo premium enteramente de tela acanalada.", imagen: "imagenes/enterizo_acanalado.jpg", tallas: ["S", "M"], colores: ["Negro", "Marrón"], badge: "Premium Set", badgeColor: "purple", disponible: true },
+            { id: 23, nombre: "Enterizo Corto (Tela Suple)", categoria: "Damas", precio: 15.00, descripcion: "Enterizo corto elástico, máxima flexibilidad y compresión.", imagen: "imagenes/enterizo_corto.jpg", tallas: ["S", "M", "L"], colores: ["Variados"], badge: "Suple", badgeColor: "purple", disponible: true },
+            { id: 24, nombre: "Enterizo Largo (Tela Suple)", categoria: "Damas", precio: 16.00, descripcion: "Enterizo largo anatómico para entrenamientos completos.", imagen: "imagenes/enterizo_largo.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Full Body", badgeColor: "purple", disponible: true },
+            { id: 25, nombre: "Enterizo Shein Corto", categoria: "Damas", precio: 10.00, descripcion: "Enterizo corto casual-deportivo con estampados modernos.", imagen: "imagenes/shein_corto.jpg", tallas: ["S", "M"], colores: ["Estampados"], badge: "Shein", badgeColor: "purple", disponible: true },
+            { id: 26, nombre: "Enterizo Shein Largo", categoria: "Damas", precio: 10.00, descripcion: "Enterizo largo versátil, ideal para yoga o uso diario.", imagen: "imagenes/shein_largo.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Gris"], badge: "Shein Fit", badgeColor: "purple", disponible: true },
+            { id: 27, nombre: "Enterizo Largo (Tela Yoga)", categoria: "Damas", precio: 27.00, descripcion: "Enterizo profesional confeccionado en tela yoga ultra-suave.", imagen: "imagenes/tela_yoga.jpg", tallas: ["S", "M", "L"], colores: ["Azul Profundo", "Negro"], badge: "Yoga Pro", badgeColor: "purple", disponible: true },
+            { id: 28, nombre: "Falda Deportiva", categoria: "Damas", precio: 6.00, descripcion: "Falda ligera con short interno para tenis, pádel o gym.", imagen: "imagenes/falda_deportiva.jpg", tallas: ["S", "M"], colores: ["Blanco", "Negro"], badge: "Match", badgeColor: "purple", disponible: true },
+            { id: 29, nombre: "Franela de Caballero (Algodón)", categoria: "Caballeros", precio: 12.00, descripcion: "Franela clásica de algodón peinado premium de alta duración.", imagen: "imagenes/franela_algodon.jpg", tallas: ["S", "M", "L", "XL"], colores: ["Variados"], badge: "100% Algodón", badgeColor: "cyan", disponible: true },
+            { id: 30, nombre: "Franelilla de Caballero", categoria: "Caballeros", precio: 6.00, descripcion: "Franelilla clásica de entrenamiento para levantamiento de pesas.", imagen: "imagenes/franelilla_caballero.jpg", tallas: ["S", "M", "L"], colores: ["Negro", "Gris"], badge: "Gym", badgeColor: "cyan", disponible: true },
+            { id: 31, nombre: "Leggings Bota Ancha Yoga", categoria: "Damas", precio: 15.00, descripcion: "Pantalón leggings bota ancha para máxima relajación y confort.", imagen: "imagenes/bota_ancha_yoga.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Relax Fit", badgeColor: "purple", disponible: true }
+        ];
+
+        // =====================================================================
+        // LECTOR DE CSV (respeta comillas y comas dentro de la descripción,
+        // tal como las exporta Google Sheets automáticamente)
+        // =====================================================================
+        function parseCSV(texto) {
+            const filas = [];
+            let fila = [], campo = "", entreComillas = false;
+            for (let i = 0; i < texto.length; i++) {
+                const c = texto[i];
+                if (entreComillas) {
+                    if (c === '"' && texto[i + 1] === '"') { campo += '"'; i++; }
+                    else if (c === '"') { entreComillas = false; }
+                    else { campo += c; }
+                } else {
+                    if (c === '"') entreComillas = true;
+                    else if (c === ',') { fila.push(campo); campo = ""; }
+                    else if (c === '\n' || c === '\r') {
+                        if (campo !== "" || fila.length) { fila.push(campo); filas.push(fila); }
+                        fila = []; campo = "";
+                        if (c === '\r' && texto[i + 1] === '\n') i++;
+                    } else { campo += c; }
+                }
+            }
+            if (campo !== "" || fila.length) { fila.push(campo); filas.push(fila); }
+            return filas.filter(f => f.length && f.some(v => v.trim() !== ""));
+        }
+
+        // Convierte las filas del Sheet al mismo formato que ya usa crearTarjetaHTML()
+        function filasAProductos(filas) {
+            const encabezados = filas[0].map(h => h.trim().toLowerCase());
+            return filas.slice(1).map((fila, index) => {
+                const obj = {};
+                encabezados.forEach((h, i) => obj[h] = (fila[i] || "").trim());
+                return {
+                    id: index + 1,
+                    nombre: obj.nombre || "",
+                    categoria: obj.categoria || "",
+                    precio: parseFloat(obj.precio) || 0,
+                    descripcion: obj.descripcion || "",
+                    imagen: obj.imagen || "",
+                    tallas: (obj.tallas || "Única").split("|").map(s => s.trim()).filter(Boolean),
+                    colores: (obj.colores || "Variados").split("|").map(s => s.trim()).filter(Boolean),
+                    badge: obj.badge || "",
+                    badgeColor: obj.badgecolor || "cyan",
+                    disponible: (obj.disponible || "si").toLowerCase() !== "no"
+                };
+            });
+        }
+
+        async function cargarProductosDesdeSheet() {
+            const estado = document.getElementById('estadoCarga');
+            if (!SHEET_CSV_URL) {
+                productos = productosRespaldo;
+                estado.textContent = "";
+                renderizarProductos();
+                return;
+            }
+            try {
+                const res = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+                const texto = await res.text();
+                const filas = parseCSV(texto);
+                const cargados = filasAProductos(filas);
+                productos = cargados.length ? cargados : productosRespaldo;
+                estado.textContent = "";
+            } catch (e) {
+                productos = productosRespaldo;
+                estado.textContent = "No se pudo conectar con el Sheet, mostrando catálogo local.";
+            }
+            renderizarProductos();
+        }
+
+        // CONFIGURACIÓN DE MOSTRAR DE 5 EN 5 COMO PEDISTE
+        const productosPorPagina = 5;
+        let cantidadMostrada = productosPorPagina;
+        let categoriaActiva = null;
+
+        // Estilos por color de insignia original
+        const estilosColor = {
+            cyan: { borderHover: "hover:border-cyan-500/30", badgeBg: "bg-cyan-500", badgeText: "text-gray-950", btnBg: "bg-cyan-950", btnText: "text-cyan-400", btnBorder: "border-cyan-800/30", btnHover: "hover:bg-cyan-500 hover:text-gray-950" },
+            purple: { borderHover: "hover:border-purple-500/30", badgeBg: "bg-purple-500", badgeText: "text-white", btnBg: "bg-purple-950", btnText: "text-purple-400", btnBorder: "border-purple-800/30", btnHover: "hover:bg-purple-500 hover:text-white" },
+            emerald: { borderHover: "hover:border-emerald-500/30", badgeBg: "bg-emerald-500", badgeText: "text-gray-950", btnBg: "bg-emerald-950", btnText: "text-emerald-400", btnBorder: "border-emerald-800/30", btnHover: "hover:bg-emerald-500 hover:text-gray-950" }
+        };
+
+       function crearTarjetaHTML(p) {
+    const c = estilosColor[p.badgeColor] || estilosColor.cyan;
+    const tallasJSON = JSON.stringify(p.tallas).replace(/"/g, "'");
+    const coloresJSON = JSON.stringify(p.colores).replace(/"/g, "'");
+    const agotado = p.disponible === false;
+
+    return `
+    <div class="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden ${c.borderHover} transition flex flex-col justify-between ${agotado ? 'tarjeta-agotada' : ''}">
+        <div>
+            <!-- IMAGEN DEL PRODUCTO (Reemplaza el título arriba) -->
+            <div class="h-64 overflow-hidden relative">
+             <img src="imagenes/logo.jpg" alt="Logo Valera Sport">
+                ${p.badge ? `<span class="absolute top-4 left-4 ${c.badgeBg} ${c.badgeText} text-xs font-bold px-2.5 py-1 rounded-md uppercase">${p.badge}</span>` : ""}
+                ${agotado ? `<span class="sello-agotado">Agotado</span>` : ""}
+            </div>
+            
+            <!-- INFORMACIÓN (Lo verde que querías dejar) -->
+            <div class="p-6 space-y-2">
+                <h3 class="text-xl font-bold text-white">${p.nombre}</h3>
+                <p class="text-sm text-slate-400">${p.descripcion}</p>
+            </div>
+        </div>
+        
+        <!-- PRECIO Y BOTÓN -->
+        <div class="p-6 pt-0 flex items-center justify-between border-t border-zinc-900 mt-2">
+            <span class="text-2xl font-black text-white">$${p.precio.toFixed(2)}</span>
+            <button ${agotado ? 'disabled' : ''} onclick="abrirModal('${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, ${tallasJSON}, ${coloresJSON})" class="icon-touch ${c.btnBg} ${c.btnText} border ${c.btnBorder} ${c.btnHover} font-bold px-4 py-2.5 rounded-lg text-xs tracking-wider uppercase ${agotado ? 'boton-deshabilitado' : ''}">
+                <i class="fa-solid fa-cart-shopping mr-1.5 text-[11px]"></i> ${agotado ? 'Agotado' : 'Ordenar'}
+            </button>
+        </div>
+    </div>`;
+}
+
+        function renderizarProductos() {
+            const texto = document.getElementById('buscador').value.trim().toLowerCase();
+            document.getElementById('btnLimpiar').classList.toggle('hidden', texto.length === 0);
+
+            const filtrados = productos.filter(p => {
+                const coincideTexto = !texto ||
+                    p.nombre.toLowerCase().includes(texto) ||
+                    p.descripcion.toLowerCase().includes(texto) ||
+                    p.categoria.toLowerCase().includes(texto);
+                const coincideCategoria = !categoriaActiva || p.categoria === categoriaActiva;
+                return coincideTexto && coincideCategoria;
+            });
+
+            // Recorte para mostrar solo el segmento correspondiente (de 5 en 5)
+            const segmentados = filtrados.slice(0, cantidadMostrada);
+
+            const grid = document.getElementById('gridProductos');
+            const vacio = document.getElementById('sinResultados');
+            const contador = document.getElementById('contadorResultados');
+
+            grid.innerHTML = segmentados.map(crearTarjetaHTML).join('');
+            vacio.style.display = filtrados.length === 0 ? 'block' : 'none';
+            
+            contador.textContent = filtrados.length > 0
+                ? `Mostrando ${segmentados.length} de ${filtrados.length} prendas`
+                : '';
+
+            // Mostrar u ocultar botón de paginación según queden elementos
+            const btnVerMas = document.getElementById('containerVerMas');
+            if (filtrados.length > cantidadMostrada) {
+                btnVerMas.style.display = 'block';
+            } else {
+                btnVerMas.style.display = 'none';
+            }
+        }
+
+        function cargarMasProductos() {
+            cantidadMostrada += productosPorPagina; // Incrementa 5 adicionales
+            renderizarProductos();
+        }
+
+        function reiniciarYRenderizar() {
+            cantidadMostrada = productosPorPagina;
+            renderizarProductos();
+        }
+
+        function limpiarBusqueda() {
+            document.getElementById('buscador').value = '';
+            reiniciarYRenderizar();
+        }
+
+        function filtrarPorCategoria(categoria) {
+            categoriaActiva = categoria;
+            const chip = document.getElementById('chipCategoria');
+            if (categoria) {
+                chip.classList.remove('hidden');
+                document.getElementById('chipCategoriaTexto').textContent = categoria;
+                document.getElementById('productos').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                chip.classList.add('hidden');
+            }
+            reiniciarYRenderizar();
+        }
+
+        // Render inicial: ahora arranca cargando desde el Sheet (o el respaldo)
+        cargarProductosDesdeSheet();
+
+        let productoSeleccionado = "";
+        let precioSeleccionado = 0;
+        let tallaElegida = "";
+        let colorElegido = "";
+
+        function abrirModal(nombre, precio, tallas, colores) {
+            productoSeleccionado = nombre;
+            precioSeleccionado = precio;
+            tallaElegida = tallas[0];
+            colorElegido = colores[0];
+
+            document.getElementById('modalTitulo').innerText = nombre;
+            document.getElementById('modalPrecio').innerText = `$${precio.toFixed(2)}`;
+
+            const tallaContainer = document.getElementById('tallaContainer');
+            tallaContainer.innerHTML = "";
+            tallas.forEach((talla, index) => {
+                const activeClass = index === 0 ? "bg-cyan-500 text-gray-950 border-cyan-500" : "bg-black border-zinc-900 text-slate-400 hover:border-cyan-500/50";
+                tallaContainer.innerHTML += `
+                    <button onclick="seleccionarTalla(this, '${talla}')" class="icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase ${activeClass}">
+                        ${talla}
+                    </button>
+                `;
+            });
+
+            const colorContainer = document.getElementById('colorContainer');
+            colorContainer.innerHTML = "";
+            colores.forEach((color, index) => {
+                const activeClass = index === 0 ? "bg-cyan-500 text-gray-950 border-cyan-500" : "bg-black border-zinc-900 text-slate-400 hover:border-cyan-500/50";
+                colorContainer.innerHTML += `
+                    <button onclick="seleccionarColor(this, '${color}')" class="icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase ${activeClass}">
+                        ${color}
+                    </button>
+                `;
+            });
+
+            const modal = document.getElementById('compraModal');
+            const container = document.getElementById('modalContainer');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }, 50);
+        }
+
+        function seleccionarTalla(elemento, talla) {
+            tallaElegida = talla;
+            const hermanos = elemento.parentNode.children;
+            for (let btn of hermanos) {
+                btn.className = "icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase bg-black border-zinc-900 text-slate-400 hover:border-cyan-500/50";
+            }
+            elemento.className = "icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase bg-cyan-500 text-gray-950 border-cyan-500";
+        }
+
+        function seleccionarColor(elemento, color) {
+            colorElegido = color;
+            const hermanos = elemento.parentNode.children;
+            for (let btn of hermanos) {
+                btn.className = "icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase bg-black border-zinc-900 text-slate-400 hover:border-cyan-500/50";
+            }
+            elemento.className = "icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase bg-cyan-500 text-gray-950 border-cyan-500";
+        }
+
+        function cerrarModal() {
+            const container = document.getElementById('modalContainer');
+            container.classList.remove('scale-100', 'opacity-100');
+            container.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                document.getElementById('compraModal').classList.add('hidden');
+            }, 250);
+        }
+
+        function enviarWhatsApp() {
+            const mensaje = `Hola Valera Sport, quiero ordenar el siguiente artículo deportivo:%0A%0A` +
+                            `🛍️ *Prenda:* ${productoSeleccionado}%0A` +
+                            `📏 *Talla:* ${tallaElegida}%0A` +
+                            `🎨 *Color:* ${colorElegido}%0A` +
+                            `💵 *Precio:* $${precioSeleccionado.toFixed(2)}%0A%0A` +
+                            `_Pedido generado automáticamente desde la web oficial por José_`;
+
+            const link = `https://wa.me/${WHATSAPP_PEDIDOS}?text=${mensaje}`;
+            window.open(link, '_blank');
+            cerrarModal();
+        }
+    </script>
+
+</body>
+</html>
