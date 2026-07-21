@@ -223,37 +223,36 @@
     </section>
 
     <!-- MODAL DE COMPRA DIRECTA (INTERACTIVO) -->
-    <div id="compraModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-zinc-950 border border-zinc-900 rounded-2xl w-full max-w-md p-6 relative shadow-2xl modal-transition scale-95 opacity-0" id="modalContainer">
-            <button onclick="cerrarModal()" class="icon-touch absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-zinc-900 text-sm">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+   <!-- MODAL DE DETALLE DE PRODUCTO (foto grande + colores) -->
+<div id="detalleModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-zinc-950 border border-zinc-900 rounded-2xl w-full max-w-md p-6 relative shadow-2xl modal-transition scale-95 opacity-0" id="detalleModalContainer">
+        <button onclick="cerrarDetalle()" class="icon-touch absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-zinc-900 text-sm z-10">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
 
-            <h3 class="text-xl font-bold text-white mb-1 uppercase tracking-tight" id="modalTitulo">Configurar Pedido</h3>
-            <p class="text-xs text-slate-400 mb-6">Selecciona los atributos para generar tu enlace de WhatsApp directo.</p>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-cyan-400 uppercase tracking-widest block mb-2">Selecciona la Talla:</label>
-                    <div class="flex flex-wrap gap-2" id="tallaContainer"></div>
-                </div>
-
-                <div>
-                    <label class="text-xs font-bold text-cyan-400 uppercase tracking-widest block mb-2">Selecciona el Color:</label>
-                    <div class="flex flex-wrap gap-2" id="colorContainer"></div>
-                </div>
-
-                <div class="bg-black p-4 rounded-xl border border-zinc-900 flex justify-between items-center mt-6">
-                    <span class="text-xs text-slate-500 uppercase font-bold">Total estimado:</span>
-                    <span class="text-2xl font-black text-white" id="modalPrecio">$0.00</span>
-                </div>
-
-                <button onclick="enviarWhatsApp()" class="icon-touch w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 mt-4 shadow-md shadow-emerald-500/10">
-                    <i class="fa-brands fa-whatsapp text-base"></i> Confirmar pedido por WhatsApp
-                </button>
-            </div>
+        <div class="w-full h-72 rounded-xl overflow-hidden bg-black flex items-center justify-center mb-5">
+            <img id="detalleImagen" src="" alt="" class="max-w-full max-h-full object-contain">
         </div>
+
+        <span id="detalleCategoria" class="text-[10px] font-bold text-cyan-400/80 uppercase tracking-[0.15em] mb-1 block"></span>
+        <h3 id="detalleNombre" class="text-xl font-bold text-white mb-3"></h3>
+
+        <div class="mb-5">
+            <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-2">Colores disponibles:</label>
+            <div class="flex flex-wrap gap-2" id="detalleColores"></div>
+        </div>
+
+        <div class="bg-black p-4 rounded-xl border border-zinc-900 flex justify-between items-center mb-4">
+            <span class="text-xs text-slate-500 uppercase font-bold">Precio:</span>
+            <span class="text-2xl font-black text-white" id="detallePrecio"></span>
+        </div>
+
+        <a id="detalleBotonWA" href="#" target="_blank" class="icon-touch w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2">
+            <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
+        </a>
+        <p id="detalleNoDisponible" class="hidden text-center text-sm text-zinc-500 py-3">Actualmente no disponible</p>
     </div>
+</div>
 
     <!-- SECCIÓN DE CONTACTO Y UBICACIÓN -->
     <section id="contacto" class="py-16 bg-black border-t border-zinc-900 w-full">
@@ -381,6 +380,9 @@
             return filas.filter(f => f.length && f.some(v => v.trim() !== ""));
         }
 
+        function escapeJS(str) {
+    return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
         function crearTarjetaHTML(p) {
             let nombreProducto = "Producto sin nombre";
             if (p.producto) {
@@ -423,11 +425,17 @@
 
             let categoriaLabel = p.categoria ? p.categoria : "Variados";
 
+            let coloresTexto = "";
+if (Array.isArray(p.colores)) {
+    coloresTexto = p.colores.join(', ');
+} else if (p.colores) {
+    coloresTexto = p.colores;
+}
             return `
                 <div class="relative bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] rounded-[2rem] p-4 flex flex-col h-full transition-all duration-500 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] hover:bg-white/[0.11] hover:border-cyan-400/30 hover:shadow-[0_20px_50px_rgba(6,182,212,0.15),inset_0_1px_0_rgba(255,255,255,0.15)] hover:-translate-y-1 group overflow-hidden">
                     <div class="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.08] to-transparent rounded-t-[2rem]"></div>
                     
-                    <div class="relative w-full h-64 flex items-center justify-center rounded-2xl overflow-hidden mb-4 transition-all duration-500 group-hover:translate-y-[-4px]">
+                    <div class="relative w-full h-64 flex items-center justify-center rounded-2xl overflow-hidden mb-4 transition-all duration-500 group-hover:translate-y-[-4px] cursor-pointer" onclick="abrirDetalle('${escapeJS(nombreProducto)}', '${escapeJS(imagenUrl)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', '${escapeJS(enlaceWhatsApp)}', ${estaDisponible})">
                         
                         <div class="absolute top-2 right-2 z-10">
                             ${badgeDisponibilidad}
@@ -601,73 +609,52 @@
         let tallaElegida = "";
         let colorElegido = "";
 
-        function abrirModal(nombre, precio, tallas, colores) {
-            productoSeleccionado = nombre;
-            precioSeleccionado = precio;
-            tallaElegida = tallas[0];
-            colorElegido = colores[0];
+       function abrirDetalle(nombre, imagenUrl, precioFormateado, categoriaLabel, coloresTexto, enlaceWhatsApp, disponible) {
+    document.getElementById('detalleImagen').src = imagenUrl;
+    document.getElementById('detalleImagen').alt = nombre;
+    document.getElementById('detalleCategoria').textContent = categoriaLabel;
+    document.getElementById('detalleNombre').textContent = nombre;
+    document.getElementById('detallePrecio').textContent = '$' + precioFormateado;
 
-            document.getElementById('modalTitulo').innerText = nombre;
-            document.getElementById('modalPrecio').innerText = `$${precio.toFixed(2)}`;
+    const coloresContainer = document.getElementById('detalleColores');
+    coloresContainer.innerHTML = "";
+    const listaColores = coloresTexto.split(',').map(c => c.trim()).filter(Boolean);
+    if (listaColores.length) {
+        listaColores.forEach(color => {
+            coloresContainer.innerHTML += `<span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/[0.08] border border-white/[0.14] text-slate-200">${color}</span>`;
+        });
+    } else {
+        coloresContainer.innerHTML = '<span class="text-xs text-slate-500">Colores variados, consulta disponibilidad</span>';
+    }
 
-            const tallaContainer = document.getElementById('tallaContainer');
-            tallaContainer.innerHTML = "";
-            tallas.forEach((talla, index) => {
-                const activeClass = index === 0 ? "bg-cyan-500 text-gray-950 border-cyan-500" : "bg-black border-zinc-900 text-slate-400 hover:border-cyan-500/50";
-                tallaContainer.innerHTML += `
-                    <button onclick="seleccionarTalla(this, '${talla}')" class="icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase ${activeClass}">
-                        ${talla}
-                    </button>
-                `;
-            });
+    const btnWA = document.getElementById('detalleBotonWA');
+    const noDisp = document.getElementById('detalleNoDisponible');
+    if (disponible) {
+        btnWA.href = enlaceWhatsApp;
+        btnWA.classList.remove('hidden');
+        noDisp.classList.add('hidden');
+    } else {
+        btnWA.classList.add('hidden');
+        noDisp.classList.remove('hidden');
+    }
 
-            const colorContainer = document.getElementById('colorContainer');
-            colorContainer.innerHTML = "";
-            colores.forEach((color, index) => {
-                const activeClass = index === 0 ? "bg-cyan-500 text-gray-950 border-cyan-500" : "bg-black border-zinc-900 text-slate-400 hover:border-cyan-500/50";
-                colorContainer.innerHTML += `
-                    <button onclick="seleccionarColor(this, '${color}')" class="icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase ${activeClass}">
-                        ${color}
-                    </button>
-                `;
-            });
+    const modal = document.getElementById('detalleModal');
+    const container = document.getElementById('detalleModalContainer');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        container.classList.remove('scale-95', 'opacity-0');
+        container.classList.add('scale-100', 'opacity-100');
+    }, 50);
+}
 
-            const modal = document.getElementById('compraModal');
-            const container = document.getElementById('modalContainer');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                container.classList.remove('scale-95', 'opacity-0');
-                container.classList.add('scale-100', 'opacity-100');
-            }, 50);
-        }
-
-        function seleccionarTalla(elemento, talla) {
-            tallaElegida = talla;
-            const hermanos = elemento.parentNode.children;
-            for (let btn of hermanos) {
-                btn.className = "icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase bg-black border-zinc-900 text-slate-400 hover:border-cyan-500/50";
-            }
-            elemento.className = "icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase bg-cyan-500 text-gray-950 border-cyan-500";
-        }
-
-        function seleccionarColor(elemento, color) {
-            colorElegido = color;
-            const hermanos = elemento.parentNode.children;
-            for (let btn of hermanos) {
-                btn.className = "icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase bg-black border-zinc-900 text-slate-400 hover:border-cyan-500/50";
-            }
-            elemento.className = "icon-touch px-4 py-2 rounded-xl border text-xs font-bold uppercase bg-cyan-500 text-gray-950 border-cyan-500";
-        }
-
-        function cerrarModal() {
-            const container = document.getElementById('modalContainer');
-            container.classList.remove('scale-100', 'opacity-100');
-            container.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                document.getElementById('compraModal').classList.add('hidden');
-            }, 250);
-        }
-
+function cerrarDetalle() {
+    const container = document.getElementById('detalleModalContainer');
+    container.classList.remove('scale-100', 'opacity-100');
+    container.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        document.getElementById('detalleModal').classList.add('hidden');
+    }, 250);
+}
         function enviarWhatsApp() {
             const mensaje = `Hola Valera Sport, quiero ordenar el siguiente artículo deportivo:%0A%0A` +
                             `🛍️ *Prenda:* ${productoSeleccionado}%0A` +
