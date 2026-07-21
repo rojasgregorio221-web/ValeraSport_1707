@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="icon" type="image/png" href="imagenes/logo.png">
+<link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification">
@@ -13,7 +13,7 @@
     <!-- Google Fonts deportivas -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <!-- FontAwesome para iconos de redes y deporte -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -26,6 +26,9 @@
         }
         h1, h2, h3, .font-brand {
             font-family: 'Outfit', sans-serif;
+        }
+        .font-magazine {
+            font-family: 'Playfair Display', serif;
         }
         /* Desvanecido sutil para transiciones del modal */
         .modal-transition {
@@ -81,20 +84,14 @@
     <!-- BARRA DE NAVEGACIÓN -->
     <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-900">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-
-            <!-- Logo de la Marca -->
             <a href="#" class="flex items-center gap-2">
                 <span class="text-2xl font-black tracking-wider text-white">VALERA<span class="text-cyan-500">SPORT</span></span>
             </a>
-
-            <!-- Enlaces rápidos -->
             <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
                 <a href="#productos" class="text-slate-400 hover:text-white transition">Catálogo</a>
                 <a href="#categorias" class="text-slate-400 hover:text-white transition">Categorías</a>
                 <a href="#contacto" class="text-slate-400 hover:text-cyan-400 transition">Ubicación</a>
             </nav>
-
-            <!-- Botón de Contacto Directo General (ícono más discreto) -->
             <div>
                 <a href="https://wa.me/584245939407?text=Hola%20Valera%20Sport,%20estoy%20viendo%20su%20p%C3%A1gina%20web%20y%20quiero%20m%C3%A1s%20informaci%C3%B3n" target="_blank" class="icon-touch bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold px-4 py-2 rounded-full text-xs tracking-wider uppercase transition flex items-center gap-1.5 shadow-md shadow-cyan-500/10">
                     <i class="fa-brands fa-whatsapp text-sm"></i> Consultar
@@ -104,62 +101,50 @@
     </header>
 
     <!-- SECCIÓN HERO (BANNER PRINCIPAL) -->
-    <section class="relative overflow-hidden bg-black min-h-[85vh] flex items-end bg-cover bg-center md:bg-[center_36%]" style="background-image: url('imagenes/hero-banner.png');">
-        <!-- Degradado oscuro para que el texto se lea bien -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/20"></div>
-        <div class="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40"></div>
-
-        <!-- Glows de color sutiles encima de la foto (mantiene identidad de marca) -->
-        <div class="absolute -top-10 -right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="relative max-w-4xl mx-auto px-6 pb-16 lg:pb-24 pt-32 flex flex-col items-center text-center space-y-6 w-full">
+    <section class="relative overflow-hidden bg-black min-h-[85vh] flex items-end bg-cover bg-center md:bg-[center_22%]" style="background-image: url('imagenes/hero-banner.jpg');">
+        <div class="relative max-w-4xl mx-auto px-6 pb-16 md:pb-20 flex flex-col items-center text-center gap-10 w-full">
 
             <h1 class="text-5xl lg:text-7xl font-black text-white leading-tight uppercase drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
                 Rendimiento <span class="text-cyan-400">Sin Límites</span>
             </h1>
-            <p class="text-base lg:text-lg text-slate-200 max-w-xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
-                Descubre la ropa deportiva más resistente y cómoda de Barquisimeto. Chaquetas rompevientos, conjuntos para damas y bóxers premium diseñados para dar tu 100% todos los días.
-            </p>
-            <div class="pt-2">
-                <a href="#productos" class="inline-block bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-extrabold px-8 py-4 rounded-xl text-sm tracking-wider uppercase shadow-lg shadow-cyan-500/30 transition">
-                    Ver Catálogo de Ropa
-                </a>
-            </div>
+
+            <a href="#productos" class="inline-block bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-extrabold px-10 py-4 rounded-xl text-sm tracking-wider uppercase shadow-lg shadow-cyan-500/30 transition">
+                Ver qué hay de nuevo
+            </a>
         </div>
     </section>
 
-    <!-- GRILLA DE CATEGORÍAS (clicables, filtran el catálogo) -->
-    <section id="categorias" class="py-16 bg-black border-y border-zinc-900">
+    <!-- GRILLA DE CATEGORÍAS (clicables, filtran el catálogo, compactas, liquid glass) -->
+    <section id="categorias" class="py-10 bg-black border-y border-zinc-900">
         <div class="max-w-7xl mx-auto px-6">
-            <h2 class="text-3xl font-black text-white uppercase tracking-tight mb-10 text-center lg:text-left">Explorar Categorías</h2>
+            <h2 class="text-3xl font-black text-white uppercase tracking-tight mb-8 text-center lg:text-left">Explorar Categorías</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Caballeros (Brillo Cyan) -->
-                <div onclick="filtrarPorCategoria('Caballeros')" class="bg-zinc-950 border border-zinc-900/80 rounded-2xl p-8 hover:border-cyan-500/60 hover:shadow-[0_0_35px_rgba(6,182,212,0.14)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
-                    <div class="icon-touch w-10 h-10 bg-cyan-950/50 border border-cyan-800/30 rounded-xl flex items-center justify-center text-cyan-400 mb-6 group-hover:bg-cyan-500 group-hover:text-gray-950 group-hover:shadow-[0_0_12px_rgba(6,182,212,0.35)]">
-                        <i class="fa-solid fa-shirt text-base"></i>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- Caballeros (Liquid Glass, brillo Cyan) -->
+                <div onclick="filtrarPorCategoria('Caballeros')" class="bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] rounded-2xl p-5 hover:bg-white/[0.11] hover:border-cyan-400/40 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                    <div class="icon-touch w-9 h-9 bg-cyan-950/50 border border-cyan-800/30 rounded-lg flex items-center justify-center text-cyan-400 mb-4 group-hover:bg-cyan-500 group-hover:text-gray-950 group-hover:shadow-[0_0_12px_rgba(6,182,212,0.35)]">
+                        <i class="fa-solid fa-shirt text-sm"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Caballeros</h3>
-                    <p class="text-sm text-slate-400">Chaquetas térmicas, camisas dry-fit y bóxers premium para comodidad máxima.</p>
+                    <h3 class="text-base font-bold text-white mb-1">Caballeros</h3>
+                    <p class="text-xs text-slate-400">Chaquetas térmicas, camisas dry-fit y bóxers premium.</p>
                 </div>
 
-                <!-- Damas (Brillo Morado) -->
-                <div onclick="filtrarPorCategoria('Damas')" class="bg-zinc-950 border border-zinc-900/80 rounded-2xl p-8 hover:border-purple-500/60 hover:shadow-[0_0_35px_rgba(168,85,247,0.14)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
-                    <div class="icon-touch w-10 h-10 bg-purple-950/50 border border-purple-800/30 rounded-xl flex items-center justify-center text-purple-400 mb-6 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-[0_0_12px_rgba(168,85,247,0.35)]">
-                        <i class="fa-solid fa-vest-patches text-base"></i>
+                <!-- Damas (Liquid Glass, brillo Morado) -->
+                <div onclick="filtrarPorCategoria('Damas')" class="bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] rounded-2xl p-5 hover:bg-white/[0.11] hover:border-purple-400/40 hover:shadow-[0_10px_30px_rgba(168,85,247,0.15)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                    <div class="icon-touch w-9 h-9 bg-purple-950/50 border border-purple-800/30 rounded-lg flex items-center justify-center text-purple-400 mb-4 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-[0_0_12px_rgba(168,85,247,0.35)]">
+                        <i class="fa-solid fa-vest-patches text-sm"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Damas</h3>
-                    <p class="text-sm text-slate-400">Licras de compresión, conjuntos deportivos de alta resistencia y tops de entrenamiento.</p>
+                    <h3 class="text-base font-bold text-white mb-1">Damas</h3>
+                    <p class="text-xs text-slate-400">Licras, conjuntos deportivos y tops de entrenamiento.</p>
                 </div>
 
-                <!-- Combos (Brillo Verde) -->
-                <div onclick="filtrarPorCategoria('Combos')" class="bg-zinc-950 border border-zinc-900/80 rounded-2xl p-8 hover:border-emerald-500/60 hover:shadow-[0_0_35px_rgba(16,185,129,0.14)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
-                    <div class="icon-touch w-10 h-10 bg-emerald-950/50 border border-emerald-800/30 rounded-xl flex items-center justify-center text-emerald-400 mb-6 group-hover:bg-emerald-500 group-hover:text-gray-950 group-hover:shadow-[0_0_12px_rgba(16,185,129,0.35)]">
-                        <i class="fa-solid fa-tags text-base"></i>
+                <!-- Combos (Liquid Glass, brillo Verde) -->
+                <div onclick="filtrarPorCategoria('Combos')" class="bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] rounded-2xl p-5 hover:bg-white/[0.11] hover:border-emerald-400/40 hover:shadow-[0_10px_30px_rgba(16,185,129,0.15)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                    <div class="icon-touch w-9 h-9 bg-emerald-950/50 border border-emerald-800/30 rounded-lg flex items-center justify-center text-emerald-400 mb-4 group-hover:bg-emerald-500 group-hover:text-gray-950 group-hover:shadow-[0_0_12px_rgba(16,185,129,0.35)]">
+                        <i class="fa-solid fa-tags text-sm"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Combos Deportivos</h3>
-                    <p class="text-sm text-slate-400">Ahorra comprando en paquetes. Oferta al mayor para revendedores.</p>
+                    <h3 class="text-base font-bold text-white mb-1">Combos Deportivos</h3>
+                    <p class="text-xs text-slate-400">Ahorra comprando en paquetes. Oferta al mayor.</p>
                 </div>
             </div>
         </div>
@@ -167,17 +152,15 @@
 
     <!-- SECCIÓN PRODUCTOS -->
     <section id="productos" class="relative py-20 max-w-7xl mx-auto px-6 w-full overflow-hidden">
-        <!-- Glows de fondo para que el efecto liquid glass tenga color detrás -->
         <div class="absolute top-40 left-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none"></div>
         <div class="absolute top-96 right-10 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none"></div>
         <div class="absolute bottom-20 left-1/3 w-80 h-80 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div class="text-center max-w-2xl mx-auto mb-10">
-            <h2 class="text-4xl font-black text-white uppercase tracking-tight">Prendas Destacadas</h2>
-            <p class="text-slate-400 mt-4">Haz clic en ordenar para elegir tu talla e iniciar tu compra directa por WhatsApp.</p>
+            <p class="text-slate-400">Haz clic en ordenar para elegir tu talla e iniciar tu compra directa por WhatsApp.</p>
         </div>
 
-        <!-- BUSCADOR -->
+        <!-- BUSCADOR (Liquid Glass, reacciona en morado) -->
         <div class="max-w-xl mx-auto mb-4">
             <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none"></i>
@@ -186,12 +169,12 @@
                     id="buscador"
                     oninput="reiniciarYRenderizar()"
                     placeholder="Buscar por nombre, categoría o descripción..."
-                    class="w-full bg-zinc-950 border border-zinc-900 focus:border-cyan-500/50 rounded-full pl-11 pr-11 py-3 text-sm text-white placeholder:text-slate-600 outline-none transition focus:shadow-[0_0_0_3px_rgba(6,182,212,0.12)]"
+                    class="icon-touch w-full bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] focus:border-purple-400/50 rounded-full pl-11 pr-11 py-3 text-sm text-white placeholder:text-slate-500 outline-none focus:bg-white/[0.11] focus:shadow-[0_0_0_3px_rgba(168,85,247,0.18)]"
                 >
                 <button
                     id="btnLimpiar"
                     onclick="limpiarBusqueda()"
-                    class="icon-touch absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white w-6 h-6 flex items-center justify-center rounded-full hidden">
+                    class="icon-touch absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-purple-400 w-6 h-6 flex items-center justify-center rounded-full hidden">
                     <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
@@ -200,22 +183,22 @@
             <div id="chipCategoria" class="hidden mt-3 flex items-center justify-center gap-2 text-xs text-slate-400">
                 <span>Filtrando por:</span>
                 <span id="chipCategoriaTexto" class="bg-zinc-900 border border-zinc-800 text-white px-3 py-1 rounded-full font-semibold"></span>
-                <button onclick="filtrarPorCategoria(null)" class="icon-touch text-slate-500 hover:text-white w-5 h-5 flex items-center justify-center rounded-full">
+                <button onclick="filtrarPorCategoria(null)" class="icon-touch text-slate-500 hover:text-purple-400 w-5 h-5 flex items-center justify-center rounded-full">
                     <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
         </div>
 
-        <!-- Estado de carga del Sheet (nuevo) -->
+        <!-- Estado de carga del Sheet -->
         <p id="estadoCarga">Cargando catálogo...</p>
 
-        <!-- Contador de resultados -->
-        <p id="contadorResultados" class="text-center text-xs text-slate-600 uppercase tracking-wider mb-10"></p>
+        <!-- Contador de resultados (oculto, se mantiene en el DOM para que el JS no falle) -->
+        <p id="contadorResultados" class="hidden"></p>
 
         <!-- Grid de productos (se llena por JavaScript) -->
         <div id="gridProductos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
 
-        <!-- BOTÓN BUSCAR MAS (Muestra de 5 en 5 de forma limpia) -->
+        <!-- BOTÓN BUSCAR MAS -->
         <div class="text-center mt-12" id="containerVerMas">
             <button onclick="cargarMasProductos()" class="icon-touch bg-zinc-950 border border-zinc-900 hover:border-zinc-700 text-slate-400 hover:text-white font-extrabold px-8 py-4 rounded-xl text-sm tracking-wider uppercase transition">
                 Buscar más prendas <i class="fa-solid fa-chevron-down ml-1.5 text-xs"></i>
@@ -235,7 +218,6 @@
     <!-- MODAL DE COMPRA DIRECTA (INTERACTIVO) -->
     <div id="compraModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-zinc-950 border border-zinc-900 rounded-2xl w-full max-w-md p-6 relative shadow-2xl modal-transition scale-95 opacity-0" id="modalContainer">
-            <!-- Botón Cerrar -->
             <button onclick="cerrarModal()" class="icon-touch absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-zinc-900 text-sm">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -243,27 +225,22 @@
             <h3 class="text-xl font-bold text-white mb-1 uppercase tracking-tight" id="modalTitulo">Configurar Pedido</h3>
             <p class="text-xs text-slate-400 mb-6">Selecciona los atributos para generar tu enlace de WhatsApp directo.</p>
 
-            <!-- Formulario del Modal -->
             <div class="space-y-4">
-                <!-- Tallas -->
                 <div>
                     <label class="text-xs font-bold text-cyan-400 uppercase tracking-widest block mb-2">Selecciona la Talla:</label>
                     <div class="flex flex-wrap gap-2" id="tallaContainer"></div>
                 </div>
 
-                <!-- Colores -->
                 <div>
                     <label class="text-xs font-bold text-cyan-400 uppercase tracking-widest block mb-2">Selecciona el Color:</label>
                     <div class="flex flex-wrap gap-2" id="colorContainer"></div>
                 </div>
 
-                <!-- Precio -->
                 <div class="bg-black p-4 rounded-xl border border-zinc-900 flex justify-between items-center mt-6">
                     <span class="text-xs text-slate-500 uppercase font-bold">Total estimado:</span>
                     <span class="text-2xl font-black text-white" id="modalPrecio">$0.00</span>
                 </div>
 
-                <!-- Botón de Envío -->
                 <button onclick="enviarWhatsApp()" class="icon-touch w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 mt-4 shadow-md shadow-emerald-500/10">
                     <i class="fa-brands fa-whatsapp text-base"></i> Confirmar pedido por WhatsApp
                 </button>
@@ -286,7 +263,7 @@
                         </div>
                         <div>
                             <p class="font-bold text-white text-sm">Dirección física</p>
-                            <p class="text-sm text-slate-400">Calle 28 entre Carreras 19 y 20, C.C. Cosmos (Antiguo Beco), Local 121-122. Barquisimeto, Lara.</p>
+                            <p class="text-sm text-slate-400">Calle 28 entre Carreras 19 y 20, C.C. (Antiguo Beco), Local 121-122. Barquisimeto, Lara.</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-4">
@@ -295,13 +272,12 @@
                         </div>
                         <div>
                             <p class="font-bold text-white text-sm">Horario de Atención</p>
-                            <p class="text-sm text-slate-400">Lunes a Sábado: 8:00 AM - 5:30 PM</p>
+                            <p class="text-sm text-slate-400">Lunes a Sábado: 8:30 AM - 5:30 PM</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Mapa simulado interactivo -->
             <div class="h-64 md:h-80 bg-zinc-950 rounded-2xl border border-zinc-900 flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
                 <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px]"></div>
                 <div class="relative space-y-4">
@@ -315,8 +291,8 @@
         </div>
     </section>
 
-    <!-- BOTÓN FLOTANTE DE WHATSAPP (discreto, con leve pulso) -->
-    <a href="https://wa.me/584245788733" target="_blank"
+    <!-- BOTÓN FLOTANTE DE WHATSAPP -->
+    <a href="https://wa.me/584245939407" target="_blank"
        class="icon-touch fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-lg">
         <i class="fa-brands fa-whatsapp"></i>
     </a>
@@ -335,20 +311,12 @@
 
     <!-- LÓGICA DE PROGRAMACIÓN INTERACTIVA -->
     <script>
-        // =====================================================================
-        // ZONA EDITABLE — SOLO TOCA ESTA LÍNEA
-        // Pega aquí el link CSV de tu Google Sheet publicado (ver instrucciones).
-        // Mientras esté vacío, la web usa productosRespaldo de más abajo.
-        // =====================================================================
         const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNZzMjeOXUGmY-Cqk7h1gUIBchPjjKqgtjffaPXj48f7qoMKf-IrcXW8ToF8sZiqjaacxDo8I5jOwT/pub?gid=641830464&single=true&output=csv";
         const _0xec4d = "NTg0MjQ1OTM5NDA3";
         const WHATSAPP_PEDIDOS = atob(_0xec4d);
 
-        // productos empieza vacío: se llena solo con cargarProductosDesdeSheet()
         let productos = [];
 
-        // Respaldo local por si el Sheet aún no está conectado o falla la conexión,
-        // para que la página nunca se vea rota. Es tu inventario actual tal cual estaba.
         const productosRespaldo = [
             { id: 1, nombre: "Sudadera de Dama", categoria: "Damas", precio: 5.00, descripcion: "Sudadera deportiva de dama, cómoda y ligera para entrenar.", imagen: "imagenes/sudadera_dama.jpg", tallas: ["Única", "S", "M"], colores: ["Variados"], badge: "Colección", badgeColor: "purple", disponible: true },
             { id: 2, nombre: "Leggings Plus", categoria: "Damas", precio: 10.00, descripcion: "Licra deportiva talla plus de alta compresión y resistencia.", imagen: "imagenes/leggings_plus.jpg", tallas: ["XL", "XXL"], colores: ["Negro", "Gris"], badge: "Plus Size", badgeColor: "purple", disponible: true },
@@ -383,10 +351,6 @@
             { id: 31, nombre: "Leggings Bota Ancha Yoga", categoria: "Damas", precio: 15.00, descripcion: "Pantalón leggings bota ancha para máxima relajación y confort.", imagen: "imagenes/bota_ancha_yoga.jpg", tallas: ["S", "M", "L"], colores: ["Negro"], badge: "Relax Fit", badgeColor: "purple", disponible: true }
         ];
 
-        // =====================================================================
-        // LECTOR DE CSV (respeta comillas y comas dentro de la descripción,
-        // tal como las exporta Google Sheets automáticamente)
-        // =====================================================================
         function parseCSV(texto) {
             const filas = [];
             let fila = [], campo = "", entreComillas = false;
@@ -410,11 +374,7 @@
             return filas.filter(f => f.length && f.some(v => v.trim() !== ""));
         }
 
-        // Convierte las filas del Sheet al mismo formato que ya usa crearTarjetaHTML()
-        // ÚNICA versión de esta función — estilo "liquid glass": bordes muy redondeados,
-        // fondo translúcido con blur, colores del sitio (negro/cyan) y botón de WhatsApp funcional.
         function crearTarjetaHTML(p) {
-            // 1. Nombre seguro
             let nombreProducto = "Producto sin nombre";
             if (p.producto) {
                 nombreProducto = p.producto;
@@ -422,19 +382,16 @@
                 nombreProducto = p.nombre;
             }
 
-            // 2. Imagen segura
             let imagenUrl = "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop";
             if (p.imagen && p.imagen.trim() !== "") {
                 imagenUrl = p.imagen;
             }
 
-            // 3. Precio seguro
             let precioFormateado = "0.00";
             if (p.precio) {
                 precioFormateado = parseFloat(p.precio).toFixed(2);
             }
 
-            // 4. Disponibilidad segura (Badge flotante y translúcido)
             let estaDisponible = false;
             if (p.disponible && p.disponible.toLowerCase().trim() === "si") {
                 estaDisponible = true;
@@ -447,11 +404,9 @@
                 badgeDisponibilidad = '<span class="px-3 py-1 text-[11px] font-semibold rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/10 backdrop-blur-md">Agotado</span>';
             }
 
-            // 5. Enlace de WhatsApp seguro
             let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombreProducto + " ($" + precioFormateado + ")");
             let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
 
-            // Estilos del botón de consulta
             let botonHtml = "";
             if (estaDisponible) {
                 botonHtml = '<a href="' + enlaceWhatsApp + '" target="_blank" class="py-2 px-4 rounded-full font-semibold text-xs flex items-center gap-1.5 transition-all duration-300 bg-white/10 text-cyan-400 border border-cyan-400/20 hover:bg-cyan-500 hover:text-zinc-950 hover:border-cyan-500 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.458L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.488 2.01 14.028 1.01 11.417 1.01c-5.44 0-9.866 4.372-9.87 9.802 0 1.698.448 3.355 1.3 4.8l-.999 3.648 3.799-.985z"/></svg><span>Consultar</span></a>';
@@ -463,10 +418,8 @@
 
             return `
                 <div class="relative bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] rounded-[2rem] p-4 flex flex-col h-full transition-all duration-500 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] hover:bg-white/[0.11] hover:border-cyan-400/30 hover:shadow-[0_20px_50px_rgba(6,182,212,0.15),inset_0_1px_0_rgba(255,255,255,0.15)] hover:-translate-y-1 group overflow-hidden">
-                    <!-- Brillo superior tipo "glass shine" -->
                     <div class="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.08] to-transparent rounded-t-[2rem]"></div>
                     
-                    <!-- Contenedor de Imagen Flotante -->
                     <div class="relative w-full h-64 flex items-center justify-center rounded-2xl overflow-hidden mb-4 transition-all duration-500 group-hover:translate-y-[-4px]">
                         
                         <div class="absolute top-2 right-2 z-10">
@@ -479,7 +432,6 @@
                              onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
                     </div>
                     
-                    <!-- Información del Producto -->
                     <div class="flex flex-col flex-grow justify-between px-2">
                         <div>
                             <span class="text-[10px] font-bold text-cyan-400/80 uppercase tracking-[0.15em] mb-1 block">
@@ -491,7 +443,6 @@
                             </h3>
                         </div>
 
-                        <!-- Parte baja -->
                         <div class="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between gap-3">
                             <div class="flex flex-col">
                                 <span class="text-[9px] text-zinc-500 uppercase tracking-wider">Precio</span>
@@ -519,42 +470,34 @@
 
                 const texto = await res.text();
 
-                // 1. Dividimos el documento por líneas (filas)
                 const lineas = texto.split("\n").map(l => l.trim()).filter(l => l.length > 0);
                 if (lineas.length <= 1) throw new Error("CSV vacío");
 
-                // 2. Extraemos las cabeceras reales (imagen, producto, categoria, precio, etc.)
                 const cabeceras = lineas[0].split(",").map(c => c.replace(/"/g, "").trim().toLowerCase());
 
                 const cargados = [];
 
-                // 3. Procesamos cada fila del catálogo
                 for (let i = 1; i < lineas.length; i++) {
                     const linea = lineas[i];
 
-                    // Separador inteligente que respeta comas internas entre comillas
                     const columnas = linea.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, "").trim());
 
                     let p = {};
                     cabeceras.forEach((cabecera, index) => {
-                        // Sincronizamos los nombres de las propiedades
                         let valor = columnas[index] || "";
 
-                        // Mapeos clave para que tus filtros e interfaz no se rompan:
                         if (cabecera === 'producto') {
-                            p.nombre = valor; // Vinculamos 'producto' de tu Sheets con '.nombre' de tu plantilla
+                            p.nombre = valor;
                         }
 
                         p[cabecera] = valor;
                     });
 
-                    // Agregamos un ID numérico para que la lógica de detalles/carrito funcione igual
                     p.id = i;
 
                     cargados.push(p);
                 }
 
-                // 4. Guardamos los productos y renderizamos
                 productos = cargados.length ? cargados : productosRespaldo;
                 if (estado) estado.textContent = "";
                 renderizarProductos();
@@ -567,12 +510,10 @@
             }
         }
 
-        // CONFIGURACIÓN DE MOSTRAR DE 5 EN 5 COMO PEDISTE
         const productosPorPagina = 5;
         let cantidadMostrada = productosPorPagina;
         let categoriaActiva = null;
 
-        // Estilos por color de insignia original
         const estilosColor = {
             cyan: { borderHover: "hover:border-cyan-500/30", badgeBg: "bg-cyan-500", badgeText: "text-gray-950", btnBg: "bg-cyan-950", btnText: "text-cyan-400", btnBorder: "border-cyan-800/30", btnHover: "hover:bg-cyan-500 hover:text-gray-950" },
             purple: { borderHover: "hover:border-purple-500/30", badgeBg: "bg-purple-500", badgeText: "text-white", btnBg: "bg-purple-950", btnText: "text-purple-400", btnBorder: "border-purple-800/30", btnHover: "hover:bg-purple-500 hover:text-white" },
@@ -595,7 +536,6 @@
                 return coincideTexto && coincideCategoria;
             });
 
-            // Recorte para mostrar solo el segmento correspondiente (de 5 en 5)
             const segmentados = filtrados.slice(0, cantidadMostrada);
 
             const grid = document.getElementById('gridProductos');
@@ -605,11 +545,12 @@
             grid.innerHTML = segmentados.map(crearTarjetaHTML).join('');
             vacio.style.display = filtrados.length === 0 ? 'block' : 'none';
 
-            contador.textContent = filtrados.length > 0
-                ? `Mostrando ${segmentados.length} de ${filtrados.length} prendas`
-                : '';
+            if (contador) {
+                contador.textContent = filtrados.length > 0
+                    ? `Mostrando ${segmentados.length} de ${filtrados.length} prendas`
+                    : '';
+            }
 
-            // Mostrar u ocultar botón de paginación según queden elementos
             const btnVerMas = document.getElementById('containerVerMas');
             if (filtrados.length > cantidadMostrada) {
                 btnVerMas.style.display = 'block';
@@ -619,7 +560,7 @@
         }
 
         function cargarMasProductos() {
-            cantidadMostrada += productosPorPagina; // Incrementa 5 adicionales
+            cantidadMostrada += productosPorPagina;
             renderizarProductos();
         }
 
@@ -646,7 +587,6 @@
             reiniciarYRenderizar();
         }
 
-        // Render inicial: ahora arranca cargando desde el Sheet (o el respaldo)
         cargarProductosDesdeSheet();
 
         let productoSeleccionado = "";
@@ -725,9 +665,9 @@
             const mensaje = `Hola Valera Sport, quiero ordenar el siguiente artículo deportivo:%0A%0A` +
                             `🛍️ *Prenda:* ${productoSeleccionado}%0A` +
                             `📏 *Talla:* ${tallaElegida}%0A` +
-                            `🎨 *Color:* ${colorElegido}%0A` +
+                            `🎨 *Color:* ${colorElegido}%0A%0A` +
                             `💵 *Precio:* $${precioSeleccionado.toFixed(2)}%0A%0A` +
-                            `_Pedido generado automáticamente desde la web oficial por José_`;
+                            `_Pedido generado automáticamente desde la web oficial por Gregorio_`;
 
             const link = `https://wa.me/${WHATSAPP_PEDIDOS}?text=${mensaje}`;
             window.open(link, '_blank');
