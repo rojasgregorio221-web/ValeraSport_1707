@@ -100,18 +100,25 @@
         </div>
     </header>
 
-    <!-- SECCIÓN HERO (BANNER PRINCIPAL) -->
-    <section class="relative overflow-hidden bg-black min-h-[85vh] flex items-end bg-cover bg-center md:bg-[center_22%]" style="background-image: url('imagenes/hero-banner.jpg');">
-        <div class="relative max-w-4xl mx-auto px-6 pb-16 md:pb-20 flex flex-col items-center text-center gap-10 w-full">
+ <!-- SECCIÓN HERO (BANNER PRINCIPAL) -->
+<section class="relative overflow-hidden bg-black min-h-[85vh] flex items-end bg-cover bg-center md:bg-[center_22%]" style="background-image: url('imagenes/hero-banner.jpg');">
+    
+    <!-- Degradado que funde la foto con el negro de abajo -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"></div>
 
-            <h1 class="text-5xl lg:text-7xl font-black text-white leading-tight uppercase drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
-                Rendimiento <span class="text-cyan-400">Sin Límites</span>
-            </h1>
+    <div class="relative max-w-4xl mx-auto px-6 pb-16 md:pb-20 flex flex-col items-center text-center w-full">
+        <h1 class="text-5xl lg:text-7xl font-black text-white leading-tight uppercase drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
+            Rendimiento <span class="text-cyan-400">Sin Límites</span>
+        </h1>
+    </div>
+</section>
 
-            <a href="#productos" class="inline-block bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-extrabold px-10 py-4 rounded-xl text-sm tracking-wider uppercase shadow-lg shadow-cyan-500/30 transition">
-                Ver qué hay de nuevo
-            </a>
-        </div>
+<!-- Botón "Ver qué hay de nuevo", en el negro debajo de la foto -->
+<div class="bg-black w-full flex justify-center pt-10 pb-2">
+    <a href="#productos" class="inline-block bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-extrabold px-10 py-4 rounded-xl text-sm tracking-wider uppercase shadow-lg shadow-cyan-500/30 transition">
+        Ver Qué Hay De Nuevo
+    </a>
+</div>
     </section>
 
     <!-- GRILLA DE CATEGORÍAS (clicables, filtran el catálogo, compactas, liquid glass) -->
