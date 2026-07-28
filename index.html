@@ -348,27 +348,28 @@
 
     <!-- LÓGICA DE PROGRAMACIÓN INTERACTIVA -->
     <script>
-        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRNZzMjeOXUGmY-Cqk7h1gUIBchPjjKqgtjffaPXj48f7qoMKf-IrcXW8ToF8sZiqjaacxDo8I5jOwT/pub?gid=641830464&single=true&output=csv";
         const _0xec4d = "NTg0MjQ1OTM5NDA3";
         const WHATSAPP_PEDIDOS = atob(_0xec4d);
         
         let productos = [];
         
-        async function cargarInventarioAutomatico() {
+       async function cargarInventarioAutomatico() {
         try {
-            const respuesta = await fetch(SHEET_CSV_URL);
+            // ANTES: Iba directo al link de Google Sheets (expuesto).
+            // AHORA: Va a buscar los datos a la función privada de Netlify.
+            const respuesta = await fetch('/.netlify/functions/obtener-productos');
             const datosCSV = await respuesta.text();
             
             productos = parseCSV(datosCSV); 
             mostrarProductosEnPantalla(productos);
             
         } catch (error) {
-            console.error("Error cargando el inventario desde Google Sheets:", error);
+            console.error("Error cargando el inventario:", error);
         }
     }
 
     document.addEventListener("DOMContentLoaded", cargarInventarioAutomatico);
-
+   
         function parseCSV(texto) {
             const filas = [];
             let fila = [], campo = "", entreComillas = false;
