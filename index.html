@@ -353,21 +353,20 @@
         
         let productos = [];
         
-       async function cargarInventarioAutomatico() {
-        try {
-            // ANTES: Iba directo al link de Google Sheets (expuesto).
-            // AHORA: Va a buscar los datos a la función privada de Netlify.
-            const respuesta = await fetch('/.netlify/functions/obtener-productos');
-            const datosCSV = await respuesta.text();
-            
-            productos = parseCSV(datosCSV); 
-            mostrarProductosEnPantalla(productos);
-            
-        } catch (error) {
-            console.error("Error cargando el inventario:", error);
-        }
+    async function cargarInventarioAutomatico() {
+    try {
+        // Ahora le pedimos los datos a la función segura de Netlify
+        const respuesta = await fetch('/.netlify/functions/obtener-producto.js');
+        const datosCSV = await respuesta.text();
+        
+        productos = parseCSV(datosCSV); 
+        mostrarProductosEnPantalla(productos);
+        
+    } catch (error) {
+        console.error("Error cargando el inventario:", error);
     }
-
+}
+      
     document.addEventListener("DOMContentLoaded", cargarInventarioAutomatico);
    
         function parseCSV(texto) {
