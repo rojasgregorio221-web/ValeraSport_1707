@@ -486,13 +486,21 @@
         }
 
         async function cargarProductosDesdeSheet() {
-            const estado = document.getElementById('estadoCarga');
-            if (!SHEET_CSV_URL) {
-                productos = productosRespaldo;
-                if (estado) estado.textContent = "";
-                renderizarProductos();
-                return;
-            }
+    const estado = document.getElementById('estadoCarga');
+    try {
+        const res = await fetch('/.netlify/functions/obtener-productos', { cache: "no-store" });
+        if (!res.ok) throw new Error("Error en la respuesta del servidor");
+        
+        const texto = await res.text();
+        productos = parseCSV(texto);
+        if (estado) estado.textContent = "";
+        renderizarProductos();
+        
+    } catch (error) {
+        console.error("Error cargando el inventario:", error);
+        if (estado) estado.textContent = "Error al cargar el catálogo";
+    }
+}
             try {
                 const res = await fetch(SHEET_CSV_URL, { cache: "no-store" });
                 if (!res.ok) throw new Error("Error en la respuesta del servidor");
