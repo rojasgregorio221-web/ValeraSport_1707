@@ -356,7 +356,7 @@
     async function cargarInventarioAutomatico() {
     try {
         // Ahora le pedimos los datos a la función segura de Netlify
-        const respuesta = await fetch('/.netlify/functions/obtener-producto.js');
+        const respuesta = await fetch('/.netlify/functions/obtener-producto');
         const datosCSV = await respuesta.text();
         
         productos = parseCSV(datosCSV); 
