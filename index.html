@@ -485,26 +485,23 @@
             `;
         }
 
-       async function cargarProductosDesdeSheet() {
+      async function cargarProductosDesdeSheet() {
     const estado = document.getElementById('estadoCarga');
     if (estado) estado.textContent = "Cargando catálogo...";
     
     try {
         const res = await fetch('/.netlify/functions/obtener-productos', { cache: "no-store" });
-        if (!res.ok) throw new Error("Error en la respuesta del servidor");
+        if (!res.ok) throw new Error("Error en el servidor de Netlify");
         
         const texto = await res.text();
-        const cargados = parseCSV(texto);
+        productos = parseCSV(texto);
         
-        productos = cargados.length ? cargados : productosRespaldo;
         if (estado) estado.textContent = "";
         renderizarProductos();
         
     } catch (error) {
-        console.error("Error al cargar el Sheet:", error);
-        productos = productosRespaldo;
-        if (estado) estado.textContent = "";
-        renderizarProductos();
+        console.error("Error:", error);
+        if (estado) estado.textContent = "Error al cargar el catálogo";
     }
 }
         const productosPorPagina = 5;

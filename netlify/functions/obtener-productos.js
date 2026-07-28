@@ -2,7 +2,7 @@ const https = require('https');
 
 exports.handler = async function(event, context) {
     const urlSecreta = process.env.SHEET_CSV_URL;
-    
+
     if (!urlSecreta) {
         return {
             statusCode: 500,
@@ -24,7 +24,7 @@ exports.handler = async function(event, context) {
         }).on('error', (err) => {
             resolve({
                 statusCode: 500,
-                body: "Error al conectar con Google Sheets: " + err.message
+                body: "Error al conectar: " + err.message
             });
         });
     });
