@@ -485,68 +485,28 @@
             `;
         }
 
-        async function cargarProductosDesdeSheet() {
+       async function cargarProductosDesdeSheet() {
     const estado = document.getElementById('estadoCarga');
+    if (estado) estado.textContent = "Cargando catálogo...";
+    
     try {
         const res = await fetch('/.netlify/functions/obtener-productos', { cache: "no-store" });
         if (!res.ok) throw new Error("Error en la respuesta del servidor");
         
         const texto = await res.text();
-        productos = parseCSV(texto);
+        const cargados = parseCSV(texto);
+        
+        productos = cargados.length ? cargados : productosRespaldo;
         if (estado) estado.textContent = "";
         renderizarProductos();
         
     } catch (error) {
-        console.error("Error cargando el inventario:", error);
-        if (estado) estado.textContent = "Error al cargar el catálogo";
+        console.error("Error al cargar el Sheet:", error);
+        productos = productosRespaldo;
+        if (estado) estado.textContent = "";
+        renderizarProductos();
     }
 }
-            try {
-                const res = await fetch(SHEET_CSV_URL, { cache: "no-store" });
-                if (!res.ok) throw new Error("Error en la respuesta del servidor");
-
-                const texto = await res.text();
-
-                const lineas = texto.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-                if (lineas.length <= 1) throw new Error("CSV vacío");
-
-                const cabeceras = lineas[0].split(",").map(c => c.replace(/"/g, "").trim().toLowerCase());
-
-                const cargados = [];
-
-                for (let i = 1; i < lineas.length; i++) {
-                    const linea = lineas[i];
-
-                    const columnas = linea.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, "").trim());
-
-                    let p = {};
-                    cabeceras.forEach((cabecera, index) => {
-                        let valor = columnas[index] || "";
-
-                        if (cabecera === 'producto') {
-                            p.nombre = valor;
-                        }
-
-                        p[cabecera] = valor;
-                    });
-
-                    p.id = i;
-
-                    cargados.push(p);
-                }
-
-                productos = cargados.length ? cargados : productosRespaldo;
-                if (estado) estado.textContent = "";
-                renderizarProductos();
-
-            } catch (e) {
-                console.error("Error detallado al cargar Sheets:", e);
-                productos = productosRespaldo;
-                if (estado) estado.textContent = "No se pudo conectar con el Sheet, mostrando catálogo local.";
-                renderizarProductos();
-            }
-        }
-
         const productosPorPagina = 5;
         let cantidadMostrada = productosPorPagina;
         let categoriaActiva = null;
