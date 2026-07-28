@@ -203,59 +203,28 @@
         async function cargarProductosDesdeSheet() {
             const estado = document.getElementById('estadoCarga');
             if (estado) estado.textContent = "Cargando catálogo...";
-            
+
             try {
-                // Enlace público directo a tu Google Sheet en formato CSV
-                const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ.../pub?output=csv";
-                
-                // Si prefieres usar la función de Netlify cuando esté lista, puedes dejar esto, 
-                // pero directo al CSV evita cualquier error 404 del servidor:
-                const res = await fetch('https://docs.google.com/spreadsheets/d/1X.../gviz/tq?tqx=out:csv'); 
-                
-                // O alternativamente usando un fetch limpio:
-                const respuestaReal = await fetch('https://corsproxy.io/?' + encodeURIComponent('AQUI_TU_ENLACE_CSV'));
-                
-                // Vamos a usar tu enlace directo publicado en la web si lo tienes a la mano, 
-                // o probamos con la ruta relativa del archivo si lo subes. 
-                // Usemos una carga robusta probando el enlace directo de Google Sheets:
-                
-                const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS.../pub?output=csv"; // Reemplaza con tu enlace CSV real si lo deseas
-                
-                // Para asegurarnos al 100%, vamos a usar un respaldo inteligente por si la ruta falla:
-                let texto = "";
-                try {
-                    const r = await fetch('/.netlify/functions/obtener-productos');
-                    if (r.ok) {
-                        texto = await r.text();
-                    } else {
-                        throw new Error("Fallback necesario");
-                    }
-                } catch(e) {
-                    // Si falla la función, intentamos directo con un respaldo local o aviso
-                    console.warn("Usando método alternativo de carga...");
+                // Esta ruta llama a tu función privada de Netlify (netlify/functions/obtener-productos.js).
+                // El link real del Google Sheet NUNCA aparece aquí ni en el código que se sube a GitHub:
+                // vive escondido como variable de entorno dentro de Netlify.
+                const respuesta = await fetch('/.netlify/functions/obtener-productos');
+
+                if (!respuesta.ok) {
+                    throw new Error("El servidor respondió con error " + respuesta.status);
                 }
 
-                if (!texto) {
-                    // Si no hay texto, colocamos datos de prueba para que veas la tienda corriendo de inmediato
-                    productos = [
-                        { producto: "Chaqueta Deportiva Térmica", categoria: "Caballeros", precio: "25.00", disponible: "Si", imagen: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=400&auto=format&fit=crop", colores: "Negro, Azul" },
-                        { producto: "Conjunto Deportivo Lycra Damas", categoria: "Damas", precio: "22.00", disponible: "Si", imagen: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?q=80&w=400&auto=format&fit=crop", colores: "Vinotinto, Negro, Gris" },
-                        { producto: "Combo Familiar Sport", categoria: "Combos", precio: "45.00", disponible: "Si", imagen: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=400&auto=format&fit=crop", colores: "Variados" }
-                    ];
-                } else {
-                    productos = parseCSV(texto);
-                }
-                
+                const texto = await respuesta.text();
+                productos = parseCSV(texto);
+
                 if (estado) estado.textContent = "";
                 renderizarProductos();
-                
+
             } catch (error) {
-                console.error("Error al cargar:", error);
-                if (estado) estado.textContent = "Mostrando catálogo de muestra";
-                productos = [
-                    { producto: "Chaqueta Deportiva Térmica", categoria: "Caballeros", precio: "25.00", disponible: "Si", imagen: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=400&auto=format&fit=crop", colores: "Negro, Azul" }
-                ];
-                renderizarProductos();
+                console.error("Error al cargar el catálogo:", error);
+                if (estado) {
+                    estado.textContent = "No se pudo cargar el catálogo. Si estás probando en local, recuerda usar 'netlify dev' en vez de Live Server.";
+                }
             }
         }
       
@@ -283,7 +252,6 @@
             if (campo !== "" || fila.length) { fila.push(campo); filas.push(fila); }
             if (filas.length === 0) return [];
             
-            // Convertir CSV a objetos usando la primera fila como cabecera
             const cabeceras = filas[0].map(h => h.trim().toLowerCase());
             const resultados = [];
             for (let i = 1; i < filas.length; i++) {
