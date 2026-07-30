@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
     <style>
         body {
@@ -100,7 +101,10 @@
         <div class="max-w-xl mx-auto mb-4">
             <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none"></i>
-                <input type="text" id="buscador" oninput="reiniciarYRenderizar()" placeholder="Buscar por nombre, categoría o descripción..." class="icon-touch w-full bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] focus:border-purple-400/50 rounded-full pl-11 pr-11 py-3 text-sm text-white placeholder:text-slate-500 outline-none">
+                <input type="text" id="buscador" oninput="reiniciarYRenderizar()" placeholder="Buscar por nombre o escanear QR..." class="icon-touch w-full bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] focus:border-purple-400/50 rounded-full pl-11 pr-20 py-3 text-sm text-white placeholder:text-slate-500 outline-none">
+                <button id="btnEscanear" onclick="abrirScanner()" title="Escanear código QR" class="icon-touch absolute right-10 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-400 w-7 h-7 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-camera text-sm"></i>
+                </button>
                 <button id="btnLimpiar" onclick="limpiarBusqueda()" class="icon-touch absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-purple-400 w-6 h-6 flex items-center justify-center rounded-full hidden">
                     <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
@@ -130,6 +134,21 @@
         </div>
     </section>
 
+    <!-- MODAL ESCÁNER QR -->
+    <div id="scannerModal" class="fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
+        <button onclick="cerrarScanner()" class="icon-touch absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full text-slate-300 hover:text-white hover:bg-zinc-900 text-base z-10">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="w-full max-w-sm">
+            <div class="relative rounded-2xl overflow-hidden border border-cyan-400/30 bg-black aspect-square">
+                <video id="scannerVideo" class="w-full h-full object-cover" playsinline autoplay muted></video>
+                <div class="absolute inset-0 pointer-events-none border-[3px] border-cyan-400/60 m-10 rounded-xl"></div>
+            </div>
+            <canvas id="scannerCanvas" class="hidden"></canvas>
+            <p id="scannerEstado" class="text-slate-400 text-sm mt-4 text-center">Apunta la cámara al código QR de la prenda</p>
+        </div>
+    </div>
+
     <!-- MODAL DETALLE -->
     <div id="detalleModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-zinc-950 border border-zinc-900 rounded-2xl w-full max-w-md p-6 relative shadow-2xl modal-transition scale-95 opacity-0" id="detalleModalContainer">
@@ -150,6 +169,12 @@
             <a id="detalleBotonWA" href="#" target="_blank" class="icon-touch w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2">
                 <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
             </a>
+            <button id="detalleBotonPagado" onclick="marcarComoPagado()" class="icon-touch w-full mt-3 bg-white/10 hover:bg-white/20 text-white font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 border border-white/10">
+                <i class="fa-solid fa-check text-base"></i> Marcar como pagado
+            </button>
+            <div id="detalleConfirmacion" class="hidden text-center bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold py-4 rounded-xl mt-3 text-sm">
+                🎉 ¡Gracias por tu compra! Pedido registrado.
+            </div>
             <p id="detalleNoDisponible" class="hidden text-center text-sm text-zinc-500 py-3">Actualmente no disponible</p>
         </div>
     </div>
@@ -199,6 +224,9 @@
         const productosPorPagina = 6;
         let cantidadMostrada = productosPorPagina;
         let categoriaActiva = null;
+        let productoActual = null;
+        let scannerStream = null;
+        let scannerRAF = null;
 
         async function cargarProductosDesdeSheet() {
             const estado = document.getElementById('estadoCarga');
@@ -219,6 +247,7 @@
 
                 if (estado) estado.textContent = "";
                 renderizarProductos();
+                revisarParametroURL();
 
             } catch (error) {
                 console.error("Error al cargar el catálogo:", error);
@@ -379,6 +408,17 @@
         }
 
         function abrirDetalle(nombre, imagenUrl, precioFormateado, categoriaLabel, coloresTexto, enlaceWhatsApp, disponible) {
+            productoActual = { nombre: nombre, precio: precioFormateado, categoria: categoriaLabel };
+
+            const btnPagado = document.getElementById('detalleBotonPagado');
+            const confirmacion = document.getElementById('detalleConfirmacion');
+            if (btnPagado) {
+                btnPagado.classList.toggle('hidden', !disponible);
+                btnPagado.disabled = false;
+                btnPagado.innerHTML = '<i class="fa-solid fa-check text-base"></i> Marcar como pagado';
+            }
+            if (confirmacion) confirmacion.classList.add('hidden');
+
             document.getElementById('detalleImagen').src = imagenUrl;
             document.getElementById('detalleImagen').alt = nombre;
             document.getElementById('detalleCategoria').textContent = categoriaLabel;
@@ -414,6 +454,155 @@
                 container.classList.remove('scale-95', 'opacity-0');
                 container.classList.add('scale-100', 'opacity-100');
             }, 50);
+        }
+
+        // ---------- ESCÁNER QR (sin app, funciona en el navegador) ----------
+
+        async function abrirScanner() {
+            const modal = document.getElementById('scannerModal');
+            const estado = document.getElementById('scannerEstado');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            if (estado) estado.textContent = 'Apunta la cámara al código QR de la prenda';
+
+            const video = document.getElementById('scannerVideo');
+            try {
+                scannerStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } },
+                    audio: false
+                });
+                video.srcObject = scannerStream;
+                await video.play();
+                scannerRAF = requestAnimationFrame(tickScanner);
+            } catch (error) {
+                console.error('No se pudo abrir la cámara:', error);
+                if (estado) estado.textContent = 'No se pudo acceder a la cámara. Revisa que le hayas dado permiso en el navegador.';
+            }
+        }
+
+        function tickScanner() {
+            const video = document.getElementById('scannerVideo');
+            const canvas = document.getElementById('scannerCanvas');
+            if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
+                scannerRAF = requestAnimationFrame(tickScanner);
+                return;
+            }
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imagen = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const codigo = jsQR(imagen.data, imagen.width, imagen.height);
+            if (codigo && codigo.data) {
+                procesarCodigoQR(codigo.data);
+                return;
+            }
+            scannerRAF = requestAnimationFrame(tickScanner);
+        }
+
+        function cerrarScanner() {
+            const modal = document.getElementById('scannerModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (scannerRAF) cancelAnimationFrame(scannerRAF);
+            scannerRAF = null;
+            if (scannerStream) {
+                scannerStream.getTracks().forEach(t => t.stop());
+                scannerStream = null;
+            }
+        }
+
+        function procesarCodigoQR(textoLeido) {
+            cerrarScanner();
+
+            let valorBusqueda = textoLeido.trim();
+            try {
+                const url = new URL(textoLeido);
+                const param = url.searchParams.get('producto') || url.searchParams.get('buscar');
+                if (param) valorBusqueda = param;
+            } catch (e) {
+                // No era una URL, se usa el texto tal cual (ej: el nombre del producto)
+            }
+
+            const buscador = document.getElementById('buscador');
+            if (buscador) buscador.value = valorBusqueda;
+            reiniciarYRenderizar();
+
+            const seccionProd = document.getElementById('productos');
+            if (seccionProd) seccionProd.scrollIntoView({ behavior: 'smooth' });
+
+            const coincidencia = productos.find(p =>
+                (p.producto || p.nombre || '').toLowerCase().trim() === valorBusqueda.toLowerCase().trim()
+            );
+
+            if (coincidencia) {
+                let nombreProducto = coincidencia.producto || coincidencia.nombre;
+                let imagenUrl = (coincidencia.imagen && coincidencia.imagen.trim() !== '')
+                    ? coincidencia.imagen
+                    : 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop';
+                let precioFormateado = coincidencia.precio ? parseFloat(coincidencia.precio).toFixed(2) : '0.00';
+                let estaDisponible = (coincidencia.disponible && coincidencia.disponible.toLowerCase().trim() === 'si');
+                let mensajeWhatsApp = encodeURIComponent('¡Hola Valera Sport! Me interesa consultar por: ' + nombreProducto + ' ($' + precioFormateado + ')');
+                let enlaceWhatsApp = 'https://wa.me/' + WHATSAPP_PEDIDOS + '?text=' + mensajeWhatsApp;
+
+                abrirDetalle(nombreProducto, imagenUrl, precioFormateado, coincidencia.categoria || 'Variados', coincidencia.colores || '', enlaceWhatsApp, estaDisponible);
+            }
+        }
+
+        // Permite que un QR/enlace impreso (ej: tusitio.netlify.app/?producto=NombreExacto)
+        // abra directo el producto incluso si lo escanean con la cámara nativa del teléfono, sin pasar por nuestro escáner.
+        function revisarParametroURL() {
+            const params = new URLSearchParams(window.location.search);
+            const productoParam = params.get('producto') || params.get('buscar');
+            if (productoParam) {
+                procesarCodigoQR(productoParam);
+            }
+        }
+
+        // ---------- MARCAR COMO PAGADO (descuenta stock y registra la venta en el Sheet) ----------
+
+        async function marcarComoPagado() {
+            if (!productoActual) return;
+
+            const confirmar = confirm('¿Confirmas que ya recibiste el pago de "' + productoActual.nombre + '" por $' + productoActual.precio + '?');
+            if (!confirmar) return;
+
+            const btn = document.getElementById('detalleBotonPagado');
+            const confirmacion = document.getElementById('detalleConfirmacion');
+            const textoOriginal = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registrando...';
+
+            try {
+                const respuesta = await fetch('/.netlify/functions/marcar-pagado', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productoActual)
+                });
+                const datos = await respuesta.json();
+
+                if (!respuesta.ok || !datos.ok) {
+                    throw new Error(datos.error || 'No se pudo registrar el pago');
+                }
+
+                btn.classList.add('hidden');
+                if (confirmacion) confirmacion.classList.remove('hidden');
+
+                // Actualiza el stock localmente para que se refleje sin recargar la página
+                const prod = productos.find(p => (p.producto || p.nombre) === productoActual.nombre);
+                if (prod) {
+                    if (typeof datos.nuevoStock !== 'undefined' && datos.nuevoStock !== null) {
+                        prod.stock = String(datos.nuevoStock);
+                        if (datos.nuevoStock <= 0) prod.disponible = 'no';
+                    }
+                    renderizarProductos();
+                }
+            } catch (error) {
+                console.error('Error al marcar como pagado:', error);
+                btn.disabled = false;
+                btn.innerHTML = textoOriginal;
+                alert('Hubo un problema registrando el pago. Intenta de nuevo o avísale al vendedor por WhatsApp.');
+            }
         }
 
         function cerrarDetalle() {
