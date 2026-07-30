@@ -169,7 +169,9 @@
             <a id="detalleBotonWA" href="#" target="_blank" class="icon-touch w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2">
                 <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
             </a>
-            
+            <button id="detalleBotonPagado" onclick="marcarComoPagado()" class="icon-touch w-full mt-3 bg-white/10 hover:bg-white/20 text-white font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 border border-white/10">
+                <i class="fa-solid fa-check text-base"></i> Marcar como pagado
+            </button>
             <div id="detalleConfirmacion" class="hidden text-center bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold py-4 rounded-xl mt-3 text-sm">
                 🎉 ¡Gracias por tu compra! Pedido registrado.
             </div>
@@ -300,7 +302,7 @@
 
         function crearTarjetaHTML(p) {
             let nombreProducto = p.producto || p.nombre || "Producto sin nombre";
-            let imagenUrl = (p.imagen && p.imagen.trim() !== "") ? p.imagen : "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop";
+            let imagenUrl = (p.imagen && p.imagen.trim() !== "") ? p.imagen : "imagenes/logo.jpg";
             let precioFormateado = p.precio ? parseFloat(p.precio).toFixed(2) : "0.00";
             let estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
 
@@ -572,12 +574,12 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registrando...';
 
             try {
-                const respuesta = await fetch("https://script.google.com/macros/s/AKfycbwm-flyir58Hcf1wmCAPd277DFm3nmFQFr4F2Al7jybMOvFyVQtglSLkHjorRQ918Rsu/exec", {
-    method: "POST",
-    mode: "no-cors", // Fundamental para que Google Script acepte la llamada desde tu web
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(productoActual)
-});
+                const respuesta = await fetch('/.netlify/functions/marcar-pagado', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productoActual)
+                });
+                const datos = await respuesta.json();
 
                 if (!respuesta.ok || !datos.ok) {
                     throw new Error(datos.error || 'No se pudo registrar el pago');

@@ -16,16 +16,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const SHEET_WRITE_URL = process.env.SHEET_WRITE_URL;
-  if (!SHEET_WRITE_URL) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        ok: false,
-        error: "Falta configurar SHEET_WRITE_URL en las variables de entorno de Netlify",
-      }),
-    };
-  }
+const SHEET_WRITE_URL = "https://script.google.com/macros/s/AKfycbwm-flyir58Hcf1wmCAPd277DFm3nmFQFr4F2Al7jybMOvFyVQtglSLkHjorRQ918Rsu/exec";
 
   let datos;
   try {
