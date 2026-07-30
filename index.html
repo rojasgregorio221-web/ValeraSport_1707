@@ -169,9 +169,7 @@
             <a id="detalleBotonWA" href="#" target="_blank" class="icon-touch w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2">
                 <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
             </a>
-            <button id="detalleBotonPagado" onclick="marcarComoPagado()" class="icon-touch w-full mt-3 bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-400 font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 border border-cyan-500/30">
-    <i class="fa-solid fa-paper-plane text-base"></i> Confirmar que ya pagué
-</button>
+            
             <div id="detalleConfirmacion" class="hidden text-center bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold py-4 rounded-xl mt-3 text-sm">
                 🎉 ¡Gracias por tu compra! Pedido registrado.
             </div>
@@ -574,12 +572,12 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registrando...';
 
             try {
-                const respuesta = await fetch('/.netlify/functions/marcar-pagado', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(productoActual)
-                });
-                const datos = await respuesta.json();
+                const respuesta = await fetch("https://script.google.com/macros/s/AKfycbwm-flyir58Hcf1wmCAPd277DFm3nmFQFr4F2Al7jybMOvFyVQtglSLkHjorRQ918Rsu/exec", {
+    method: "POST",
+    mode: "no-cors", // Fundamental para que Google Script acepte la llamada desde tu web
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(productoActual)
+});
 
                 if (!respuesta.ok || !datos.ok) {
                     throw new Error(datos.error || 'No se pudo registrar el pago');
