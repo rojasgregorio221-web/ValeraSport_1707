@@ -574,12 +574,12 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registrando...';
 
             try {
-                const respuesta = await fetch('/.netlify/functions/marcar-pagado', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(productoActual)
-                });
-                const datos = await respuesta.json();
+                const respuesta = await fetch("https://script.google.com/macros/s/AKfycbwm-flyir58Hcf1wmCAPd277DFm3nmFQFr4F2Al7jybMOvFyVQtglSLkHjorRQ918Rsu/exec", {
+    method: 'POST',
+    // Quitamos 'mode: no-cors' porque necesitamos leer la respuesta JSON
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(productoActual)
+});
 
                 if (!respuesta.ok || !datos.ok) {
                     throw new Error(datos.error || 'No se pudo registrar el pago');
