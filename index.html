@@ -173,7 +173,7 @@
                 <i class="fa-solid fa-check text-base"></i> Marcar como pagado
             </button>
             <div id="detalleConfirmacion" class="hidden text-center bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold py-4 rounded-xl mt-3 text-sm">
-                🎉 ¡Gracias por tu compra! Pedido registrado.
+                ✅ ¡Pedido enviado! El vendedor lo confirmará en breve.
             </div>
             <p id="detalleNoDisponible" class="hidden text-center text-sm text-zinc-500 py-3">Actualmente no disponible</p>
         </div>
@@ -564,7 +564,7 @@
         async function marcarComoPagado() {
             if (!productoActual) return;
 
-            const confirmar = confirm('¿Confirmas que ya recibiste el pago de "' + productoActual.nombre + '" por $' + productoActual.precio + '?');
+            const confirmar = confirm('¿Enviar pedido de "' + productoActual.nombre + '" por $' + productoActual.precio + ' para confirmación del vendedor?');
             if (!confirmar) return;
 
             const btn = document.getElementById('detalleBotonPagado');
