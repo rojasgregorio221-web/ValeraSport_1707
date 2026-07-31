@@ -7,10 +7,13 @@
 // contraseña del panel (ADMIN_PASSWORD), y esta función es la que agrega
 // la clave secreta real antes de hablar con Google.
 //
-// GET  ?password=...&tipo=pedidos   -> lista de pedidos pendientes
-// GET  ?password=...&tipo=resumen   -> total vendido hoy
+// POST { password, tipo: "pedidos" }   -> lista de pedidos pendientes
+// POST { password, tipo: "resumen" }   -> total vendido hoy
 // POST { password, accion: "aceptar"|"rechazar"|"rechazar_todos", id }
 //      (id no es necesario cuando accion es "rechazar_todos")
+//
+// Todo va por POST con el password en el body (nunca en la URL) para que
+// no quede registrado en logs de acceso ni en el historial del navegador.
 
 exports.handler = async (event) => {
   const SHEET_WRITE_URL = process.env.SHEET_WRITE_URL;
@@ -29,20 +32,35 @@ exports.handler = async (event) => {
   }
 
   try {
-    if (event.httpMethod === "GET") {
-      const params = event.queryStringParameters || {};
+    if (event.httpMethod !== "POST") {
+      return {
+        statusCode: 405,
+        body: JSON.stringify({ ok: false, error: "Método no permitido" }),
+      };
+    }
 
-      if (params.password !== ADMIN_PASSWORD) {
-        return {
-          statusCode: 401,
-          body: JSON.stringify({ ok: false, error: "Contraseña incorrecta" }),
-        };
-      }
+    let datos;
+    try {
+      datos = JSON.parse(event.body || "{}");
+    } catch (e) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ ok: false, error: "Cuerpo de la petición inválido" }),
+      };
+    }
 
-      const accion = params.tipo === "resumen" ? "resumen" : "pedidos";
+    if (datos.password !== ADMIN_PASSWORD) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ ok: false, error: "Contraseña incorrecta" }),
+      };
+    }
+
+    // Lectura: listar pedidos pendientes o el resumen de ventas del día
+    if (datos.tipo === "pedidos" || datos.tipo === "resumen") {
       const url =
         SHEET_WRITE_URL +
-        "?accion=" + accion +
+        "?accion=" + datos.tipo +
         "&clave=" + encodeURIComponent(CLAVE_ADMIN);
 
       const respuesta = await fetch(url, { method: "GET" });
@@ -55,64 +73,41 @@ exports.handler = async (event) => {
       };
     }
 
-    if (event.httpMethod === "POST") {
-      let datos;
-      try {
-        datos = JSON.parse(event.body || "{}");
-      } catch (e) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ ok: false, error: "Cuerpo de la petición inválido" }),
-        };
-      }
-
-      if (datos.password !== ADMIN_PASSWORD) {
-        return {
-          statusCode: 401,
-          body: JSON.stringify({ ok: false, error: "Contraseña incorrecta" }),
-        };
-      }
-
-      if (
-        datos.accion !== "aceptar" &&
-        datos.accion !== "rechazar" &&
-        datos.accion !== "rechazar_todos"
-      ) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ ok: false, error: "Acción inválida" }),
-        };
-      }
-
-      if (!datos.id && datos.accion !== "rechazar_todos") {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ ok: false, error: "Falta el id del pedido" }),
-        };
-      }
-
-      const respuesta = await fetch(SHEET_WRITE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          accion: datos.accion,
-          id: datos.id,
-          clave: CLAVE_ADMIN,
-        }),
-      });
-
-      const resultado = await parsearRespuesta(respuesta);
-
+    // Escritura: aceptar / rechazar un pedido
+    if (
+      datos.accion !== "aceptar" &&
+      datos.accion !== "rechazar" &&
+      datos.accion !== "rechazar_todos"
+    ) {
       return {
-        statusCode: resultado.ok ? 200 : 500,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(resultado),
+        statusCode: 400,
+        body: JSON.stringify({ ok: false, error: "Acción inválida" }),
       };
     }
 
+    if (!datos.id && datos.accion !== "rechazar_todos") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ ok: false, error: "Falta el id del pedido" }),
+      };
+    }
+
+    const respuesta = await fetch(SHEET_WRITE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accion: datos.accion,
+        id: datos.id,
+        clave: CLAVE_ADMIN,
+      }),
+    });
+
+    const resultado = await parsearRespuesta(respuesta);
+
     return {
-      statusCode: 405,
-      body: JSON.stringify({ ok: false, error: "Método no permitido" }),
+      statusCode: resultado.ok ? 200 : 500,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(resultado),
     };
   } catch (error) {
     return {

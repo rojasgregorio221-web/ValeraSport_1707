@@ -101,7 +101,11 @@
 
         async function probarPassword(clave) {
             try {
-                const resp = await fetch('/.netlify/functions/admin-pedidos?tipo=pedidos&password=' + encodeURIComponent(clave));
+                const resp = await fetch('/.netlify/functions/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: clave, tipo: 'pedidos' })
+                });
                 return resp.status !== 401;
             } catch (e) {
                 return false;
@@ -131,7 +135,11 @@
 
         async function cargarResumen() {
             try {
-                const resp = await fetch('/.netlify/functions/admin-pedidos?tipo=resumen&password=' + encodeURIComponent(obtenerPassword()));
+                const resp = await fetch('/.netlify/functions/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), tipo: 'resumen' })
+                });
                 const datos = await resp.json();
                 if (datos.ok) {
                     document.getElementById('totalHoy').textContent = '$' + Number(datos.resumen.totalHoy).toFixed(2);
@@ -151,12 +159,16 @@
             sinPedidos.classList.add('hidden');
 
             try {
-                const resp = await fetch('/.netlify/functions/admin-pedidos?tipo=pedidos&password=' + encodeURIComponent(obtenerPassword()));
+                const resp = await fetch('/.netlify/functions/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), tipo: 'pedidos' })
+                });
                 const datos = await resp.json();
                 cargando.classList.add('hidden');
 
                 if (!datos.ok) {
-                    lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-6">' + (datos.error || 'Error al cargar pedidos') + '</p>';
+                    lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar pedidos') + '</p>';
                     return;
                 }
 
@@ -173,24 +185,35 @@
             }
         }
 
+        // Escapa entidades HTML para evitar que un "nombre de producto" con
+        // <script>/onerror/etc. inyecte código cuando se pinta en el panel.
+        // El pedido llega desde un endpoint público (marcar-pagado), así que
+        // su contenido nunca debe tratarse como HTML de confianza.
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? '' : String(str);
+            return div.innerHTML;
+        }
+
         function tarjetaPedido(p) {
             const fecha = p.fecha ? new Date(p.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
             const precio = Number(p.precio || 0).toFixed(2);
+            const idAttr = escapeHTML(p.id);
             return `
-                <div class="bg-white/[0.05] border border-white/[0.1] rounded-2xl p-5" id="pedido-${p.id}">
+                <div class="bg-white/[0.05] border border-white/[0.1] rounded-2xl p-5" id="pedido-${idAttr}" data-id="${idAttr}">
                     <div class="flex justify-between items-start mb-3">
                         <div>
-                            <span class="text-[10px] font-bold text-cyan-400/80 uppercase tracking-widest block mb-1">${p.categoria || 'Variados'}</span>
-                            <h3 class="text-white font-bold">${p.producto}</h3>
-                            <p class="text-xs text-slate-500 mt-1">${fecha}</p>
+                            <span class="text-[10px] font-bold text-cyan-400/80 uppercase tracking-widest block mb-1">${escapeHTML(p.categoria || 'Variados')}</span>
+                            <h3 class="text-white font-bold">${escapeHTML(p.producto)}</h3>
+                            <p class="text-xs text-slate-500 mt-1">${escapeHTML(fecha)}</p>
                         </div>
                         <span class="text-xl font-black text-white">$${precio}</span>
                     </div>
                     <div class="grid grid-cols-2 gap-3 mt-4">
-                        <button onclick="responder('${p.id}', 'rechazar')" class="bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-300 hover:text-rose-400 font-bold py-3 rounded-xl text-sm transition">
+                        <button data-accion="rechazar" class="bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-300 hover:text-rose-400 font-bold py-3 rounded-xl text-sm transition">
                             <i class="fa-solid fa-xmark mr-1"></i> Rechazar
                         </button>
-                        <button onclick="responder('${p.id}', 'aceptar')" class="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-3 rounded-xl text-sm transition">
+                        <button data-accion="aceptar" class="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-3 rounded-xl text-sm transition">
                             <i class="fa-solid fa-check mr-1"></i> Aceptar
                         </button>
                     </div>
@@ -198,8 +221,19 @@
             `;
         }
 
+        // Delegación de eventos: el id del pedido nunca se interpola dentro
+        // de un atributo onclick, así una comilla en el id no puede romper
+        // el contexto de JavaScript.
+        document.getElementById('listaPedidos').addEventListener('click', (e) => {
+            const boton = e.target.closest('button[data-accion]');
+            if (!boton) return;
+            const tarjeta = boton.closest('[data-id]');
+            if (!tarjeta) return;
+            responder(tarjeta.dataset.id, boton.dataset.accion);
+        });
+
         async function responder(id, accion) {
-            const tarjeta = document.getElementById('pedido-' + id);
+            const tarjeta = document.querySelector(`[data-id="${CSS.escape(id)}"]`);
             if (tarjeta) tarjeta.style.opacity = '0.4';
 
             try {

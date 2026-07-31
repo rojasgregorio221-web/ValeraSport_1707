@@ -40,15 +40,22 @@ exports.handler = async (event) => {
     };
   }
 
+  // Este endpoint es público (cualquiera puede llamarlo, no solo el navegador
+  // de la tienda), así que los campos de texto se acotan en longitud antes de
+  // guardarlos. Esto es solo para evitar basura/payloads enormes en el Sheet;
+  // la protección real contra HTML/JS inyectado vive en admin.html, que
+  // escapa todo antes de pintarlo (nunca confíes solo en validar la entrada).
+  const recortar = (valor, max) => String(valor || "").slice(0, max);
+
   try {
     const respuesta = await fetch(SHEET_WRITE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         accion: "pagado",
-        nombre: datos.nombre,
-        precio: datos.precio || "",
-        categoria: datos.categoria || "",
+        nombre: recortar(datos.nombre, 200),
+        precio: recortar(datos.precio, 20),
+        categoria: recortar(datos.categoria, 100),
       }),
       redirect: "follow",
     });
