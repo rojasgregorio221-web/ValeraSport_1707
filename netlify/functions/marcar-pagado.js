@@ -1,12 +1,7 @@
 // netlify/functions/marcar-pagado.js
 //
-// Esta función recibe desde el navegador el nombre del producto que se marcó
-// como "pagado" y lo reenvía a un Google Apps Script (Web App) que es el único
-// que tiene permiso de ESCRITURA sobre tu Google Sheet.
-//
-// La URL de ese Apps Script vive escondida en Netlify como variable de entorno
-// SHEET_WRITE_URL, igual que ya haces con SHEET_CSV_URL. Nunca queda expuesta
-// en el código que sube a GitHub ni en el navegador del cliente.
+// El cliente marca "pagado" -> creamos un PEDIDO PENDIENTE en el Sheet
+// (todavía NO se descuenta stock). El admin lo aprueba desde admin.html.
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -50,6 +45,7 @@ exports.handler = async (event) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        accion: "pagado",
         nombre: datos.nombre,
         precio: datos.precio || "",
         categoria: datos.categoria || "",

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Panel de Pedidos | Valera Sport</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #000; }
+        h1, h2, .font-brand { font-family: 'Outfit', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+    </style>
+</head>
+<body class="text-slate-300 antialiased min-h-screen">
+
+    <!-- PANTALLA DE CONTRASEÑA -->
+    <div id="pantallaLogin" class="min-h-screen flex items-center justify-center px-6">
+        <div class="w-full max-w-sm">
+            <div class="text-center mb-8">
+                <span class="text-2xl font-black tracking-wider text-white">VALERA<span class="text-cyan-500">SPORT</span></span>
+                <p class="text-xs text-slate-500 uppercase tracking-widest mt-2">Panel de pedidos</p>
+            </div>
+            <form id="formLogin" class="space-y-4">
+                <input type="password" id="inputPassword" placeholder="Contraseña del panel" autocomplete="current-password" class="w-full bg-white/[0.07] border border-white/[0.14] focus:border-cyan-400/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none">
+                <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-black py-3 rounded-xl text-sm uppercase tracking-wider transition">
+                    Entrar
+                </button>
+                <p id="errorLogin" class="hidden text-rose-400 text-xs text-center">Contraseña incorrecta</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- PANEL PRINCIPAL -->
+    <div id="panelPrincipal" class="hidden max-w-2xl mx-auto px-5 py-8">
+
+        <header class="flex items-center justify-between mb-8">
+            <span class="text-xl font-black tracking-wider text-white">VALERA<span class="text-cyan-500">SPORT</span></span>
+            <button onclick="cerrarSesion()" class="text-xs text-slate-500 hover:text-white transition flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Salir
+            </button>
+        </header>
+
+        <!-- RESUMEN DEL DÍA -->
+        <div class="bg-gradient-to-br from-cyan-950/40 to-purple-950/40 border border-white/[0.1] rounded-2xl p-6 mb-8">
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Vendido hoy</p>
+            <p class="text-4xl font-black text-white" id="totalHoy">$0.00</p>
+            <p class="text-sm text-slate-400 mt-1" id="cantidadHoy">0 pedidos aceptados</p>
+        </div>
+
+        <!-- LISTA DE PEDIDOS PENDIENTES -->
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-white">Pedidos pendientes</h2>
+            <button onclick="cargarTodo()" class="icon-touch text-slate-500 hover:text-cyan-400 w-8 h-8 flex items-center justify-center rounded-full">
+                <i class="fa-solid fa-arrows-rotate text-sm"></i>
+            </button>
+        </div>
+
+        <p id="cargando" class="text-sm text-slate-500 text-center py-10">Cargando pedidos...</p>
+        <div id="listaPedidos" class="space-y-4"></div>
+        <p id="sinPedidos" class="hidden text-sm text-slate-500 text-center py-10">No hay pedidos pendientes por ahora.</p>
+    </div>
+
+    <script>
+        const PASSWORD_KEY = 'vs_admin_password';
+
+        const formLogin = document.getElementById('formLogin');
+        const inputPassword = document.getElementById('inputPassword');
+        const errorLogin = document.getElementById('errorLogin');
+        const pantallaLogin = document.getElementById('pantallaLogin');
+        const panelPrincipal = document.getElementById('panelPrincipal');
+
+        formLogin.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const clave = inputPassword.value.trim();
+            if (!clave) return;
+
+            errorLogin.classList.add('hidden');
+            const valida = await probarPassword(clave);
+            if (valida) {
+                sessionStorage.setItem(PASSWORD_KEY, clave);
+                mostrarPanel();
+            } else {
+                errorLogin.classList.remove('hidden');
+            }
+        });
+
+        async function probarPassword(clave) {
+            try {
+                const resp = await fetch('/.netlify/functions/admin-pedidos?tipo=pedidos&password=' + encodeURIComponent(clave));
+                return resp.status !== 401;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function mostrarPanel() {
+            pantallaLogin.classList.add('hidden');
+            panelPrincipal.classList.remove('hidden');
+            cargarTodo();
+        }
+
+        function cerrarSesion() {
+            sessionStorage.removeItem(PASSWORD_KEY);
+            panelPrincipal.classList.add('hidden');
+            pantallaLogin.classList.remove('hidden');
+            inputPassword.value = '';
+        }
+
+        function obtenerPassword() {
+            return sessionStorage.getItem(PASSWORD_KEY) || '';
+        }
+
+        async function cargarTodo() {
+            await Promise.all([cargarResumen(), cargarPedidos()]);
+        }
+
+        async function cargarResumen() {
+            try {
+                const resp = await fetch('/.netlify/functions/admin-pedidos?tipo=resumen&password=' + encodeURIComponent(obtenerPassword()));
+                const datos = await resp.json();
+                if (datos.ok) {
+                    document.getElementById('totalHoy').textContent = '$' + Number(datos.resumen.totalHoy).toFixed(2);
+                    document.getElementById('cantidadHoy').textContent = datos.resumen.cantidadHoy + ' pedidos aceptados';
+                }
+            } catch (e) {
+                console.error('Error cargando resumen:', e);
+            }
+        }
+
+        async function cargarPedidos() {
+            const cargando = document.getElementById('cargando');
+            const lista = document.getElementById('listaPedidos');
+            const sinPedidos = document.getElementById('sinPedidos');
+
+            cargando.classList.remove('hidden');
+            sinPedidos.classList.add('hidden');
+
+            try {
+                const resp = await fetch('/.netlify/functions/admin-pedidos?tipo=pedidos&password=' + encodeURIComponent(obtenerPassword()));
+                const datos = await resp.json();
+                cargando.classList.add('hidden');
+
+                if (!datos.ok) {
+                    lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-6">' + (datos.error || 'Error al cargar pedidos') + '</p>';
+                    return;
+                }
+
+                if (!datos.pedidos.length) {
+                    lista.innerHTML = '';
+                    sinPedidos.classList.remove('hidden');
+                    return;
+                }
+
+                lista.innerHTML = datos.pedidos.map(tarjetaPedido).join('');
+            } catch (e) {
+                cargando.classList.add('hidden');
+                lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
+            }
+        }
+
+        function tarjetaPedido(p) {
+            const fecha = p.fecha ? new Date(p.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
+            const precio = Number(p.precio || 0).toFixed(2);
+            return `
+                <div class="bg-white/[0.05] border border-white/[0.1] rounded-2xl p-5" id="pedido-${p.id}">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-[10px] font-bold text-cyan-400/80 uppercase tracking-widest block mb-1">${p.categoria || 'Variados'}</span>
+                            <h3 class="text-white font-bold">${p.producto}</h3>
+                            <p class="text-xs text-slate-500 mt-1">${fecha}</p>
+                        </div>
+                        <span class="text-xl font-black text-white">$${precio}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <button onclick="responder('${p.id}', 'rechazar')" class="bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-300 hover:text-rose-400 font-bold py-3 rounded-xl text-sm transition">
+                            <i class="fa-solid fa-xmark mr-1"></i> Rechazar
+                        </button>
+                        <button onclick="responder('${p.id}', 'aceptar')" class="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-3 rounded-xl text-sm transition">
+                            <i class="fa-solid fa-check mr-1"></i> Aceptar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function responder(id, accion) {
+            const tarjeta = document.getElementById('pedido-' + id);
+            if (tarjeta) tarjeta.style.opacity = '0.4';
+
+            try {
+                const resp = await fetch('/.netlify/functions/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), accion, id })
+                });
+                const datos = await resp.json();
+
+                if (!datos.ok) {
+                    alert('Error: ' + (datos.error || 'no se pudo procesar el pedido'));
+                    if (tarjeta) tarjeta.style.opacity = '1';
+                    return;
+                }
+
+                if (tarjeta) tarjeta.remove();
+                cargarResumen();
+
+                const lista = document.getElementById('listaPedidos');
+                if (!lista.children.length) {
+                    document.getElementById('sinPedidos').classList.remove('hidden');
+                }
+            } catch (e) {
+                alert('No se pudo conectar con el servidor.');
+                if (tarjeta) tarjeta.style.opacity = '1';
+            }
+        }
+
+        // Si ya había una sesión abierta en este navegador, entra directo
+        (function iniciar() {
+            const claveGuardada = obtenerPassword();
+            if (claveGuardada) {
+                mostrarPanel();
+            }
+        })();
+
+        // Refresca solo cada 30s mientras el panel está abierto
+        setInterval(() => {
+            if (!panelPrincipal.classList.contains('hidden')) cargarTodo();
+        }, 30000);
+    </script>
+</body>
+</html>
