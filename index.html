@@ -227,6 +227,7 @@
         let productoActual = null;
         let scannerStream = null;
         let scannerRAF = null;
+        let pedidoPollInterval = null;
 
         async function cargarProductosDesdeSheet() {
             const estado = document.getElementById('estadoCarga');
@@ -417,7 +418,12 @@
                 btnPagado.disabled = false;
                 btnPagado.innerHTML = '<i class="fa-solid fa-check text-base"></i> Marcar como pagado';
             }
-            if (confirmacion) confirmacion.classList.add('hidden');
+            if (confirmacion) {
+                confirmacion.classList.add('hidden');
+                confirmacion.classList.remove('bg-rose-500/10', 'border-rose-500/30', 'text-rose-400');
+                confirmacion.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
+                confirmacion.innerHTML = '✅ ¡Pedido enviado! El vendedor lo confirmará en breve.';
+            }
 
             document.getElementById('detalleImagen').src = imagenUrl;
             document.getElementById('detalleImagen').alt = nombre;
@@ -559,7 +565,7 @@
             }
         }
 
-        // ---------- MARCAR COMO PAGADO (descuenta stock y registra la venta en el Sheet) ----------
+        // ---------- MARCAR COMO PAGADO (crea el pedido pendiente) ----------
 
         async function marcarComoPagado() {
             if (!productoActual) return;
@@ -591,17 +597,14 @@
                 }
 
                 btn.classList.add('hidden');
-                if (confirmacion) confirmacion.classList.remove('hidden');
-
-                // Actualiza el stock localmente para que se refleje sin recargar la página
-                const prod = productos.find(p => (p.producto || p.nombre) === productoActual.nombre);
-                if (prod) {
-                    if (typeof datos.nuevoStock !== 'undefined' && datos.nuevoStock !== null) {
-                        prod.stock = String(datos.nuevoStock);
-                        if (datos.nuevoStock <= 0) prod.disponible = 'no';
-                    }
-                    renderizarProductos();
+                if (confirmacion) {
+                    confirmacion.classList.remove('hidden');
+                    confirmacion.innerHTML = '⏳ ¡Pedido enviado! Esperando confirmación del vendedor...';
                 }
+
+                // Empieza a preguntar cada pocos segundos si el vendedor ya aceptó el pedido
+                if (datos.id) iniciarConsultaEstado(datos.id);
+
             } catch (error) {
                 console.error('Error al marcar como pagado:', error);
                 btn.disabled = false;
@@ -610,7 +613,44 @@
             }
         }
 
+        // ---------- CONSULTAR ESTADO DEL PEDIDO (para que el cliente vea cuando lo aceptan) ----------
+
+        function iniciarConsultaEstado(idPedido) {
+            if (pedidoPollInterval) clearInterval(pedidoPollInterval);
+
+            pedidoPollInterval = setInterval(async () => {
+                try {
+                    const resp = await fetch('/.netlify/functions/estado-pedido?id=' + encodeURIComponent(idPedido));
+                    const datos = await resp.json();
+                    if (!datos.ok) return;
+
+                    const confirmacion = document.getElementById('detalleConfirmacion');
+
+                    if (datos.estado === 'aceptado') {
+                        clearInterval(pedidoPollInterval);
+                        pedidoPollInterval = null;
+                        if (confirmacion) confirmacion.innerHTML = '✅ ¡Aceptado! Gracias por su compra.';
+
+                        // Refresca el stock local ya que el pedido se descontó del inventario
+                        cargarProductosDesdeSheet();
+
+                    } else if (datos.estado === 'rechazado') {
+                        clearInterval(pedidoPollInterval);
+                        pedidoPollInterval = null;
+                        if (confirmacion) {
+                            confirmacion.classList.remove('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
+                            confirmacion.classList.add('bg-rose-500/10', 'border-rose-500/30', 'text-rose-400');
+                            confirmacion.innerHTML = '❌ Tu pedido fue rechazado. Contáctanos por WhatsApp para más info.';
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error consultando estado del pedido:', e);
+                }
+            }, 5000);
+        }
+
         function cerrarDetalle() {
+            if (pedidoPollInterval) { clearInterval(pedidoPollInterval); pedidoPollInterval = null; }
             const container = document.getElementById('detalleModalContainer');
             container.classList.remove('scale-100', 'opacity-100');
             container.classList.add('scale-95', 'opacity-0');
