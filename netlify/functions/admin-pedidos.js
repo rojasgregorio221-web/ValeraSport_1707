@@ -9,7 +9,8 @@
 //
 // GET  ?password=...&tipo=pedidos   -> lista de pedidos pendientes
 // GET  ?password=...&tipo=resumen   -> total vendido hoy
-// POST { password, accion: "aceptar"|"rechazar", id }
+// POST { password, accion: "aceptar"|"rechazar"|"rechazar_todos", id }
+//      (id no es necesario cuando accion es "rechazar_todos")
 
 exports.handler = async (event) => {
   const SHEET_WRITE_URL = process.env.SHEET_WRITE_URL;
@@ -72,14 +73,18 @@ exports.handler = async (event) => {
         };
       }
 
-      if (datos.accion !== "aceptar" && datos.accion !== "rechazar") {
+      if (
+        datos.accion !== "aceptar" &&
+        datos.accion !== "rechazar" &&
+        datos.accion !== "rechazar_todos"
+      ) {
         return {
           statusCode: 400,
           body: JSON.stringify({ ok: false, error: "Acción inválida" }),
         };
       }
 
-      if (!datos.id) {
+      if (!datos.id && datos.accion !== "rechazar_todos") {
         return {
           statusCode: 400,
           body: JSON.stringify({ ok: false, error: "Falta el id del pedido" }),

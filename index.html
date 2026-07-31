@@ -21,7 +21,7 @@
             scroll-behavior: smooth;
         }
         h1, h2, h3, .font-brand { font-family: 'Outfit', sans-serif; }
-        .icon-touch { transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, color 0.18s ease; }
+        .icon-touch { transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease; }
         .icon-touch:hover, .icon-touch:active { transform: scale(1.08); }
         .icon-touch:active { transform: scale(0.94); }
         ::-webkit-scrollbar { width: 8px; }
@@ -29,6 +29,41 @@
         ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
         #sinResultados { display: none; }
         #estadoCarga { text-align: center; color: #71717a; font-size: 13px; margin-bottom: 24px; }
+
+        /* ---------- LIQUID GLASS ---------- */
+        .glass-card {
+            position: relative;
+            background: linear-gradient(160deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.45);
+            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+        }
+        .glass-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(160deg, rgba(255,255,255,0.35), rgba(255,255,255,0) 40%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .glass-card:hover, .glass-card:active {
+            background: linear-gradient(160deg, rgba(255,255,255,0.13), rgba(255,255,255,0.05));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 12px 40px rgba(6,182,212,0.18);
+        }
+        .glass-pill {
+            backdrop-filter: blur(16px) saturate(160%);
+            -webkit-backdrop-filter: blur(16px) saturate(160%);
+        }
+        .hover-cyan:hover, .hover-cyan:active { color: #22d3ee !important; border-color: rgba(34,211,238,0.5) !important; }
+        .hover-purple:hover, .hover-purple:active { color: #c084fc !important; border-color: rgba(192,132,252,0.5) !important; }
+        .hover-rose:hover, .hover-rose:active { color: #fb7185 !important; border-color: rgba(251,113,133,0.5) !important; }
+        .hover-emerald:hover, .hover-emerald:active { color: #34d399 !important; }
     </style>
 </head>
 <body class="text-slate-300 antialiased min-h-screen flex flex-col justify-between">
@@ -73,17 +108,17 @@
         <div class="max-w-7xl mx-auto px-6">
             <h2 class="text-3xl font-black text-white uppercase tracking-tight mb-8 text-center lg:text-left">Explorar Categorías</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div onclick="filtrarPorCategoria('Caballeros')" class="bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] rounded-2xl p-5 hover:bg-white/[0.11] hover:border-cyan-400/40 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                <div onclick="filtrarPorCategoria('Caballeros')" class="glass-card rounded-2xl p-5 hover:-translate-y-1 group cursor-pointer">
                     <div class="icon-touch w-9 h-9 bg-cyan-950/50 border border-cyan-800/30 rounded-lg flex items-center justify-center text-cyan-400 mb-4 group-hover:bg-cyan-500 group-hover:text-gray-950"><i class="fa-solid fa-shirt text-sm"></i></div>
                     <h3 class="text-base font-bold text-white mb-1">Caballeros</h3>
                     <p class="text-xs text-slate-400">Chaquetas térmicas, camisas dry-fit y bóxers premium.</p>
                 </div>
-                <div onclick="filtrarPorCategoria('Damas')" class="bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] rounded-2xl p-5 hover:bg-white/[0.11] hover:border-purple-400/40 hover:shadow-[0_10px_30px_rgba(168,85,247,0.15)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                <div onclick="filtrarPorCategoria('Damas')" class="glass-card rounded-2xl p-5 hover:-translate-y-1 group cursor-pointer">
                     <div class="icon-touch w-9 h-9 bg-purple-950/50 border border-purple-800/30 rounded-lg flex items-center justify-center text-purple-400 mb-4 group-hover:bg-purple-500 group-hover:text-white"><i class="fa-solid fa-vest-patches text-sm"></i></div>
                     <h3 class="text-base font-bold text-white mb-1">Damas</h3>
                     <p class="text-xs text-slate-400">Licras, conjuntos deportivos y tops de entrenamiento.</p>
                 </div>
-                <div onclick="filtrarPorCategoria('Combos')" class="bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] rounded-2xl p-5 hover:bg-white/[0.11] hover:border-emerald-400/40 hover:shadow-[0_10px_30px_rgba(16,185,129,0.15)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                <div onclick="filtrarPorCategoria('Combos')" class="glass-card rounded-2xl p-5 hover:-translate-y-1 group cursor-pointer">
                     <div class="icon-touch w-9 h-9 bg-emerald-950/50 border border-emerald-800/30 rounded-lg flex items-center justify-center text-emerald-400 mb-4 group-hover:bg-emerald-500 group-hover:text-gray-950"><i class="fa-solid fa-tags text-sm"></i></div>
                     <h3 class="text-base font-bold text-white mb-1">Combos Deportivos</h3>
                     <p class="text-xs text-slate-400">Ahorra comprando en paquetes. Oferta al mayor.</p>
@@ -101,18 +136,18 @@
         <div class="max-w-xl mx-auto mb-4">
             <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none"></i>
-                <input type="text" id="buscador" oninput="reiniciarYRenderizar()" placeholder="Buscar por nombre o escanear QR..." class="icon-touch w-full bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] focus:border-purple-400/50 rounded-full pl-11 pr-20 py-3 text-sm text-white placeholder:text-slate-500 outline-none">
-                <button id="btnEscanear" onclick="abrirScanner()" title="Escanear código QR" class="icon-touch absolute right-10 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-400 w-7 h-7 flex items-center justify-center rounded-full">
+                <input type="text" id="buscador" oninput="reiniciarYRenderizar()" placeholder="Buscar por nombre o escanear QR..." class="glass-pill icon-touch w-full bg-white/[0.07] border border-white/[0.14] focus:border-cyan-400/50 rounded-full pl-11 pr-20 py-3 text-sm text-white placeholder:text-slate-500 outline-none">
+                <button id="btnEscanear" onclick="abrirScanner()" title="Escanear código QR" class="icon-touch hover-purple absolute right-10 top-1/2 -translate-y-1/2 text-slate-500 w-7 h-7 flex items-center justify-center rounded-full">
                     <i class="fa-solid fa-camera text-sm"></i>
                 </button>
-                <button id="btnLimpiar" onclick="limpiarBusqueda()" class="icon-touch absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-purple-400 w-6 h-6 flex items-center justify-center rounded-full hidden">
+                <button id="btnLimpiar" onclick="limpiarBusqueda()" class="icon-touch hover-rose absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 w-6 h-6 flex items-center justify-center rounded-full hidden">
                     <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
             <div id="chipCategoria" class="hidden mt-3 flex items-center justify-center gap-2 text-xs text-slate-400">
                 <span>Filtrando por:</span>
                 <span id="chipCategoriaTexto" class="bg-zinc-900 border border-zinc-800 text-white px-3 py-1 rounded-full font-semibold"></span>
-                <button onclick="filtrarPorCategoria(null)" class="icon-touch text-slate-500 hover:text-purple-400 w-5 h-5 flex items-center justify-center rounded-full"><i class="fa-solid fa-xmark text-xs"></i></button>
+                <button onclick="filtrarPorCategoria(null)" class="icon-touch hover-rose text-slate-500 w-5 h-5 flex items-center justify-center rounded-full"><i class="fa-solid fa-xmark text-xs"></i></button>
             </div>
         </div>
 
@@ -122,7 +157,7 @@
         <div id="gridProductos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
 
         <div class="text-center mt-12" id="containerVerMas" style="display: none;">
-            <button onclick="cargarMasProductos()" class="icon-touch bg-zinc-950 border border-zinc-900 hover:border-zinc-700 text-slate-400 hover:text-white font-extrabold px-8 py-4 rounded-xl text-sm tracking-wider uppercase transition">
+            <button onclick="cargarMasProductos()" class="icon-touch hover-cyan bg-zinc-950 border border-zinc-900 text-slate-400 hover:text-white font-extrabold px-8 py-4 rounded-xl text-sm tracking-wider uppercase transition">
                 Buscar más prendas <i class="fa-solid fa-chevron-down ml-1.5 text-xs"></i>
             </button>
         </div>
@@ -151,11 +186,12 @@
 
     <!-- MODAL DETALLE -->
     <div id="detalleModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-zinc-950 border border-zinc-900 rounded-2xl w-full max-w-md p-6 relative shadow-2xl modal-transition scale-95 opacity-0" id="detalleModalContainer">
-            <button onclick="cerrarDetalle()" class="icon-touch absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-zinc-900 text-sm z-10"><i class="fa-solid fa-xmark"></i></button>
-            <div class="w-full h-72 rounded-xl overflow-hidden bg-black flex items-center justify-center mb-5">
+        <div class="glass-card rounded-2xl w-full max-w-md p-6 relative shadow-2xl modal-transition scale-95 opacity-0 max-h-[90vh] overflow-y-auto" id="detalleModalContainer">
+            <button onclick="cerrarDetalle()" class="icon-touch hover-rose absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-zinc-900 text-sm z-10"><i class="fa-solid fa-xmark"></i></button>
+            <div class="w-full h-72 rounded-xl overflow-hidden bg-black flex items-center justify-center mb-3">
                 <img id="detalleImagen" src="" alt="" class="max-w-full max-h-full object-contain">
             </div>
+            <div id="detalleGaleria" class="hidden flex gap-2 mb-5 overflow-x-auto pb-1"></div>
             <span id="detalleCategoria" class="text-[10px] font-bold text-cyan-400/85 uppercase tracking-[0.15em] mb-1 block"></span>
             <h3 id="detalleNombre" class="text-xl font-bold text-white mb-3"></h3>
             <div class="mb-5">
@@ -301,29 +337,43 @@
             return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         }
 
+        // Divide el texto de la columna "imagen" en varias URLs (separadas por |)
+        function obtenerListaImagenes(textoImagen) {
+            if (!textoImagen || !textoImagen.trim()) return ['imagenes/logo.jpg'];
+            const lista = textoImagen.split('|').map(s => s.trim()).filter(Boolean);
+            return lista.length ? lista : ['imagenes/logo.jpg'];
+        }
+
         function crearTarjetaHTML(p) {
             let nombreProducto = p.producto || p.nombre || "Producto sin nombre";
-            let imagenUrl = (p.imagen && p.imagen.trim() !== "") ? p.imagen : "imagenes/logo.jpg";
+            let textoImagen = p.imagen || "";
+            let listaImagenes = obtenerListaImagenes(textoImagen);
+            let imagenUrl = listaImagenes[0];
             let precioFormateado = p.precio ? parseFloat(p.precio).toFixed(2) : "0.00";
             let estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
 
             let badgeDisponibilidad = estaDisponible 
-                ? '<span class="px-3 py-1 text-[11px] font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/10 backdrop-blur-md">Disponible</span>'
-                : '<span class="px-3 py-1 text-[11px] font-semibold rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/10 backdrop-blur-md">Agotado</span>';
-
-            let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombreProducto + " ($" + precioFormateado + ")");
-            let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
-
-            let botonHtml = estaDisponible
-                ? '<a href="' + enlaceWhatsApp + '" target="_blank" class="py-2 px-4 rounded-full font-semibold text-xs flex items-center gap-1.5 transition-all duration-300 bg-white/10 text-cyan-400 border border-cyan-400/20 hover:bg-cyan-500 hover:text-zinc-950"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.458L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.488 2.01 14.028 1.01 11.417 1.01c-5.44 0-9.866 4.372-9.87 9.802 0 1.698.448 3.355 1.3 4.8l-.999 3.648 3.799-.985z"/></svg><span>Consultar</span></a>'
-                : '<span class="py-2 px-4 rounded-full font-semibold text-xs flex items-center gap-1.5 bg-zinc-800/30 text-zinc-600 border border-zinc-800/20 cursor-not-allowed">No disponible</span>';
+                ? '<span class="glass-pill px-3 py-1 text-[11px] font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/10">Disponible</span>'
+                : '<span class="glass-pill px-3 py-1 text-[11px] font-semibold rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/10">Agotado</span>';
 
             let categoriaLabel = p.categoria || "Variados";
             let coloresTexto = p.colores || "";
 
+            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}`;
+
+            // El botón "Consultar" ya NO va directo a WhatsApp: abre el mismo modal
+            // que la imagen, para que el cliente vea las dos opciones (WhatsApp o
+            // Marcar como pagado) en un solo lugar.
+            let botonHtml = estaDisponible
+                ? `<button type="button" onclick="abrirDetalle(${argsAbrirDetalle})" class="icon-touch hover-cyan py-2 px-4 rounded-full font-semibold text-xs flex items-center gap-1.5 bg-white/10 text-cyan-400 border border-cyan-400/20">
+                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.458L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.488 2.01 14.028 1.01 11.417 1.01c-5.44 0-9.866 4.372-9.87 9.802 0 1.698.448 3.355 1.3 4.8l-.999 3.648 3.799-.985z"/></svg>
+                        <span>Consultar</span>
+                   </button>`
+                : `<button type="button" onclick="abrirDetalle(${argsAbrirDetalle})" class="py-2 px-4 rounded-full font-semibold text-xs flex items-center gap-1.5 bg-zinc-800/30 text-zinc-500 border border-zinc-800/20">No disponible</button>`;
+
             return `
-                <div class="relative bg-white/[0.07] backdrop-blur-2xl border border-white/[0.14] rounded-[2rem] p-4 flex flex-col h-full transition-all duration-500 shadow-[0_8px_32px_rgba(0,0,0,0.4)] hover:bg-white/[0.11] hover:border-cyan-400/30 hover:-translate-y-1 group overflow-hidden">
-                    <div class="relative w-full h-64 flex items-center justify-center rounded-2xl overflow-hidden mb-4 cursor-pointer" onclick="abrirDetalle('${escapeJS(nombreProducto)}', '${escapeJS(imagenUrl)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', '${escapeJS(enlaceWhatsApp)}', ${estaDisponible})">
+                <div class="glass-card relative rounded-[2rem] p-4 flex flex-col h-full hover:-translate-y-1 group overflow-hidden">
+                    <div class="relative w-full h-64 flex items-center justify-center rounded-2xl overflow-hidden mb-4 cursor-pointer" onclick="abrirDetalle(${argsAbrirDetalle})">
                         <div class="absolute top-2 right-2 z-10">${badgeDisponibilidad}</div>
                         <img src="${imagenUrl}" alt="${nombreProducto}" class="max-w-[90%] max-h-[90%] object-contain transition-all duration-700 group-hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
                     </div>
@@ -408,7 +458,42 @@
             reiniciarYRenderizar();
         }
 
-        function abrirDetalle(nombre, imagenUrl, precioFormateado, categoriaLabel, coloresTexto, enlaceWhatsApp, disponible) {
+        // ---------- GALERÍA DE FOTOS DENTRO DEL MODAL ----------
+
+        function renderizarGaleria(listaImagenes) {
+            const cont = document.getElementById('detalleGaleria');
+            if (!cont) return;
+
+            if (!listaImagenes || listaImagenes.length <= 1) {
+                cont.classList.add('hidden');
+                cont.innerHTML = '';
+                return;
+            }
+
+            cont.classList.remove('hidden');
+            cont.innerHTML = listaImagenes.map((img, i) => `
+                <button onclick="cambiarImagenDetalle('${escapeJS(img)}', this)" class="icon-touch hover-cyan w-14 h-14 shrink-0 rounded-lg overflow-hidden border-2 ${i === 0 ? 'border-cyan-400' : 'border-white/10'}">
+                    <img src="${img}" class="w-full h-full object-cover" onerror="this.src='imagenes/logo.jpg'">
+                </button>
+            `).join('');
+        }
+
+        function cambiarImagenDetalle(url, btnClickeado) {
+            const imgPrincipal = document.getElementById('detalleImagen');
+            if (imgPrincipal) imgPrincipal.src = url;
+
+            document.querySelectorAll('#detalleGaleria button').forEach(btn => {
+                btn.classList.remove('border-cyan-400');
+                btn.classList.add('border-white/10');
+            });
+            btnClickeado.classList.remove('border-white/10');
+            btnClickeado.classList.add('border-cyan-400');
+        }
+
+        function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible) {
+            let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombre + " ($" + precioFormateado + ")");
+            let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
+
             productoActual = { nombre: nombre, precio: precioFormateado, categoria: categoriaLabel };
 
             const btnPagado = document.getElementById('detalleBotonPagado');
@@ -425,8 +510,11 @@
                 confirmacion.innerHTML = '✅ ¡Pedido enviado! El vendedor lo confirmará en breve.';
             }
 
-            document.getElementById('detalleImagen').src = imagenUrl;
+            const listaImagenes = obtenerListaImagenes(textoImagen);
+            document.getElementById('detalleImagen').src = listaImagenes[0];
             document.getElementById('detalleImagen').alt = nombre;
+            renderizarGaleria(listaImagenes);
+
             document.getElementById('detalleCategoria').textContent = categoriaLabel;
             document.getElementById('detalleNombre').textContent = nombre;
             document.getElementById('detallePrecio').textContent = '$' + precioFormateado;
@@ -436,7 +524,7 @@
             const listaColores = coloresTexto.split(',').map(c => c.trim()).filter(Boolean);
             if (listaColores.length) {
                 listaColores.forEach(color => {
-                    coloresContainer.innerHTML += `<span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/[0.08] border border-white/[0.14] text-slate-200">${color}</span>`;
+                    coloresContainer.innerHTML += `<span class="glass-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-white/[0.08] border border-white/[0.14] text-slate-200">${color}</span>`;
                 });
             } else {
                 coloresContainer.innerHTML = '<span class="text-xs text-slate-500">Colores variados, consulta disponibilidad</span>';
@@ -450,7 +538,7 @@
                 noDisp.classList.add('hidden');
             } else {
                 btnWA.classList.add('hidden');
-                noDisp.classList.add('hidden');
+                noDisp.classList.remove('hidden');
             }
 
             const modal = document.getElementById('detalleModal');
@@ -543,15 +631,11 @@
 
             if (coincidencia) {
                 let nombreProducto = coincidencia.producto || coincidencia.nombre;
-                let imagenUrl = (coincidencia.imagen && coincidencia.imagen.trim() !== '')
-                    ? coincidencia.imagen
-                    : 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop';
+                let textoImagen = coincidencia.imagen || '';
                 let precioFormateado = coincidencia.precio ? parseFloat(coincidencia.precio).toFixed(2) : '0.00';
                 let estaDisponible = (coincidencia.disponible && coincidencia.disponible.toLowerCase().trim() === 'si');
-                let mensajeWhatsApp = encodeURIComponent('¡Hola Valera Sport! Me interesa consultar por: ' + nombreProducto + ' ($' + precioFormateado + ')');
-                let enlaceWhatsApp = 'https://wa.me/' + WHATSAPP_PEDIDOS + '?text=' + mensajeWhatsApp;
 
-                abrirDetalle(nombreProducto, imagenUrl, precioFormateado, coincidencia.categoria || 'Variados', coincidencia.colores || '', enlaceWhatsApp, estaDisponible);
+                abrirDetalle(nombreProducto, textoImagen, precioFormateado, coincidencia.categoria || 'Variados', coincidencia.colores || '', estaDisponible);
             }
         }
 
@@ -599,7 +683,7 @@
                 btn.classList.add('hidden');
                 if (confirmacion) {
                     confirmacion.classList.remove('hidden');
-                    confirmacion.innerHTML = '⏳ ¡Pedido enviado! Esperando confirmación del vendedor...';
+                    confirmacion.innerHTML = '⏳ ¡Pedido enviado! Por favor no cierres esta ventana hasta que se confirme tu compra.';
                 }
 
                 // Empieza a preguntar cada pocos segundos si el vendedor ya aceptó el pedido
