@@ -57,6 +57,49 @@
             <p class="text-sm text-slate-400 mt-1" id="cantidadHoy">0 pedidos aceptados</p>
         </div>
 
+        <!-- REGISTRAR VENTA FÍSICA -->
+        <div class="mb-8">
+            <button onclick="toggleFormularioFisica()" id="btnToggleFisica" class="w-full bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.1] rounded-2xl p-4 flex items-center justify-between transition">
+                <span class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-store text-purple-400"></i> Registrar venta en tienda física
+                </span>
+                <i class="fa-solid fa-chevron-down text-slate-500 text-xs" id="iconoToggleFisica"></i>
+            </button>
+
+            <div id="formularioFisica" class="hidden mt-3 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5 space-y-3">
+                <div>
+                    <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-1.5">Correo del cliente</label>
+                    <input type="email" id="fisicaCorreo" placeholder="cliente@correo.com" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-purple-400">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-1.5">Producto</label>
+                    <input type="text" id="fisicaProducto" placeholder="Nombre del producto" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-purple-400">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-1.5">Precio</label>
+                        <input type="number" step="0.01" id="fisicaPrecio" placeholder="0.00" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-purple-400">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-1.5">Categoría</label>
+                        <input type="text" id="fisicaCategoria" placeholder="Damas / Caballeros..." class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-purple-400">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-1.5">Método de pago</label>
+                    <select id="fisicaMetodoPago" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-purple-400">
+                        <option value="Efectivo en tienda">Efectivo en tienda</option>
+                        <option value="Pago Móvil">Pago Móvil</option>
+                        <option value="Transferencia">Transferencia</option>
+                    </select>
+                </div>
+                <button onclick="registrarVentaFisica()" class="icon-touch w-full bg-purple-500 hover:bg-purple-400 text-white font-black py-3 rounded-xl text-sm uppercase tracking-wider transition mt-2">
+                    <i class="fa-solid fa-plus mr-1"></i> Registrar venta
+                </button>
+                <p id="mensajeFisica" class="hidden text-center text-xs font-semibold py-2"></p>
+            </div>
+        </div>
+
         <!-- LISTA DE PEDIDOS PENDIENTES -->
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-bold text-white">Pedidos pendientes</h2>
@@ -185,10 +228,6 @@
             }
         }
 
-        // Escapa entidades HTML para evitar que un "nombre de producto" con
-        // <script>/onerror/etc. inyecte código cuando se pinta en el panel.
-        // El pedido llega desde un endpoint público (marcar-pagado), así que
-        // su contenido nunca debe tratarse como HTML de confianza.
         function escapeHTML(str) {
             const div = document.createElement('div');
             div.textContent = str == null ? '' : String(str);
@@ -199,6 +238,9 @@
             const fecha = p.fecha ? new Date(p.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
             const precio = Number(p.precio || 0).toFixed(2);
             const idAttr = escapeHTML(p.id);
+            const metodoPago = escapeHTML(p.metodoPago || 'No especificado');
+            const referencia = p.referencia && String(p.referencia).trim() ? escapeHTML(p.referencia) : null;
+
             return `
                 <div class="bg-white/[0.05] border border-white/[0.1] rounded-2xl p-5" id="pedido-${idAttr}" data-id="${idAttr}">
                     <div class="flex justify-between items-start mb-3">
@@ -208,6 +250,17 @@
                             <p class="text-xs text-slate-500 mt-1">${escapeHTML(fecha)}</p>
                         </div>
                         <span class="text-xl font-black text-white">$${precio}</span>
+                    </div>
+                    <div class="bg-black/40 border border-white/[0.06] rounded-xl px-4 py-3 mb-4">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-500 uppercase font-bold">Método de pago:</span>
+                            <span class="text-slate-200 font-semibold">${metodoPago}</span>
+                        </div>
+                        ${referencia ? `
+                        <div class="flex justify-between items-center text-xs mt-2">
+                            <span class="text-slate-500 uppercase font-bold">Referencia:</span>
+                            <span class="text-slate-200 font-mono">${referencia}</span>
+                        </div>` : ''}
                     </div>
                     <div class="grid grid-cols-2 gap-3 mt-4">
                         <button data-accion="rechazar" class="bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-300 hover:text-rose-400 font-bold py-3 rounded-xl text-sm transition">
@@ -221,9 +274,6 @@
             `;
         }
 
-        // Delegación de eventos: el id del pedido nunca se interpola dentro
-        // de un atributo onclick, así una comilla en el id no puede romper
-        // el contexto de JavaScript.
         document.getElementById('listaPedidos').addEventListener('click', (e) => {
             const boton = e.target.closest('button[data-accion]');
             if (!boton) return;
@@ -263,8 +313,6 @@
             }
         }
 
-        // Rechaza TODOS los pedidos pendientes de una vez (papelera). No borra nada
-        // del Sheet: cada uno queda guardado con estado "rechazado".
         async function rechazarTodosPendientes() {
             const confirmar = confirm('¿Seguro que quieres rechazar TODOS los pedidos pendientes? Quedan guardados como "rechazados" en el Sheet, no se borra nada, pero esta acción no se puede deshacer desde aquí.');
             if (!confirmar) return;
@@ -288,7 +336,69 @@
             }
         }
 
-        // Si ya había una sesión abierta en este navegador, entra directo
+        // ---------- REGISTRAR VENTA FÍSICA ----------
+
+        function toggleFormularioFisica() {
+            const form = document.getElementById('formularioFisica');
+            const icono = document.getElementById('iconoToggleFisica');
+            form.classList.toggle('hidden');
+            icono.classList.toggle('fa-chevron-down');
+            icono.classList.toggle('fa-chevron-up');
+        }
+
+        async function registrarVentaFisica() {
+            const correo = document.getElementById('fisicaCorreo').value.trim();
+            const producto = document.getElementById('fisicaProducto').value.trim();
+            const precio = document.getElementById('fisicaPrecio').value.trim();
+            const categoria = document.getElementById('fisicaCategoria').value.trim();
+            const metodoPago = document.getElementById('fisicaMetodoPago').value;
+
+            const mensaje = document.getElementById('mensajeFisica');
+            mensaje.classList.add('hidden');
+
+            if (!correo || !producto || !precio) {
+                mensaje.textContent = 'Completa correo, producto y precio.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-400';
+                return;
+            }
+
+            try {
+                const resp = await fetch('/.netlify/functions/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        password: obtenerPassword(),
+                        accion: 'ventaFisica',
+                        nombre: producto,
+                        precio: precio,
+                        categoria: categoria,
+                        metodoPago: metodoPago,
+                        correoCliente: correo
+                    })
+                });
+                const datos = await resp.json();
+
+                if (!datos.ok) {
+                    mensaje.textContent = 'Error: ' + (datos.error || 'no se pudo registrar');
+                    mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-400';
+                    return;
+                }
+
+                mensaje.textContent = '✅ Venta registrada correctamente.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-400';
+
+                document.getElementById('fisicaCorreo').value = '';
+                document.getElementById('fisicaProducto').value = '';
+                document.getElementById('fisicaPrecio').value = '';
+                document.getElementById('fisicaCategoria').value = '';
+
+                cargarResumen();
+            } catch (e) {
+                mensaje.textContent = 'No se pudo conectar con el servidor.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-400';
+            }
+        }
+
         (function iniciar() {
             const claveGuardada = obtenerPassword();
             if (claveGuardada) {
@@ -296,7 +406,6 @@
             }
         })();
 
-        // Refresca solo cada 30s mientras el panel está abierto
         setInterval(() => {
             if (!panelPrincipal.classList.contains('hidden')) cargarTodo();
         }, 30000);

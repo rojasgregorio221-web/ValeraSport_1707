@@ -7,6 +7,7 @@
     <title>Valera Sport | Tienda Oficial</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,7 +80,10 @@
                 <a href="#categorias" class="text-slate-400 hover:text-white transition">Categorías</a>
                 <a href="#contacto" class="text-slate-400 hover:text-cyan-400 transition">Ubicación</a>
             </nav>
-            <div>
+            <div class="flex items-center gap-2">
+                <button id="btnCuenta" onclick="clicBotonCuenta()" title="Iniciar sesión / Registrarse" class="icon-touch hover-cyan text-slate-400 w-9 h-9 flex items-center justify-center rounded-full border border-white/10">
+                    <i class="fa-solid fa-user text-sm"></i>
+                </button>
                 <a href="https://wa.me/584245939407?text=Hola%20Valera%20Sport,%20estoy%20viendo%20su%20p%C3%A1gina%20web%20y%20quiero%20m%C3%A1s%20informaci%C3%B3n" target="_blank" class="icon-touch bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold px-4 py-2 rounded-full text-xs tracking-wider uppercase transition flex items-center gap-1.5 shadow-md shadow-cyan-500/10">
                     <i class="fa-brands fa-whatsapp text-sm"></i> Consultar
                 </a>
@@ -202,6 +206,24 @@
                 <span class="text-xs text-slate-500 uppercase font-bold">Precio:</span>
                 <span class="text-2xl font-black text-white" id="detallePrecio"></span>
             </div>
+
+            <!-- FORMULARIO DE PAGO (solo aplica al marcar como pagado) -->
+            <div id="detalleFormularioPago">
+                <div class="mb-3">
+                    <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-2">Método de pago:</label>
+                    <select id="detalleMetodoPago" onchange="actualizarCampoReferencia()" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-400">
+                        <option value="">Selecciona un método</option>
+                        <option value="Pago Móvil">Pago Móvil</option>
+                        <option value="Transferencia">Transferencia</option>
+                        <option value="Efectivo en tienda">Efectivo en tienda</option>
+                    </select>
+                </div>
+                <div class="mb-4" id="contenedorReferencia">
+                    <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-2">N° de referencia / comprobante:</label>
+                    <input type="text" id="detalleReferencia" placeholder="Ej: 003456789" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-cyan-400">
+                </div>
+            </div>
+
             <a id="detalleBotonWA" href="#" target="_blank" class="icon-touch w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2">
                 <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
             </a>
@@ -212,6 +234,38 @@
                 ✅ ¡Pedido enviado! El vendedor lo confirmará en breve.
             </div>
             <p id="detalleNoDisponible" class="hidden text-center text-sm text-zinc-500 py-3">Actualmente no disponible</p>
+        </div>
+    </div>
+
+    <!-- MODAL MI CUENTA -->
+    <div id="cuentaModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-card rounded-2xl w-full max-w-lg p-6 relative shadow-2xl scale-95 opacity-0 max-h-[85vh] overflow-y-auto" id="cuentaModalContainer">
+            <button onclick="cerrarCuenta()" class="icon-touch hover-rose absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-zinc-900 text-sm z-10"><i class="fa-solid fa-xmark"></i></button>
+
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-full bg-cyan-950 border border-cyan-800/30 flex items-center justify-center text-cyan-400">
+                    <i class="fa-solid fa-user text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">Mi cuenta</h3>
+                    <p class="text-xs text-slate-500" id="cuentaCorreo"></p>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-cyan-950/40 to-purple-950/40 border border-white/[0.1] rounded-2xl p-5 mb-6">
+                <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Total gastado en Valera Sport</p>
+                <p class="text-3xl font-black text-white" id="cuentaTotalGastado">$0.00</p>
+                <p class="text-xs text-slate-400 mt-1" id="cuentaCantidadCompras">0 compras</p>
+            </div>
+
+            <h4 class="text-sm font-bold text-white mb-3">Historial de compras</h4>
+            <p id="cuentaCargando" class="text-sm text-slate-500 text-center py-8">Cargando tu historial...</p>
+            <div id="cuentaListaCompras" class="space-y-3"></div>
+            <p id="cuentaSinCompras" class="hidden text-sm text-slate-500 text-center py-8">Todavía no tienes compras registradas.</p>
+
+            <button onclick="cerrarSesionCliente()" class="icon-touch w-full mt-6 bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-400 hover:text-rose-400 font-bold py-3 rounded-xl text-sm transition">
+                <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Cerrar sesión
+            </button>
         </div>
     </div>
 
@@ -270,14 +324,8 @@
             if (estado) estado.textContent = "Cargando catálogo...";
 
             try {
-                // Esta ruta llama a tu función privada de Netlify (netlify/functions/obtener-productos.js).
-                // El link real del Google Sheet NUNCA aparece aquí ni en el código que se sube a GitHub:
-                // vive escondido como variable de entorno dentro de Netlify.
                 const respuesta = await fetch('/.netlify/functions/obtener-productos');
-
-                if (!respuesta.ok) {
-                    throw new Error("El servidor respondió con error " + respuesta.status);
-                }
+                if (!respuesta.ok) throw new Error("El servidor respondió con error " + respuesta.status);
 
                 const texto = await respuesta.text();
                 productos = parseCSV(texto);
@@ -337,7 +385,12 @@
             return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         }
 
-        // Divide el texto de la columna "imagen" en varias URLs (separadas por |)
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? '' : String(str);
+            return div.innerHTML;
+        }
+
         function obtenerListaImagenes(textoImagen) {
             if (!textoImagen || !textoImagen.trim()) return ['imagenes/logo.jpg'];
             const lista = textoImagen.split('|').map(s => s.trim()).filter(Boolean);
@@ -361,9 +414,6 @@
 
             let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}`;
 
-            // El botón "Consultar" ya NO va directo a WhatsApp: abre el mismo modal
-            // que la imagen, para que el cliente vea las dos opciones (WhatsApp o
-            // Marcar como pagado) en un solo lugar.
             let botonHtml = estaDisponible
                 ? `<button type="button" onclick="abrirDetalle(${argsAbrirDetalle})" class="icon-touch hover-cyan py-2 px-4 rounded-full font-semibold text-xs flex items-center gap-1.5 bg-white/10 text-cyan-400 border border-cyan-400/20">
                         <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.458L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.488 2.01 14.028 1.01 11.417 1.01c-5.44 0-9.866 4.372-9.87 9.802 0 1.698.448 3.355 1.3 4.8l-.999 3.648 3.799-.985z"/></svg>
@@ -490,6 +540,31 @@
             btnClickeado.classList.add('border-cyan-400');
         }
 
+        // ---------- FORMULARIO DE PAGO ----------
+
+        function actualizarCampoReferencia() {
+            const metodo = document.getElementById('detalleMetodoPago').value;
+            const contenedor = document.getElementById('contenedorReferencia');
+            const input = document.getElementById('detalleReferencia');
+            if (metodo === 'Efectivo en tienda') {
+                contenedor.classList.add('hidden');
+                if (input) input.value = '';
+            } else {
+                contenedor.classList.remove('hidden');
+            }
+        }
+
+        function reiniciarFormularioPago() {
+            const metodo = document.getElementById('detalleMetodoPago');
+            const referencia = document.getElementById('detalleReferencia');
+            const contenedor = document.getElementById('contenedorReferencia');
+            const formulario = document.getElementById('detalleFormularioPago');
+            if (metodo) metodo.value = '';
+            if (referencia) referencia.value = '';
+            if (contenedor) contenedor.classList.remove('hidden');
+            if (formulario) formulario.classList.remove('hidden');
+        }
+
         function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible) {
             let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombre + " ($" + precioFormateado + ")");
             let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
@@ -498,6 +573,7 @@
 
             const btnPagado = document.getElementById('detalleBotonPagado');
             const confirmacion = document.getElementById('detalleConfirmacion');
+            reiniciarFormularioPago();
             if (btnPagado) {
                 btnPagado.classList.toggle('hidden', !disponible);
                 btnPagado.disabled = false;
@@ -639,8 +715,6 @@
             }
         }
 
-        // Permite que un QR/enlace impreso (ej: tusitio.netlify.app/?producto=NombreExacto)
-        // abra directo el producto incluso si lo escanean con la cámara nativa del teléfono, sin pasar por nuestro escáner.
         function revisarParametroURL() {
             const params = new URLSearchParams(window.location.search);
             const productoParam = params.get('producto') || params.get('buscar');
@@ -654,20 +728,36 @@
         async function marcarComoPagado() {
             if (!productoActual) return;
 
+            const metodoPago = document.getElementById('detalleMetodoPago').value;
+            const referencia = document.getElementById('detalleReferencia').value.trim();
+
+            if (!metodoPago) {
+                alert('Por favor selecciona un método de pago.');
+                return;
+            }
+            if (metodoPago !== 'Efectivo en tienda' && !referencia) {
+                alert('Por favor escribe el número de referencia o comprobante de tu pago.');
+                return;
+            }
+
             const confirmar = confirm('¿Enviar pedido de "' + productoActual.nombre + '" por $' + productoActual.precio + ' para confirmación del vendedor?');
             if (!confirmar) return;
 
+            productoActual.metodoPago = metodoPago;
+            productoActual.referencia = referencia;
+
+            if (usuarioActual && usuarioActual.email) {
+                productoActual.correoCliente = usuarioActual.email;
+            }
+
             const btn = document.getElementById('detalleBotonPagado');
             const confirmacion = document.getElementById('detalleConfirmacion');
+            const formulario = document.getElementById('detalleFormularioPago');
             const textoOriginal = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registrando...';
 
             try {
-                // OJO: le pegamos a NUESTRA función de Netlify, no directo a script.google.com.
-                // Pegarle directo desde el navegador con Content-Type: application/json dispara
-                // un preflight OPTIONS que Apps Script no responde bien, y eso es lo que causaba
-                // el error de CORS ("blocked by CORS policy").
                 const respuesta = await fetch("/.netlify/functions/marcar-pagado", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -681,12 +771,12 @@
                 }
 
                 btn.classList.add('hidden');
+                if (formulario) formulario.classList.add('hidden');
                 if (confirmacion) {
                     confirmacion.classList.remove('hidden');
                     confirmacion.innerHTML = '⏳ ¡Pedido enviado! Por favor no cierres esta ventana hasta que se confirme tu compra.';
                 }
 
-                // Empieza a preguntar cada pocos segundos si el vendedor ya aceptó el pedido
                 if (datos.id) iniciarConsultaEstado(datos.id);
 
             } catch (error) {
@@ -697,7 +787,7 @@
             }
         }
 
-        // ---------- CONSULTAR ESTADO DEL PEDIDO (para que el cliente vea cuando lo aceptan) ----------
+        // ---------- CONSULTAR ESTADO DEL PEDIDO ----------
 
         function iniciarConsultaEstado(idPedido) {
             if (pedidoPollInterval) clearInterval(pedidoPollInterval);
@@ -713,9 +803,14 @@
                     if (datos.estado === 'aceptado') {
                         clearInterval(pedidoPollInterval);
                         pedidoPollInterval = null;
-                        if (confirmacion) confirmacion.innerHTML = '✅ ¡Aceptado! Gracias por su compra.';
+                        const codigoPedido = idPedido.slice(0, 8).toUpperCase();
+                        if (confirmacion) {
+                            confirmacion.innerHTML =
+                                '✅ ¡Aceptado! Gracias por su compra.<br>' +
+                                '<span class="block mt-2 text-xs font-mono tracking-wider text-emerald-300">N° de pedido: ' + codigoPedido + '</span>' +
+                                '<span class="block mt-1 text-[11px] font-normal text-emerald-300/80">Guarda una captura de esto como comprobante.</span>';
+                        }
 
-                        // Refresca el stock local ya que el pedido se descontó del inventario
                         cargarProductosDesdeSheet();
 
                     } else if (datos.estado === 'rechazado') {
@@ -741,6 +836,165 @@
             setTimeout(() => {
                 document.getElementById('detalleModal').classList.add('hidden');
             }, 250);
+        }
+
+        // ---------- CUENTA DE CLIENTE (Netlify Identity) ----------
+
+        let usuarioActual = null;
+
+        function clicBotonCuenta() {
+            if (typeof netlifyIdentity === 'undefined') {
+                alert('El sistema de cuentas está cargando, intenta de nuevo en un segundo.');
+                return;
+            }
+            if (usuarioActual) {
+                abrirCuenta();
+            } else {
+                netlifyIdentity.open('login');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof netlifyIdentity === 'undefined') return;
+
+            netlifyIdentity.on('init', (user) => {
+                usuarioActual = user;
+                actualizarBotonCuenta();
+            });
+
+            netlifyIdentity.on('login', (user) => {
+                usuarioActual = user;
+                actualizarBotonCuenta();
+                netlifyIdentity.close();
+                abrirCuenta();
+            });
+
+            netlifyIdentity.on('logout', () => {
+                usuarioActual = null;
+                actualizarBotonCuenta();
+            });
+
+            netlifyIdentity.init();
+        });
+
+        function actualizarBotonCuenta() {
+            const btn = document.getElementById('btnCuenta');
+            if (!btn) return;
+            if (usuarioActual) {
+                btn.title = usuarioActual.email;
+                btn.classList.add('text-cyan-400', 'border-cyan-400/40');
+            } else {
+                btn.title = 'Iniciar sesión / Registrarse';
+                btn.classList.remove('text-cyan-400', 'border-cyan-400/40');
+            }
+        }
+
+        function cerrarSesionCliente() {
+            if (typeof netlifyIdentity === 'undefined') return;
+            netlifyIdentity.logout();
+            cerrarCuenta();
+        }
+
+        // ---------- MODAL "MI CUENTA" (historial de compras) ----------
+
+        async function abrirCuenta() {
+            if (!usuarioActual) return;
+
+            document.getElementById('cuentaCorreo').textContent = usuarioActual.email;
+
+            const modal = document.getElementById('cuentaModal');
+            const container = document.getElementById('cuentaModalContainer');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }, 50);
+
+            await cargarHistorialCompras();
+        }
+
+        function cerrarCuenta() {
+            const container = document.getElementById('cuentaModalContainer');
+            container.classList.remove('scale-100', 'opacity-100');
+            container.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                document.getElementById('cuentaModal').classList.add('hidden');
+            }, 250);
+        }
+
+        async function cargarHistorialCompras() {
+            const cargando = document.getElementById('cuentaCargando');
+            const lista = document.getElementById('cuentaListaCompras');
+            const sinCompras = document.getElementById('cuentaSinCompras');
+
+            cargando.classList.remove('hidden');
+            lista.innerHTML = '';
+            sinCompras.classList.add('hidden');
+
+            try {
+                // Netlify Identity requiere el token en el header Authorization
+                // para que la función sepa quién está pidiendo su historial.
+                const token = usuarioActual && usuarioActual.token ? usuarioActual.token.access_token : null;
+
+                const resp = await fetch('/.netlify/functions/mis-compras', {
+                    headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+                });
+                const datos = await resp.json();
+
+                cargando.classList.add('hidden');
+
+                if (!datos.ok) {
+                    lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-6">' + escapeHTML(datos.error || 'No se pudo cargar tu historial') + '</p>';
+                    return;
+                }
+
+                const compras = datos.compras || [];
+
+                if (!compras.length) {
+                    sinCompras.classList.remove('hidden');
+                    document.getElementById('cuentaTotalGastado').textContent = '$0.00';
+                    document.getElementById('cuentaCantidadCompras').textContent = '0 compras';
+                    return;
+                }
+
+                let total = 0;
+                compras.forEach(c => total += parseFloat(c.precio) || 0);
+
+                document.getElementById('cuentaTotalGastado').textContent = '$' + total.toFixed(2);
+                document.getElementById('cuentaCantidadCompras').textContent = compras.length + (compras.length === 1 ? ' compra' : ' compras');
+
+                lista.innerHTML = compras.map(tarjetaCompra).join('');
+
+            } catch (e) {
+                cargando.classList.add('hidden');
+                lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
+            }
+        }
+
+        function tarjetaCompra(c) {
+            const fecha = c.fecha ? new Date(c.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short', year: 'numeric' }) : '';
+            const precio = Number(c.precio || 0).toFixed(2);
+            const esFisica = (c.canal || '').toLowerCase() === 'física' || (c.canal || '').toLowerCase() === 'fisica';
+
+            const badgeCanal = esFisica
+                ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20"><i class="fa-solid fa-store mr-1"></i>Tienda física</span>'
+                : '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"><i class="fa-solid fa-globe mr-1"></i>Compra web</span>';
+
+            return `
+                <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="text-white font-bold text-sm">${escapeHTML(c.producto)}</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">${escapeHTML(fecha)}</p>
+                        </div>
+                        <span class="text-lg font-black text-white">$${precio}</span>
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                        ${badgeCanal}
+                        <span class="text-[10px] text-slate-500 uppercase tracking-wide">${escapeHTML(c.categoria || 'Variados')}</span>
+                    </div>
+                </div>
+            `;
         }
     </script>
 </body>

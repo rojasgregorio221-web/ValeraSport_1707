@@ -10,7 +10,8 @@
 // POST { password, tipo: "pedidos" }   -> lista de pedidos pendientes
 // POST { password, tipo: "resumen" }   -> total vendido hoy
 // POST { password, accion: "aceptar"|"rechazar"|"rechazar_todos", id }
-//      (id no es necesario cuando accion es "rechazar_todos")
+// POST { password, accion: "ventaFisica", nombre, precio, categoria,
+//        metodoPago, correoCliente } -> registra una venta de tienda física
 //
 // Todo va por POST con el password en el body (nunca en la URL) para que
 // no quede registrado en logs de acceso ni en el historial del navegador.
@@ -73,41 +74,78 @@ exports.handler = async (event) => {
       };
     }
 
-    // Escritura: aceptar / rechazar un pedido
+    // Escritura: aceptar / rechazar un pedido / rechazar todos
     if (
-      datos.accion !== "aceptar" &&
-      datos.accion !== "rechazar" &&
-      datos.accion !== "rechazar_todos"
+      datos.accion === "aceptar" ||
+      datos.accion === "rechazar" ||
+      datos.accion === "rechazar_todos"
     ) {
+      if (!datos.id && datos.accion !== "rechazar_todos") {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ ok: false, error: "Falta el id del pedido" }),
+        };
+      }
+
+      const respuesta = await fetch(SHEET_WRITE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accion: datos.accion,
+          id: datos.id,
+          clave: CLAVE_ADMIN,
+        }),
+      });
+
+      const resultado = await parsearRespuesta(respuesta);
+
       return {
-        statusCode: 400,
-        body: JSON.stringify({ ok: false, error: "Acción inválida" }),
+        statusCode: resultado.ok ? 200 : 500,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(resultado),
       };
     }
 
-    if (!datos.id && datos.accion !== "rechazar_todos") {
+    // Escritura: registrar una venta hecha en la tienda física
+    if (datos.accion === "ventaFisica") {
+      if (!datos.nombre || !datos.correoCliente || !datos.metodoPago) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({
+            ok: false,
+            error: "Faltan datos: producto, correo del cliente y método de pago son obligatorios",
+          }),
+        };
+      }
+
+      const recortar = (valor, max) => String(valor || "").slice(0, max);
+
+      const respuesta = await fetch(SHEET_WRITE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accion: "ventaFisica",
+          nombre: recortar(datos.nombre, 200),
+          precio: recortar(datos.precio, 20),
+          categoria: recortar(datos.categoria, 100),
+          metodoPago: recortar(datos.metodoPago, 50),
+          correoCliente: recortar(datos.correoCliente, 200),
+          clave: CLAVE_ADMIN,
+        }),
+      });
+
+      const resultado = await parsearRespuesta(respuesta);
+
       return {
-        statusCode: 400,
-        body: JSON.stringify({ ok: false, error: "Falta el id del pedido" }),
+        statusCode: resultado.ok ? 200 : 500,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(resultado),
       };
     }
-
-    const respuesta = await fetch(SHEET_WRITE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accion: datos.accion,
-        id: datos.id,
-        clave: CLAVE_ADMIN,
-      }),
-    });
-
-    const resultado = await parsearRespuesta(respuesta);
 
     return {
-      statusCode: resultado.ok ? 200 : 500,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(resultado),
+      statusCode: 400,
+      body: JSON.stringify({ ok: false, error: "Acción inválida" }),
     };
   } catch (error) {
     return {
