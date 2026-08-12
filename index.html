@@ -51,7 +51,7 @@
         .blob-2 { width: 45vw; height: 45vw; background: #67e8f9; top: 10%; right: -5%; }
         .blob-3 { width: 40vw; height: 40vw; background: #c4b5fd; bottom: -15%; left: 20%; }
 
-        .carrusel { scroll-snap-type: x mandatory; scrollbar-width: none; }
+        .carrusel { scroll-snap-type: x proximity; scrollbar-width: none; -webkit-overflow-scrolling: touch; touch-action: pan-x; }
         .carrusel::-webkit-scrollbar { display: none; }
         .carrusel-item { scroll-snap-align: start; }
 
@@ -133,11 +133,11 @@
         <p id="estadoCarga">Cargando catálogo...</p>
 
         <div class="relative">
-            <button onclick="deslizarCarrusel(-1)" class="hidden md:flex absolute -left-5 top-1/3 z-10 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm items-center justify-center text-gray-500 hover:text-gray-900">
+            <button onclick="deslizarCarrusel(-1)" class="flex absolute -left-2 md:-left-5 top-1/3 z-10 w-9 h-9 md:w-10 md:h-10 rounded-full bg-white border border-gray-200 shadow-md items-center justify-center text-gray-500 hover:text-gray-900">
                 <i class="fa-solid fa-chevron-left text-xs"></i>
             </button>
             <div id="carruselDestacados" class="carrusel flex gap-6 overflow-x-auto pb-2"></div>
-            <button onclick="deslizarCarrusel(1)" class="hidden md:flex absolute -right-5 top-1/3 z-10 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm items-center justify-center text-gray-500 hover:text-gray-900">
+            <button onclick="deslizarCarrusel(1)" class="flex absolute -right-2 md:-right-5 top-1/3 z-10 w-9 h-9 md:w-10 md:h-10 rounded-full bg-white border border-gray-200 shadow-md items-center justify-center text-gray-500 hover:text-gray-900">
                 <i class="fa-solid fa-chevron-right text-xs"></i>
             </button>
         </div>
@@ -404,8 +404,8 @@
             let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}`;
 
             return `
-                <div class="carrusel-item flex-shrink-0 w-64 cursor-pointer group" onclick="abrirDetalle(${argsAbrirDetalle})">
-                    <div class="w-full h-72 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center mb-3">
+                <div class="carrusel-item flex-shrink-0 w-44 md:w-64 cursor-pointer group" onclick="abrirDetalle(${argsAbrirDetalle})">
+                    <div class="w-full h-48 md:h-72 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center mb-3">
                         <img src="${imagenUrl}" alt="${nombreProducto}" class="max-w-[85%] max-h-[85%] object-contain group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
                     </div>
                     <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5">${categoriaLabel}</span>
