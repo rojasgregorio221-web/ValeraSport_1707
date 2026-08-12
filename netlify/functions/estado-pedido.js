@@ -1,3 +1,9 @@
+// netlify/functions/estado-pedido.js
+//
+// El cliente consulta el estado de su ORDEN (puede tener varios productos).
+// Público, sin contraseña: solo necesita el idOrden que le devolvió
+// marcar-pagado.js al hacer el checkout.
+
 exports.handler = async (event) => {
   const SHEET_WRITE_URL = process.env.SHEET_WRITE_URL;
   const CLAVE_ADMIN = process.env.CLAVE_ADMIN;
@@ -9,18 +15,18 @@ exports.handler = async (event) => {
     };
   }
 
-  const id = (event.queryStringParameters || {}).id;
-  if (!id) {
+  const idOrden = (event.queryStringParameters || {}).idOrden;
+  if (!idOrden) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ ok: false, error: "Falta el id del pedido" }),
+      body: JSON.stringify({ ok: false, error: "Falta el id de la orden" }),
     };
   }
 
   try {
     const url =
       SHEET_WRITE_URL +
-      "?accion=estado&id=" + encodeURIComponent(id) +
+      "?accion=estadoOrden&idOrden=" + encodeURIComponent(idOrden) +
       "&clave=" + encodeURIComponent(CLAVE_ADMIN);
 
     const respuesta = await fetch(url);

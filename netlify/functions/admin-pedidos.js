@@ -7,9 +7,9 @@
 // contraseña del panel (ADMIN_PASSWORD), y esta función es la que agrega
 // la clave secreta real antes de hablar con Google.
 //
-// POST { password, tipo: "pedidos" }   -> lista de pedidos pendientes
+// POST { password, tipo: "pedidos" }   -> lista de órdenes pendientes (agrupadas)
 // POST { password, tipo: "resumen" }   -> total vendido hoy
-// POST { password, accion: "aceptar"|"rechazar"|"rechazar_todos", id }
+// POST { password, accion: "aceptarOrden"|"rechazarOrden"|"rechazar_todos", idOrden }
 // POST { password, accion: "ventaFisica", nombre, precio, categoria,
 //        metodoPago, correoCliente } -> registra una venta de tienda física
 //
@@ -57,7 +57,7 @@ exports.handler = async (event) => {
       };
     }
 
-    // Lectura: listar pedidos pendientes o el resumen de ventas del día
+    // Lectura: listar órdenes pendientes o el resumen de ventas del día
     if (datos.tipo === "pedidos" || datos.tipo === "resumen") {
       const url =
         SHEET_WRITE_URL +
@@ -74,16 +74,16 @@ exports.handler = async (event) => {
       };
     }
 
-    // Escritura: aceptar / rechazar un pedido / rechazar todos
+    // Escritura: aceptar / rechazar una orden completa / rechazar todas
     if (
-      datos.accion === "aceptar" ||
-      datos.accion === "rechazar" ||
+      datos.accion === "aceptarOrden" ||
+      datos.accion === "rechazarOrden" ||
       datos.accion === "rechazar_todos"
     ) {
-      if (!datos.id && datos.accion !== "rechazar_todos") {
+      if (!datos.idOrden && datos.accion !== "rechazar_todos") {
         return {
           statusCode: 400,
-          body: JSON.stringify({ ok: false, error: "Falta el id del pedido" }),
+          body: JSON.stringify({ ok: false, error: "Falta el id de la orden" }),
         };
       }
 
@@ -92,7 +92,7 @@ exports.handler = async (event) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           accion: datos.accion,
-          id: datos.id,
+          idOrden: datos.idOrden,
           clave: CLAVE_ADMIN,
         }),
       });
@@ -108,12 +108,12 @@ exports.handler = async (event) => {
 
     // Escritura: registrar una venta hecha en la tienda física
     if (datos.accion === "ventaFisica") {
-      if (!datos.nombre || !datos.correoCliente || !datos.metodoPago) {
+      if (!datos.nombre || !datos.metodoPago) {
         return {
           statusCode: 400,
           body: JSON.stringify({
             ok: false,
-            error: "Faltan datos: producto, correo del cliente y método de pago son obligatorios",
+            error: "Faltan datos: producto y método de pago son obligatorios",
           }),
         };
       }

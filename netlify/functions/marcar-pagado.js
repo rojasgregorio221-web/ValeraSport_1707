@@ -1,7 +1,15 @@
 // netlify/functions/marcar-pagado.js
 //
-// El cliente marca "pagado" -> creamos un PEDIDO PENDIENTE en el Sheet
-// (todavía NO se descuenta stock). El admin lo aprueba desde admin.html.
+// El cliente hace checkout de su carrito (1 o varios productos) -> se crea
+// una ORDEN PENDIENTE en el Sheet. El stock de cada producto se reserva
+// (descuenta) al instante. El admin la aprueba o rechaza desde admin.html;
+// si la rechaza, el stock reservado se devuelve automáticamente.
+//
+// Body esperado:
+// {
+//   items: [{ nombre, precio, categoria, cantidad }, ...],
+//   metodoPago, referencia, correoCliente
+// }
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -33,29 +41,47 @@ exports.handler = async (event) => {
     };
   }
 
-  if (!datos.nombre) {
+  if (!Array.isArray(datos.items) || datos.items.length === 0) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ ok: false, error: "Falta el nombre del producto" }),
+      body: JSON.stringify({ ok: false, error: "El carrito está vacío" }),
     };
   }
 
-  // Este endpoint es público (cualquiera puede llamarlo, no solo el navegador
-  // de la tienda), así que los campos de texto se acotan en longitud antes de
-  // guardarlos. Esto es solo para evitar basura/payloads enormes en el Sheet;
-  // la protección real contra HTML/JS inyectado vive en admin.html, que
-  // escapa todo antes de pintarlo (nunca confíes solo en validar la entrada).
+  if (!datos.metodoPago) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ ok: false, error: "Falta el método de pago" }),
+    };
+  }
+
+  if (datos.metodoPago !== "Efectivo en tienda" && !datos.referencia) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ ok: false, error: "Falta el número de referencia del pago" }),
+    };
+  }
+
+  // Endpoint público: acotamos longitudes para evitar payloads gigantes.
   const recortar = (valor, max) => String(valor || "").slice(0, max);
+
+  const itemsLimpios = datos.items.slice(0, 30).map((it) => ({
+    nombre: recortar(it.nombre, 200),
+    precio: recortar(it.precio, 20),
+    categoria: recortar(it.categoria, 100),
+    cantidad: Math.max(1, Math.min(99, parseInt(it.cantidad, 10) || 1)),
+  }));
 
   try {
     const respuesta = await fetch(SHEET_WRITE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        accion: "pagado",
-        nombre: recortar(datos.nombre, 200),
-        precio: recortar(datos.precio, 20),
-        categoria: recortar(datos.categoria, 100),
+        accion: "carrito",
+        items: itemsLimpios,
+        metodoPago: recortar(datos.metodoPago, 50),
+        referencia: recortar(datos.referencia, 100),
+        correoCliente: recortar(datos.correoCliente, 200),
       }),
       redirect: "follow",
     });

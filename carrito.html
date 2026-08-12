@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito | Valera Sport</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="firebase-auth.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #111111; }
+        h1, h2, h3, .font-brand { font-family: 'Outfit', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #fff; }
+        ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
+        .nav-link { position: relative; }
+        .nav-link::after { content: ""; position: absolute; left: 0; bottom: -4px; width: 0; height: 1px; background: #111; transition: width 0.25s ease; }
+        .nav-link:hover::after { width: 100%; }
+        .icon-btn { transition: color 0.15s ease; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="index.html" class="font-brand font-extrabold text-xl tracking-tight text-gray-900">
+                VALERA<span class="text-cyan-500">SPORT</span>
+            </a>
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-800">
+                <a href="catalogo.html" class="nav-link">Catálogo</a>
+                <a href="catalogo.html?categoria=Damas" class="nav-link">Damas</a>
+                <a href="catalogo.html?categoria=Caballeros" class="nav-link">Caballeros</a>
+                <a href="catalogo.html?categoria=Niños" class="nav-link">Niños</a>
+                <a href="index.html#contacto" class="nav-link">Ubicación</a>
+            </nav>
+            <div class="flex items-center gap-1">
+                <button onclick="location.href='carrito.html'" title="Carrito" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-cyan-500">
+                    <i class="fa-solid fa-bag-shopping text-sm"></i>
+                    <span id="contadorCarrito" class="hidden absolute top-1 right-1.5 bg-cyan-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">0</span>
+                </button>
+                <button id="btnCuenta" onclick="clicBotonCuenta()" title="Mi cuenta" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
+                    <i class="fa-solid fa-user text-sm"></i>
+                </button>
+                <a href="https://wa.me/584245939407" target="_blank" title="WhatsApp" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-emerald-500">
+                    <i class="fa-brands fa-whatsapp text-base"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-6 py-10 w-full flex-1">
+        <h1 class="font-brand font-bold text-2xl text-gray-900 mb-8">Tu carrito</h1>
+
+        <!-- VISTA CARRITO -->
+        <div id="vistaCarrito">
+
+            <div id="carritoVacio" class="hidden text-center py-20">
+                <i class="fa-solid fa-bag-shopping text-3xl text-gray-200 mb-4"></i>
+                <p class="text-gray-400 text-sm mb-6">Tu carrito está vacío.</p>
+                <a href="catalogo.html" class="inline-block bg-gray-900 hover:bg-gray-700 text-white font-semibold px-8 py-3 rounded-full text-sm transition">
+                    Ir al catálogo
+                </a>
+            </div>
+
+            <div id="listaCarrito" class="divide-y divide-gray-100 mb-8"></div>
+
+            <div id="resumenCarrito" class="hidden">
+                <div class="bg-gray-50 border border-gray-100 rounded-2xl p-6 mb-6">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-bold text-gray-500 uppercase tracking-widest">Total</span>
+                        <span id="totalCarrito" class="text-3xl font-black text-gray-900">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Antes de iniciar sesión: solo se ve el total y un botón para iniciar sesión -->
+                <div id="bloqueLogin">
+                    <button onclick="clicIniciarSesionCarrito()" class="w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
+                        <i class="fa-brands fa-google text-base"></i> Iniciar sesión con Google para pagar
+                    </button>
+                    <p class="text-center text-xs text-gray-400 mt-3">
+                        <i class="fa-solid fa-lock mr-1"></i> Necesitas iniciar sesión para elegir cómo pagaste y confirmar tu pedido.
+                    </p>
+                </div>
+
+                <!-- Después de iniciar sesión: método de pago, datos de la cuenta, comprobante y confirmar -->
+                <div id="bloquePago" class="hidden">
+                    <p class="text-xs text-gray-500 mb-4">
+                        <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>
+                        Sesión iniciada como <span id="correoSesion" class="font-semibold text-gray-700"></span>
+                    </p>
+                    <div class="mb-3">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Método de pago</label>
+                        <select id="metodoPago" onchange="actualizarCampoReferencia()" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400">
+                            <option value="">Selecciona un método</option>
+                            <option value="Pago Móvil">Pago Móvil</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Efectivo en tienda">Efectivo en tienda</option>
+                        </select>
+                    </div>
+
+                    <!-- Datos de la cuenta a la que debe pagar, según el método elegido -->
+                    <div id="datosPagoBox" class="hidden bg-cyan-50 border border-cyan-100 rounded-xl p-4 mb-4 space-y-0.5"></div>
+
+                    <div class="mb-4 hidden" id="contenedorReferencia">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">N° de referencia / comprobante</label>
+                        <input type="text" id="referencia" placeholder="Ej: 003456789" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                    </div>
+
+                    <div class="mb-5 hidden" id="contenedorComprobante">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Foto del comprobante de pago</label>
+                        <input type="file" id="comprobanteInput" accept="image/*" capture="environment" class="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-900 file:text-white hover:file:bg-gray-700">
+                        <p id="estadoComprobante" class="text-[11px] text-gray-400 mt-1"></p>
+                        <img id="previewComprobante" class="hidden mt-2 max-h-40 rounded-lg border border-gray-200" alt="Vista previa del comprobante">
+                    </div>
+
+                    <button id="btnConfirmar" onclick="confirmarPedido()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-check text-base"></i> Confirmar pedido
+                    </button>
+                </div>
+            </div>
+
+            <!-- HISTORIAL DE COMPRAS -->
+            <div id="seccionHistorial" class="hidden mt-14 pt-10 border-t border-gray-100">
+                <h2 class="font-brand font-bold text-lg text-gray-900 mb-4">Tu historial de compras</h2>
+                <p id="estadoHistorial" class="text-xs text-gray-400 mb-3"></p>
+                <div id="listaHistorial"></div>
+            </div>
+        </div>
+
+        <!-- VISTA CONFIRMACIÓN -->
+        <div id="vistaConfirmacion" class="hidden text-center py-10">
+            <div id="estadoConfirmacion" class="text-center bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold py-6 rounded-2xl text-sm">
+                ⏳ ¡Pedido enviado! Por favor no cierres esta ventana hasta que se confirme tu compra.
+            </div>
+            <a href="catalogo.html" class="inline-block mt-6 text-sm font-semibold text-cyan-600 hover:text-cyan-500">
+                Seguir comprando →
+            </a>
+        </div>
+    </main>
+
+    <footer class="border-t border-gray-100 py-10 text-center">
+        <p class="text-xs tracking-wide text-gray-400">© 2026 Valera Sport. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        const CARRITO_KEY = 'vs_carrito';
+        let usuarioActual = null;
+        let comprobanteBase64 = null;
+
+        // Datos de la cuenta a la que debe pagar el cliente.
+        // *** REEMPLAZA los "[COMPLETAR]" por tus datos reales antes de publicar ***
+        const DATOS_PAGO = {
+            'Pago Móvil': {
+                titulo: 'Datos para tu Pago Móvil',
+                lineas: [
+                    'Banco: [COMPLETAR]',
+                    'Cédula/RIF: [COMPLETAR]',
+                    'Teléfono: [COMPLETAR]'
+                ]
+            },
+            'Transferencia': {
+                titulo: 'Datos para tu Transferencia',
+                lineas: [
+                    'Banco: [COMPLETAR]',
+                    'N° de cuenta: [COMPLETAR]',
+                    'Titular: [COMPLETAR]',
+                    'Cédula/RIF: [COMPLETAR]'
+                ]
+            }
+        };
+
+        // ---------- CARRITO ----------
+
+        function obtenerCarrito() {
+            try { return JSON.parse(localStorage.getItem(CARRITO_KEY)) || []; } catch (e) { return []; }
+        }
+        function guardarCarrito(carrito) {
+            localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito));
+            actualizarContadorCarrito();
+        }
+        function actualizarContadorCarrito() {
+            const carrito = obtenerCarrito();
+            const totalItems = carrito.reduce((sum, it) => sum + (it.cantidad || 1), 0);
+            const badge = document.getElementById('contadorCarrito');
+            if (!badge) return;
+            if (totalItems > 0) { badge.textContent = totalItems > 99 ? '99+' : totalItems; badge.classList.remove('hidden'); }
+            else badge.classList.add('hidden');
+        }
+
+        function escapeHTML(str) { const div = document.createElement('div'); div.textContent = str == null ? '' : String(str); return div.innerHTML; }
+        function escapeJS(str) { return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+
+        function calcularTotal() {
+            return obtenerCarrito().reduce((sum, it) => sum + (it.precio * it.cantidad), 0);
+        }
+
+        function renderizarCarrito() {
+            const carrito = obtenerCarrito();
+            const lista = document.getElementById('listaCarrito');
+            const vacio = document.getElementById('carritoVacio');
+            const resumen = document.getElementById('resumenCarrito');
+
+            if (!carrito.length) {
+                lista.innerHTML = '';
+                vacio.classList.remove('hidden');
+                resumen.classList.add('hidden');
+                return;
+            }
+            vacio.classList.add('hidden');
+            resumen.classList.remove('hidden');
+
+            lista.innerHTML = carrito.map(it => `
+                <div class="flex items-center gap-4 py-4">
+                    <img src="${escapeHTML(it.imagen || 'imagenes/logo.jpg')}" class="w-16 h-16 object-contain bg-gray-50 rounded-lg shrink-0" onerror="this.src='imagenes/logo.jpg'">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-900 truncate">${escapeHTML(it.nombre)}</p>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest">${escapeHTML(it.categoria || 'Variados')}</p>
+                        <div class="inline-flex items-center border border-gray-200 rounded-full mt-2">
+                            <button onclick="cambiarCantidadItem('${escapeJS(it.nombre)}', -1)" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-900 text-sm">−</button>
+                            <span class="w-6 text-center text-xs font-semibold">${it.cantidad}</span>
+                            <button onclick="cambiarCantidadItem('${escapeJS(it.nombre)}', 1)" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-900 text-sm">+</button>
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <p class="text-sm font-bold text-gray-900">$${(it.precio * it.cantidad).toFixed(2)}</p>
+                        <button onclick="quitarDelCarrito('${escapeJS(it.nombre)}')" class="text-[11px] text-gray-400 hover:text-rose-500 mt-1">Quitar</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('totalCarrito').textContent = '$' + calcularTotal().toFixed(2);
+        }
+
+        function cambiarCantidadItem(nombre, delta) {
+            const carrito = obtenerCarrito();
+            const item = carrito.find(it => it.nombre === nombre);
+            if (!item) return;
+            item.cantidad = Math.max(1, item.cantidad + delta);
+            guardarCarrito(carrito);
+            renderizarCarrito();
+        }
+
+        function quitarDelCarrito(nombre) {
+            const carrito = obtenerCarrito().filter(it => it.nombre !== nombre);
+            guardarCarrito(carrito);
+            renderizarCarrito();
+        }
+
+        // ---------- MÉTODO DE PAGO / DATOS DE LA CUENTA / COMPROBANTE ----------
+
+        function actualizarCampoReferencia() {
+            const metodo = document.getElementById('metodoPago').value;
+            const contenedorRef = document.getElementById('contenedorReferencia');
+            const contenedorComprobante = document.getElementById('contenedorComprobante');
+            const datosPagoBox = document.getElementById('datosPagoBox');
+            const input = document.getElementById('referencia');
+
+            if (!metodo || metodo === 'Efectivo en tienda') {
+                contenedorRef.classList.add('hidden');
+                contenedorComprobante.classList.add('hidden');
+                datosPagoBox.classList.add('hidden');
+                if (input) input.value = '';
+                limpiarComprobante();
+                return;
+            }
+
+            contenedorRef.classList.remove('hidden');
+            contenedorComprobante.classList.remove('hidden');
+
+            if (DATOS_PAGO[metodo]) {
+                datosPagoBox.classList.remove('hidden');
+                datosPagoBox.innerHTML =
+                    `<p class="text-xs font-bold text-gray-700 mb-1">${escapeHTML(DATOS_PAGO[metodo].titulo)}</p>` +
+                    DATOS_PAGO[metodo].lineas.map(l => `<p class="text-xs text-gray-600">${escapeHTML(l)}</p>`).join('');
+            } else {
+                datosPagoBox.classList.add('hidden');
+            }
+        }
+
+        // Comprime la imagen en el navegador antes de enviarla (ahorra datos al cliente y espacio en el servidor).
+        function comprimirImagen(file) {
+            return new Promise((resolve, reject) => {
+                const lector = new FileReader();
+                lector.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const maxAncho = 1000;
+                        const escala = Math.min(1, maxAncho / img.width);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.round(img.width * escala);
+                        canvas.height = Math.round(img.height * escala);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7));
+                    };
+                    img.onerror = () => reject(new Error('No se pudo leer la imagen'));
+                    img.src = e.target.result;
+                };
+                lector.onerror = () => reject(new Error('No se pudo leer el archivo'));
+                lector.readAsDataURL(file);
+            });
+        }
+
+        function limpiarComprobante() {
+            comprobanteBase64 = null;
+            const preview = document.getElementById('previewComprobante');
+            const estado = document.getElementById('estadoComprobante');
+            const input = document.getElementById('comprobanteInput');
+            if (preview) { preview.src = ''; preview.classList.add('hidden'); }
+            if (estado) estado.textContent = '';
+            if (input) input.value = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('comprobanteInput');
+            if (input) {
+                input.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    const estado = document.getElementById('estadoComprobante');
+                    const preview = document.getElementById('previewComprobante');
+                    if (!file) { limpiarComprobante(); return; }
+                    if (estado) estado.textContent = 'Procesando imagen...';
+                    try {
+                        comprobanteBase64 = await comprimirImagen(file);
+                        if (preview) { preview.src = comprobanteBase64; preview.classList.remove('hidden'); }
+                        if (estado) estado.textContent = '✓ Comprobante listo para enviar';
+                    } catch (error) {
+                        console.error(error);
+                        comprobanteBase64 = null;
+                        if (estado) estado.textContent = 'No se pudo leer la imagen, intenta con otra.';
+                    }
+                });
+            }
+        });
+
+        // ---------- ENVIAR PEDIDO ----------
+
+        function actualizarBloquePago() {
+            const bloqueLogin = document.getElementById('bloqueLogin');
+            const bloquePago = document.getElementById('bloquePago');
+            if (!bloqueLogin || !bloquePago) return;
+            if (usuarioActual) {
+                bloqueLogin.classList.add('hidden');
+                bloquePago.classList.remove('hidden');
+                const correoSesion = document.getElementById('correoSesion');
+                if (correoSesion) correoSesion.textContent = usuarioActual.email;
+                cargarHistorial();
+            } else {
+                bloqueLogin.classList.remove('hidden');
+                bloquePago.classList.add('hidden');
+                const seccionHistorial = document.getElementById('seccionHistorial');
+                if (seccionHistorial) seccionHistorial.classList.add('hidden');
+            }
+        }
+
+        function clicIniciarSesionCarrito() {
+            if (typeof window.firebaseSignIn !== 'function') { alert('El sistema de cuentas está cargando, intenta de nuevo en un segundo.'); return; }
+            window.firebaseSignIn().catch((error) => { console.error(error); alert('No se pudo iniciar sesión: ' + error.message); });
+        }
+
+        async function confirmarPedido() {
+            const carrito = obtenerCarrito();
+            if (!carrito.length) return;
+
+            if (!usuarioActual) {
+                clicIniciarSesionCarrito();
+                return;
+            }
+
+            const metodoPago = document.getElementById('metodoPago').value;
+            const referencia = document.getElementById('referencia').value.trim();
+
+            if (!metodoPago) { alert('Selecciona un método de pago.'); return; }
+            if (metodoPago !== 'Efectivo en tienda') {
+                if (!referencia) { alert('Escribe el número de referencia o comprobante de tu pago.'); return; }
+                if (!comprobanteBase64) { alert('Por favor sube una foto de tu comprobante de pago.'); return; }
+            }
+
+            const confirmar = confirm('¿Confirmar pedido por $' + calcularTotal().toFixed(2) + ' para revisión del vendedor?');
+            if (!confirmar) return;
+
+            const btn = document.getElementById('btnConfirmar');
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+
+            try {
+                const cuerpo = {
+                    items: carrito.map(it => ({ nombre: it.nombre, precio: it.precio, categoria: it.categoria, cantidad: it.cantidad })),
+                    metodoPago: metodoPago,
+                    referencia: referencia,
+                    correoCliente: usuarioActual.email
+                };
+                if (comprobanteBase64) cuerpo.comprobante = comprobanteBase64;
+
+                const respuesta = await fetch('/api/marcar-pagado', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cuerpo)
+                });
+                const datos = await respuesta.json();
+                if (!respuesta.ok || !datos.ok) throw new Error(datos.error || 'No se pudo registrar el pedido');
+
+                localStorage.removeItem(CARRITO_KEY);
+                actualizarContadorCarrito();
+                comprobanteBase64 = null;
+                document.getElementById('vistaCarrito').classList.add('hidden');
+                document.getElementById('vistaConfirmacion').classList.remove('hidden');
+
+                const idOrden = datos.idOrden || datos.id;
+                if (idOrden) iniciarConsultaEstado(idOrden);
+            } catch (error) {
+                console.error('Error al confirmar el pedido:', error);
+                btn.disabled = false;
+                btn.innerHTML = original;
+                alert('Hubo un problema registrando tu pedido. Intenta de nuevo o escríbenos por WhatsApp.');
+            }
+        }
+
+        function iniciarConsultaEstado(idOrden) {
+            let intentos = 0;
+            const intervalo = setInterval(async () => {
+                intentos++;
+                try {
+                    const resp = await fetch('/api/estado-pedido?idOrden=' + encodeURIComponent(idOrden));
+                    const datos = await resp.json();
+                    if (!datos.ok) return;
+                    const estadoEl = document.getElementById('estadoConfirmacion');
+                    if (datos.estado === 'aceptado') {
+                        clearInterval(intervalo);
+                        const codigo = String(idOrden).slice(0, 8).toUpperCase();
+                        if (estadoEl) {
+                            estadoEl.innerHTML =
+                                '✅ ¡Aceptado! Gracias por tu compra.<br>' +
+                                '<span class="block mt-2 text-xs font-mono tracking-wider text-emerald-600">N° de pedido: ' + codigo + '</span>' +
+                                '<span class="block mt-1 text-[11px] font-normal text-emerald-600/80">Guarda una captura de esto como comprobante.</span>';
+                        }
+                    } else if (datos.estado === 'rechazado') {
+                        clearInterval(intervalo);
+                        if (estadoEl) {
+                            estadoEl.className = 'text-center bg-rose-50 border border-rose-200 text-rose-600 font-semibold py-6 rounded-2xl text-sm';
+                            estadoEl.innerHTML = '❌ Tu pedido fue rechazado. Contáctanos por WhatsApp para más info.';
+                        }
+                    }
+                } catch (e) { console.error('Error consultando estado del pedido:', e); }
+                if (intentos > 60) clearInterval(intervalo);
+            }, 5000);
+        }
+
+        // ---------- HISTORIAL DE COMPRAS ----------
+        // Nota: los nombres de campo (fecha, total, estado, items...) dependen de lo que
+        // devuelva tu Apps Script para la acción "historialCliente". Si ves campos vacíos
+        // o mal formateados, compárteme esa parte del Codigo.gs para ajustar esta función.
+
+        async function cargarHistorial() {
+            const seccion = document.getElementById('seccionHistorial');
+            const cont = document.getElementById('listaHistorial');
+            const estado = document.getElementById('estadoHistorial');
+            if (!usuarioActual) return;
+
+            seccion.classList.remove('hidden');
+            if (estado) estado.textContent = 'Cargando tu historial...';
+
+            try {
+                const token = usuarioActual ? await usuarioActual.getIdToken() : null;
+                const resp = await fetch('/api/mis-compras', {
+                    headers: token ? { Authorization: 'Bearer ' + token } : {}
+                });
+                const datos = await resp.json();
+                if (estado) estado.textContent = '';
+
+                if (!datos.ok) {
+                    cont.innerHTML = '<p class="text-xs text-rose-500">' + escapeHTML(datos.error || 'No se pudo cargar tu historial') + '</p>';
+                    return;
+                }
+
+                const compras = datos.compras || [];
+                if (!compras.length) {
+                    cont.innerHTML = '<p class="text-xs text-gray-400">Todavía no tienes compras registradas.</p>';
+                    return;
+                }
+                cont.innerHTML = compras.map(renderizarPedidoHistorial).join('');
+            } catch (error) {
+                console.error('Error cargando historial:', error);
+                if (estado) estado.textContent = '';
+                cont.innerHTML = '<p class="text-xs text-rose-500">No se pudo conectar con el servidor.</p>';
+            }
+        }
+
+        function renderizarPedidoHistorial(c) {
+            const fecha = c.fecha ? new Date(c.fecha).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+            const precio = c.precio != null ? Number(c.precio).toFixed(2) : '';
+            const canal = c.canal || '';
+            const colorCanal = canal.toLowerCase() === 'física' ? 'text-gray-500 bg-gray-50 border-gray-200' : 'text-cyan-600 bg-cyan-50 border-cyan-100';
+
+            return `
+                <div class="border border-gray-100 rounded-xl p-4 mb-3">
+                    <div class="flex justify-between items-start mb-1">
+                        <p class="text-xs text-gray-400">${escapeHTML(fecha)}</p>
+                        ${canal ? `<span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${colorCanal}">${escapeHTML(canal)}</span>` : ''}
+                    </div>
+                    <p class="text-sm text-gray-900">${escapeHTML(c.producto || '')}</p>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest">${escapeHTML(c.categoria || 'Variados')}</p>
+                    ${precio ? `<p class="text-sm font-bold text-gray-900 mt-1">$${precio}</p>` : ''}
+                </div>
+            `;
+        }
+
+        // ---------- CUENTA DE CLIENTE ----------
+
+        function clicBotonCuenta() {
+            if (usuarioActual) { window.location.href = 'cuenta.html'; return; }
+            if (typeof window.firebaseSignIn !== 'function') { alert('El sistema de cuentas está cargando, intenta de nuevo en un segundo.'); return; }
+            window.firebaseSignIn().catch((error) => { console.error(error); alert('No se pudo iniciar sesión: ' + error.message); });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            actualizarContadorCarrito();
+            renderizarCarrito();
+        });
+
+        window.addEventListener('firebase-auth-changed', (e) => {
+            usuarioActual = e.detail.user;
+            actualizarBotonCuenta();
+            actualizarBloquePago();
+        });
+
+        function actualizarBotonCuenta() {
+            const btn = document.getElementById('btnCuenta');
+            if (!btn) return;
+            if (usuarioActual) { btn.title = usuarioActual.email + ' — Ver mi cuenta'; btn.classList.add('text-cyan-500'); }
+            else { btn.title = 'Iniciar sesión / Registrarse'; btn.classList.remove('text-cyan-500'); }
+        }
+    </script>
+</body>
+</html>

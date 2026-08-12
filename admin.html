@@ -7,35 +7,33 @@
     <title>Panel de Pedidos | Valera Sport</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #000; }
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #111111; }
         h1, h2, .font-brand { font-family: 'Outfit', sans-serif; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
-        .icon-touch { transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, color 0.18s ease; }
-        .icon-touch:hover, .icon-touch:active { transform: scale(1.08); }
-        .icon-touch:active { transform: scale(0.94); }
+        ::-webkit-scrollbar-track { background: #fff; }
+        ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
+        .icon-btn { transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease; }
     </style>
 </head>
-<body class="text-slate-300 antialiased min-h-screen">
+<body class="antialiased min-h-screen">
 
     <!-- PANTALLA DE CONTRASEÑA -->
     <div id="pantallaLogin" class="min-h-screen flex items-center justify-center px-6">
         <div class="w-full max-w-sm">
             <div class="text-center mb-8">
-                <span class="text-2xl font-black tracking-wider text-white">VALERA<span class="text-cyan-500">SPORT</span></span>
-                <p class="text-xs text-slate-500 uppercase tracking-widest mt-2">Panel de pedidos</p>
+                <span class="font-brand text-2xl font-extrabold tracking-tight text-gray-900">VALERA<span class="text-cyan-500">SPORT</span></span>
+                <p class="text-xs text-gray-400 uppercase tracking-widest mt-2">Panel de pedidos</p>
             </div>
             <form id="formLogin" class="space-y-4">
-                <input type="password" id="inputPassword" placeholder="Contraseña del panel" autocomplete="current-password" class="w-full bg-white/[0.07] border border-white/[0.14] focus:border-cyan-400/50 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none">
-                <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-black py-3 rounded-xl text-sm uppercase tracking-wider transition">
+                <input type="password" id="inputPassword" placeholder="Contraseña del panel" autocomplete="current-password" class="w-full bg-white border border-gray-200 focus:border-cyan-400 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none">
+                <button type="submit" class="w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition">
                     Entrar
                 </button>
-                <p id="errorLogin" class="hidden text-rose-400 text-xs text-center">Contraseña incorrecta</p>
+                <p id="errorLogin" class="hidden text-rose-500 text-xs text-center">Contraseña incorrecta</p>
             </form>
         </div>
     </div>
@@ -44,78 +42,78 @@
     <div id="panelPrincipal" class="hidden max-w-2xl mx-auto px-5 py-8">
 
         <header class="flex items-center justify-between mb-8">
-            <span class="text-xl font-black tracking-wider text-white">VALERA<span class="text-cyan-500">SPORT</span></span>
-            <button onclick="cerrarSesion()" class="text-xs text-slate-500 hover:text-white transition flex items-center gap-1.5">
+            <span class="font-brand text-xl font-extrabold tracking-tight text-gray-900">VALERA<span class="text-cyan-500">SPORT</span></span>
+            <button onclick="cerrarSesion()" class="text-xs text-gray-400 hover:text-gray-900 transition flex items-center gap-1.5">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Salir
             </button>
         </header>
 
         <!-- RESUMEN DEL DÍA -->
-        <div class="bg-gradient-to-br from-cyan-950/40 to-purple-950/40 border border-white/[0.1] rounded-2xl p-6 mb-8">
-            <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Vendido hoy</p>
-            <p class="text-4xl font-black text-white" id="totalHoy">$0.00</p>
-            <p class="text-sm text-slate-400 mt-1" id="cantidadHoy">0 pedidos aceptados</p>
+        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-6 mb-8">
+            <p class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Vendido hoy</p>
+            <p class="text-4xl font-black text-gray-900" id="totalHoy">$0.00</p>
+            <p class="text-sm text-gray-500 mt-1" id="cantidadHoy">0 ítems aceptados</p>
         </div>
 
         <!-- REGISTRAR VENTA FÍSICA -->
         <div class="mb-8">
-            <button onclick="toggleFormularioFisica()" id="btnToggleFisica" class="w-full bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.1] rounded-2xl p-4 flex items-center justify-between transition">
-                <span class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-store text-purple-400"></i> Registrar venta en tienda física
+            <button onclick="toggleFormularioFisica()" id="btnToggleFisica" class="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-2xl p-4 flex items-center justify-between transition">
+                <span class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-store text-cyan-500"></i> Registrar venta en tienda física
                 </span>
-                <i class="fa-solid fa-chevron-down text-slate-500 text-xs" id="iconoToggleFisica"></i>
+                <i class="fa-solid fa-chevron-down text-gray-400 text-xs" id="iconoToggleFisica"></i>
             </button>
 
-            <div id="formularioFisica" class="hidden mt-3 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5 space-y-3">
+            <div id="formularioFisica" class="hidden mt-3 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
                 <div>
-                    <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-1.5">Correo del cliente</label>
-                    <input type="email" id="fisicaCorreo" placeholder="cliente@correo.com" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-purple-400">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Correo del cliente (opcional)</label>
+                    <input type="email" id="fisicaCorreo" placeholder="cliente@correo.com" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-1.5">Producto</label>
-                    <input type="text" id="fisicaProducto" placeholder="Nombre del producto" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-purple-400">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Producto</label>
+                    <input type="text" id="fisicaProducto" placeholder="Nombre del producto" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-1.5">Precio</label>
-                        <input type="number" step="0.01" id="fisicaPrecio" placeholder="0.00" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-purple-400">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Precio</label>
+                        <input type="number" step="0.01" id="fisicaPrecio" placeholder="0.00" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-1.5">Categoría</label>
-                        <input type="text" id="fisicaCategoria" placeholder="Damas / Caballeros..." class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-purple-400">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Categoría</label>
+                        <input type="text" id="fisicaCategoria" placeholder="Damas / Caballeros..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                     </div>
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-1.5">Método de pago</label>
-                    <select id="fisicaMetodoPago" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-purple-400">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Método de pago</label>
+                    <select id="fisicaMetodoPago" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400">
                         <option value="Efectivo en tienda">Efectivo en tienda</option>
                         <option value="Pago Móvil">Pago Móvil</option>
                         <option value="Transferencia">Transferencia</option>
                     </select>
                 </div>
-                <button onclick="registrarVentaFisica()" class="icon-touch w-full bg-purple-500 hover:bg-purple-400 text-white font-black py-3 rounded-xl text-sm uppercase tracking-wider transition mt-2">
+                <button onclick="registrarVentaFisica()" class="icon-btn w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition mt-2">
                     <i class="fa-solid fa-plus mr-1"></i> Registrar venta
                 </button>
                 <p id="mensajeFisica" class="hidden text-center text-xs font-semibold py-2"></p>
             </div>
         </div>
 
-        <!-- LISTA DE PEDIDOS PENDIENTES -->
+        <!-- LISTA DE ÓRDENES PENDIENTES -->
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-white">Pedidos pendientes</h2>
+            <h2 class="text-lg font-bold text-gray-900">Órdenes pendientes</h2>
             <div class="flex items-center gap-1">
-                <button onclick="cargarTodo()" title="Actualizar" class="icon-touch text-slate-500 hover:text-cyan-400 w-8 h-8 flex items-center justify-center rounded-full">
+                <button onclick="cargarTodo()" title="Actualizar" class="icon-btn text-gray-400 hover:text-cyan-500 w-8 h-8 flex items-center justify-center rounded-full">
                     <i class="fa-solid fa-arrows-rotate text-sm"></i>
                 </button>
-                <button onclick="rechazarTodosPendientes()" title="Rechazar todos los pedidos pendientes" class="icon-touch text-slate-500 hover:text-rose-400 w-8 h-8 flex items-center justify-center rounded-full">
+                <button onclick="rechazarTodosPendientes()" title="Rechazar todas las órdenes pendientes" class="icon-btn text-gray-400 hover:text-rose-500 w-8 h-8 flex items-center justify-center rounded-full">
                     <i class="fa-solid fa-trash text-sm"></i>
                 </button>
             </div>
         </div>
 
-        <p id="cargando" class="text-sm text-slate-500 text-center py-10">Cargando pedidos...</p>
+        <p id="cargando" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
         <div id="listaPedidos" class="space-y-4"></div>
-        <p id="sinPedidos" class="hidden text-sm text-slate-500 text-center py-10">No hay pedidos pendientes por ahora.</p>
+        <p id="sinPedidos" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes pendientes por ahora.</p>
     </div>
 
     <script>
@@ -144,7 +142,7 @@
 
         async function probarPassword(clave) {
             try {
-                const resp = await fetch('/.netlify/functions/admin-pedidos', {
+                const resp = await fetch('/api/admin-pedidos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password: clave, tipo: 'pedidos' })
@@ -178,7 +176,7 @@
 
         async function cargarResumen() {
             try {
-                const resp = await fetch('/.netlify/functions/admin-pedidos', {
+                const resp = await fetch('/api/admin-pedidos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password: obtenerPassword(), tipo: 'resumen' })
@@ -186,11 +184,17 @@
                 const datos = await resp.json();
                 if (datos.ok) {
                     document.getElementById('totalHoy').textContent = '$' + Number(datos.resumen.totalHoy).toFixed(2);
-                    document.getElementById('cantidadHoy').textContent = datos.resumen.cantidadHoy + ' pedidos aceptados';
+                    document.getElementById('cantidadHoy').textContent = datos.resumen.cantidadHoy + ' ítems aceptados';
                 }
             } catch (e) {
                 console.error('Error cargando resumen:', e);
             }
+        }
+
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? '' : String(str);
+            return div.innerHTML;
         }
 
         async function cargarPedidos() {
@@ -202,7 +206,7 @@
             sinPedidos.classList.add('hidden');
 
             try {
-                const resp = await fetch('/.netlify/functions/admin-pedidos', {
+                const resp = await fetch('/api/admin-pedidos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password: obtenerPassword(), tipo: 'pedidos' })
@@ -211,62 +215,80 @@
                 cargando.classList.add('hidden');
 
                 if (!datos.ok) {
-                    lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar pedidos') + '</p>';
+                    lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar órdenes') + '</p>';
                     return;
                 }
 
-                if (!datos.pedidos.length) {
+                const ordenes = datos.ordenes || [];
+
+                if (!ordenes.length) {
                     lista.innerHTML = '';
                     sinPedidos.classList.remove('hidden');
                     return;
                 }
 
-                lista.innerHTML = datos.pedidos.map(tarjetaPedido).join('');
+                lista.innerHTML = ordenes.map(tarjetaOrden).join('');
             } catch (e) {
                 cargando.classList.add('hidden');
-                lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
+                lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
             }
         }
 
-        function escapeHTML(str) {
-            const div = document.createElement('div');
-            div.textContent = str == null ? '' : String(str);
-            return div.innerHTML;
-        }
+        function tarjetaOrden(orden) {
+            const fecha = orden.fecha ? new Date(orden.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
+            const total = Number(orden.total || 0).toFixed(2);
+            const idAttr = escapeHTML(orden.idOrden);
+            const metodoPago = escapeHTML(orden.metodoPago || 'No especificado');
+            const referencia = orden.referencia && String(orden.referencia).trim() ? escapeHTML(orden.referencia) : null;
+            const comprobanteUrl = orden.comprobanteUrl && String(orden.comprobanteUrl).trim() ? orden.comprobanteUrl : null;
+            const items = orden.items || [];
 
-        function tarjetaPedido(p) {
-            const fecha = p.fecha ? new Date(p.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
-            const precio = Number(p.precio || 0).toFixed(2);
-            const idAttr = escapeHTML(p.id);
-            const metodoPago = escapeHTML(p.metodoPago || 'No especificado');
-            const referencia = p.referencia && String(p.referencia).trim() ? escapeHTML(p.referencia) : null;
+            const listaItems = items.map(it => `
+                <div class="flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
+                    <div>
+                        <span class="text-gray-900">${escapeHTML(it.producto)}</span>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wide ml-2">${escapeHTML(it.categoria || 'Variados')}</span>
+                    </div>
+                    <span class="text-gray-500 text-xs font-mono">$${Number(it.precio || 0).toFixed(2)}</span>
+                </div>
+            `).join('');
 
             return `
-                <div class="bg-white/[0.05] border border-white/[0.1] rounded-2xl p-5" id="pedido-${idAttr}" data-id="${idAttr}">
+                <div class="bg-white border border-gray-100 rounded-2xl p-5" id="orden-${idAttr}" data-idorden="${idAttr}">
                     <div class="flex justify-between items-start mb-3">
                         <div>
-                            <span class="text-[10px] font-bold text-cyan-400/80 uppercase tracking-widest block mb-1">${escapeHTML(p.categoria || 'Variados')}</span>
-                            <h3 class="text-white font-bold">${escapeHTML(p.producto)}</h3>
-                            <p class="text-xs text-slate-500 mt-1">${escapeHTML(fecha)}</p>
+                            <span class="text-[10px] font-bold text-cyan-600 uppercase tracking-widest block mb-1">${items.length} ${items.length === 1 ? 'producto' : 'productos'}</span>
+                            <p class="text-xs text-gray-400">${escapeHTML(fecha)}</p>
                         </div>
-                        <span class="text-xl font-black text-white">$${precio}</span>
+                        <span class="text-xl font-black text-gray-900">$${total}</span>
                     </div>
-                    <div class="bg-black/40 border border-white/[0.06] rounded-xl px-4 py-3 mb-4">
+
+                    <div class="bg-gray-50 rounded-xl px-4 py-2 mb-3">
+                        ${listaItems}
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4">
                         <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-500 uppercase font-bold">Método de pago:</span>
-                            <span class="text-slate-200 font-semibold">${metodoPago}</span>
+                            <span class="text-gray-400 uppercase font-bold">Método de pago:</span>
+                            <span class="text-gray-900 font-semibold">${metodoPago}</span>
                         </div>
                         ${referencia ? `
                         <div class="flex justify-between items-center text-xs mt-2">
-                            <span class="text-slate-500 uppercase font-bold">Referencia:</span>
-                            <span class="text-slate-200 font-mono">${referencia}</span>
+                            <span class="text-gray-400 uppercase font-bold">Referencia:</span>
+                            <span class="text-gray-900 font-mono">${referencia}</span>
+                        </div>` : ''}
+                        ${comprobanteUrl ? `
+                        <div class="flex justify-between items-center text-xs mt-2">
+                            <span class="text-gray-400 uppercase font-bold">Comprobante:</span>
+                            <a href="${comprobanteUrl}" target="_blank" class="text-cyan-600 font-semibold hover:text-cyan-500">Ver foto ↗</a>
                         </div>` : ''}
                     </div>
-                    <div class="grid grid-cols-2 gap-3 mt-4">
-                        <button data-accion="rechazar" class="bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-300 hover:text-rose-400 font-bold py-3 rounded-xl text-sm transition">
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button data-accion="rechazarOrden" class="bg-white hover:bg-rose-50 border border-gray-200 hover:border-rose-300 text-gray-600 hover:text-rose-600 font-bold py-3 rounded-full text-sm transition">
                             <i class="fa-solid fa-xmark mr-1"></i> Rechazar
                         </button>
-                        <button data-accion="aceptar" class="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-3 rounded-xl text-sm transition">
+                        <button data-accion="aceptarOrden" class="bg-cyan-500 hover:bg-cyan-400 text-white font-black py-3 rounded-full text-sm transition">
                             <i class="fa-solid fa-check mr-1"></i> Aceptar
                         </button>
                     </div>
@@ -277,25 +299,25 @@
         document.getElementById('listaPedidos').addEventListener('click', (e) => {
             const boton = e.target.closest('button[data-accion]');
             if (!boton) return;
-            const tarjeta = boton.closest('[data-id]');
+            const tarjeta = boton.closest('[data-idorden]');
             if (!tarjeta) return;
-            responder(tarjeta.dataset.id, boton.dataset.accion);
+            responderOrden(tarjeta.dataset.idorden, boton.dataset.accion);
         });
 
-        async function responder(id, accion) {
-            const tarjeta = document.querySelector(`[data-id="${CSS.escape(id)}"]`);
+        async function responderOrden(idOrden, accion) {
+            const tarjeta = document.querySelector(`[data-idorden="${CSS.escape(idOrden)}"]`);
             if (tarjeta) tarjeta.style.opacity = '0.4';
 
             try {
-                const resp = await fetch('/.netlify/functions/admin-pedidos', {
+                const resp = await fetch('/api/admin-pedidos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: obtenerPassword(), accion, id })
+                    body: JSON.stringify({ password: obtenerPassword(), accion, idOrden })
                 });
                 const datos = await resp.json();
 
                 if (!datos.ok) {
-                    alert('Error: ' + (datos.error || 'no se pudo procesar el pedido'));
+                    alert('Error: ' + (datos.error || 'no se pudo procesar la orden'));
                     if (tarjeta) tarjeta.style.opacity = '1';
                     return;
                 }
@@ -314,11 +336,11 @@
         }
 
         async function rechazarTodosPendientes() {
-            const confirmar = confirm('¿Seguro que quieres rechazar TODOS los pedidos pendientes? Quedan guardados como "rechazados" en el Sheet, no se borra nada, pero esta acción no se puede deshacer desde aquí.');
+            const confirmar = confirm('¿Seguro que quieres rechazar TODAS las órdenes pendientes? El stock reservado se devuelve automáticamente, no se borra nada del Sheet, pero esta acción no se puede deshacer desde aquí.');
             if (!confirmar) return;
 
             try {
-                const resp = await fetch('/.netlify/functions/admin-pedidos', {
+                const resp = await fetch('/api/admin-pedidos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password: obtenerPassword(), accion: 'rechazar_todos' })
@@ -356,14 +378,14 @@
             const mensaje = document.getElementById('mensajeFisica');
             mensaje.classList.add('hidden');
 
-            if (!correo || !producto || !precio) {
-                mensaje.textContent = 'Completa correo, producto y precio.';
-                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-400';
+            if (!producto || !precio) {
+                mensaje.textContent = 'Completa al menos producto y precio.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
                 return;
             }
 
             try {
-                const resp = await fetch('/.netlify/functions/admin-pedidos', {
+                const resp = await fetch('/api/admin-pedidos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -380,12 +402,12 @@
 
                 if (!datos.ok) {
                     mensaje.textContent = 'Error: ' + (datos.error || 'no se pudo registrar');
-                    mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-400';
+                    mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
                     return;
                 }
 
                 mensaje.textContent = '✅ Venta registrada correctamente.';
-                mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-400';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-600';
 
                 document.getElementById('fisicaCorreo').value = '';
                 document.getElementById('fisicaProducto').value = '';
@@ -395,7 +417,7 @@
                 cargarResumen();
             } catch (e) {
                 mensaje.textContent = 'No se pudo conectar con el servidor.';
-                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-400';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
             }
         }
 

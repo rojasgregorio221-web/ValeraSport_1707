@@ -7,343 +7,304 @@
     <title>Valera Sport | Tienda Oficial</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script type="module" src="firebase-auth.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #000000;
-            scroll-behavior: smooth;
+            background-color: #ffffff;
+            color: #111111;
         }
         h1, h2, h3, .font-brand { font-family: 'Outfit', sans-serif; }
-        .icon-touch { transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease; }
-        .icon-touch:hover, .icon-touch:active { transform: scale(1.08); }
-        .icon-touch:active { transform: scale(0.94); }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
-        #sinResultados { display: none; }
-        #estadoCarga { text-align: center; color: #71717a; font-size: 13px; margin-bottom: 24px; }
+        .font-editorial { font-family: 'Fraunces', serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #fff; }
+        ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
 
-        /* ---------- LIQUID GLASS ---------- */
-        .glass-card {
-            position: relative;
-            background: linear-gradient(160deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
-            backdrop-filter: blur(24px) saturate(160%);
-            -webkit-backdrop-filter: blur(24px) saturate(160%);
-            border: 1px solid rgba(255,255,255,0.14);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.45);
-            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+        .nav-link { position: relative; }
+        .nav-link::after {
+            content: ""; position: absolute; left: 0; bottom: -4px; width: 0; height: 1px;
+            background: #111; transition: width 0.25s ease;
         }
-        .glass-card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background: linear-gradient(160deg, rgba(255,255,255,0.35), rgba(255,255,255,0) 40%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
+        .nav-link:hover::after { width: 100%; }
+
+        .tab-btn { position: relative; padding-bottom: 10px; color: #9ca3af; }
+        .tab-btn.activa { color: #111; }
+        .tab-btn::after {
+            content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+            background: #06b6d4; transform: scaleX(0); transition: transform 0.25s ease;
         }
-        .glass-card:hover, .glass-card:active {
-            background: linear-gradient(160deg, rgba(255,255,255,0.13), rgba(255,255,255,0.05));
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 12px 40px rgba(6,182,212,0.18);
+        .tab-btn.activa::after { transform: scaleX(1); }
+
+        .hero-blob {
+            position: absolute; inset: 0; overflow: hidden; filter: blur(60px) saturate(140%);
+            opacity: 0.55;
         }
-        .glass-pill {
-            backdrop-filter: blur(16px) saturate(160%);
-            -webkit-backdrop-filter: blur(16px) saturate(160%);
-        }
-        .hover-cyan:hover, .hover-cyan:active { color: #22d3ee !important; border-color: rgba(34,211,238,0.5) !important; }
-        .hover-purple:hover, .hover-purple:active { color: #c084fc !important; border-color: rgba(192,132,252,0.5) !important; }
-        .hover-rose:hover, .hover-rose:active { color: #fb7185 !important; border-color: rgba(251,113,133,0.5) !important; }
-        .hover-emerald:hover, .hover-emerald:active { color: #34d399 !important; }
+        .hero-blob span { position: absolute; border-radius: 9999px; }
+        .blob-1 { width: 50vw; height: 50vw; background: #fde68a; top: -10%; left: -5%; }
+        .blob-2 { width: 45vw; height: 45vw; background: #67e8f9; top: 10%; right: -5%; }
+        .blob-3 { width: 40vw; height: 40vw; background: #c4b5fd; bottom: -15%; left: 20%; }
+
+        .carrusel { scroll-snap-type: x mandatory; scrollbar-width: none; }
+        .carrusel::-webkit-scrollbar { display: none; }
+        .carrusel-item { scroll-snap-align: start; }
+
+        .icon-btn { transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease; }
+
+        #sinResultados { display: none; }
+        #estadoCarga { text-align: center; color: #9ca3af; font-size: 13px; margin-bottom: 24px; }
     </style>
 </head>
-<body class="text-slate-300 antialiased min-h-screen flex flex-col justify-between">
+<body class="antialiased min-h-screen flex flex-col">
 
-    <!-- BARRA DE NAVEGACIÓN -->
-    <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-900">
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <a href="#" class="flex items-center gap-2">
-                <span class="text-2xl font-black tracking-wider text-white">VALERA<span class="text-cyan-500">SPORT</span></span>
+            <a href="index.html" class="font-brand font-extrabold text-xl tracking-tight text-gray-900">
+                VALERA<span class="text-cyan-500">SPORT</span>
             </a>
-            <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
-                <a href="#productos" class="text-slate-400 hover:text-white transition">Catálogo</a>
-                <a href="#categorias" class="text-slate-400 hover:text-white transition">Categorías</a>
-                <a href="#contacto" class="text-slate-400 hover:text-cyan-400 transition">Ubicación</a>
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-800">
+                <a href="catalogo.html" class="nav-link">Catálogo</a>
+                <a href="catalogo.html?categoria=Damas" class="nav-link">Damas</a>
+                <a href="catalogo.html?categoria=Caballeros" class="nav-link">Caballeros</a>
+                <a href="catalogo.html?categoria=Niños" class="nav-link">Niños</a>
+                <a href="#contacto" class="nav-link">Ubicación</a>
             </nav>
-            <div class="flex items-center gap-2">
-                <button id="btnCuenta" onclick="clicBotonCuenta()" title="Iniciar sesión / Registrarse" class="icon-touch hover-cyan text-slate-400 w-9 h-9 flex items-center justify-center rounded-full border border-white/10">
+            <div class="flex items-center gap-1">
+                <button id="btnEscanear" onclick="abrirScanner()" title="Escanear código QR" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
+                    <i class="fa-solid fa-qrcode text-sm"></i>
+                </button>
+                <button onclick="location.href='carrito.html'" title="Carrito" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
+                    <i class="fa-solid fa-bag-shopping text-sm"></i>
+                    <span id="contadorCarrito" class="hidden absolute top-1 right-1.5 bg-cyan-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">0</span>
+                </button>
+                <button id="btnCuenta" onclick="clicBotonCuenta()" title="Mi cuenta" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
                     <i class="fa-solid fa-user text-sm"></i>
                 </button>
-                <a href="https://wa.me/584245939407?text=Hola%20Valera%20Sport,%20estoy%20viendo%20su%20p%C3%A1gina%20web%20y%20quiero%20m%C3%A1s%20informaci%C3%B3n" target="_blank" class="icon-touch bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold px-4 py-2 rounded-full text-xs tracking-wider uppercase transition flex items-center gap-1.5 shadow-md shadow-cyan-500/10">
-                    <i class="fa-brands fa-whatsapp text-sm"></i> Consultar
+                <a href="https://wa.me/584245939407" target="_blank" title="WhatsApp" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-emerald-500">
+                    <i class="fa-brands fa-whatsapp text-base"></i>
                 </a>
             </div>
         </div>
     </header>
 
-    <!-- SECCIÓN HERO -->
-    <section class="relative overflow-hidden bg-black min-h-[85vh] flex items-end bg-cover bg-center md:bg-[center_22%]" style="background-image: url('imagenes/hero-banner.jpg');">
-        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"></div>
-        <div class="relative max-w-4xl mx-auto px-6 pb-16 md:pb-20 flex flex-col items-center text-center w-full">
-            <h1 class="text-5xl lg:text-7xl font-black text-white leading-tight uppercase drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
-                Rendimiento <span class="text-cyan-400">Sin Límites</span>
+    <!-- HERO -->
+    <section class="relative overflow-hidden">
+        <div class="hero-blob"><span class="blob-1"></span><span class="blob-2"></span><span class="blob-3"></span></div>
+        <div class="relative max-w-7xl mx-auto px-6 py-28 md:py-40 text-center">
+            <h1 class="font-brand font-extrabold text-5xl md:text-7xl tracking-tight text-gray-900">
+                RENDIMIENTO<br>SIN LÍMITES
             </h1>
+            <div class="w-12 h-[2px] bg-cyan-500 mx-auto mt-6"></div>
+            <p class="mt-5 text-gray-600 max-w-md mx-auto">
+                Ropa deportiva para toda la familia, directo desde Barquisimeto.
+            </p>
+            <a href="catalogo.html" class="inline-block mt-8 bg-gray-900 hover:bg-gray-700 text-white font-semibold px-8 py-3.5 rounded-full text-sm tracking-wide transition">
+                Explora
+            </a>
         </div>
     </section>
 
-    <div class="bg-black w-full flex justify-center pt-10 pb-2">
-        <a href="#productos" class="inline-block bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-extrabold px-10 py-4 rounded-xl text-sm tracking-wider uppercase shadow-lg shadow-cyan-500/30 transition">
-            Ver Qué Hay De Nuevo
-        </a>
-    </div>
+    <!-- DESTACADOS -->
+    <section id="productos" class="max-w-7xl mx-auto px-6 py-16 md:py-24">
+        <h2 class="font-brand font-bold text-3xl text-center text-gray-900 mb-8">Destacados</h2>
 
-    <!-- GRILLA DE CATEGORÍAS -->
-    <section id="categorias" class="py-10 bg-black border-y border-zinc-900">
-        <div class="max-w-7xl mx-auto px-6">
-            <h2 class="text-3xl font-black text-white uppercase tracking-tight mb-8 text-center lg:text-left">Explorar Categorías</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div onclick="filtrarPorCategoria('Caballeros')" class="glass-card rounded-2xl p-5 hover:-translate-y-1 group cursor-pointer">
-                    <div class="icon-touch w-9 h-9 bg-cyan-950/50 border border-cyan-800/30 rounded-lg flex items-center justify-center text-cyan-400 mb-4 group-hover:bg-cyan-500 group-hover:text-gray-950"><i class="fa-solid fa-shirt text-sm"></i></div>
-                    <h3 class="text-base font-bold text-white mb-1">Caballeros</h3>
-                    <p class="text-xs text-slate-400">Chaquetas térmicas, camisas dry-fit y bóxers premium.</p>
-                </div>
-                <div onclick="filtrarPorCategoria('Damas')" class="glass-card rounded-2xl p-5 hover:-translate-y-1 group cursor-pointer">
-                    <div class="icon-touch w-9 h-9 bg-purple-950/50 border border-purple-800/30 rounded-lg flex items-center justify-center text-purple-400 mb-4 group-hover:bg-purple-500 group-hover:text-white"><i class="fa-solid fa-vest-patches text-sm"></i></div>
-                    <h3 class="text-base font-bold text-white mb-1">Damas</h3>
-                    <p class="text-xs text-slate-400">Licras, conjuntos deportivos y tops de entrenamiento.</p>
-                </div>
-                <div onclick="filtrarPorCategoria('Combos')" class="glass-card rounded-2xl p-5 hover:-translate-y-1 group cursor-pointer">
-                    <div class="icon-touch w-9 h-9 bg-emerald-950/50 border border-emerald-800/30 rounded-lg flex items-center justify-center text-emerald-400 mb-4 group-hover:bg-emerald-500 group-hover:text-gray-950"><i class="fa-solid fa-tags text-sm"></i></div>
-                    <h3 class="text-base font-bold text-white mb-1">Combos Deportivos</h3>
-                    <p class="text-xs text-slate-400">Ahorra comprando en paquetes. Oferta al mayor.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECCIÓN PRODUCTOS -->
-    <section id="productos" class="relative py-20 max-w-7xl mx-auto px-6 w-full overflow-hidden">
-        <div class="text-center max-w-2xl mx-auto mb-10">
-            <p class="text-slate-400">Haz clic en ordenar para elegir tu talla e iniciar tu compra directa por WhatsApp.</p>
-        </div>
-
-        <div class="max-w-xl mx-auto mb-4">
-            <div class="relative">
-                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none"></i>
-                <input type="text" id="buscador" oninput="reiniciarYRenderizar()" placeholder="Buscar por nombre o escanear QR..." class="glass-pill icon-touch w-full bg-white/[0.07] border border-white/[0.14] focus:border-cyan-400/50 rounded-full pl-11 pr-20 py-3 text-sm text-white placeholder:text-slate-500 outline-none">
-                <button id="btnEscanear" onclick="abrirScanner()" title="Escanear código QR" class="icon-touch hover-purple absolute right-10 top-1/2 -translate-y-1/2 text-slate-500 w-7 h-7 flex items-center justify-center rounded-full">
-                    <i class="fa-solid fa-camera text-sm"></i>
-                </button>
-                <button id="btnLimpiar" onclick="limpiarBusqueda()" class="icon-touch hover-rose absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 w-6 h-6 flex items-center justify-center rounded-full hidden">
-                    <i class="fa-solid fa-xmark text-xs"></i>
-                </button>
-            </div>
-            <div id="chipCategoria" class="hidden mt-3 flex items-center justify-center gap-2 text-xs text-slate-400">
-                <span>Filtrando por:</span>
-                <span id="chipCategoriaTexto" class="bg-zinc-900 border border-zinc-800 text-white px-3 py-1 rounded-full font-semibold"></span>
-                <button onclick="filtrarPorCategoria(null)" class="icon-touch hover-rose text-slate-500 w-5 h-5 flex items-center justify-center rounded-full"><i class="fa-solid fa-xmark text-xs"></i></button>
-            </div>
+        <div class="flex items-center justify-center gap-8 border-b border-gray-100 mb-10">
+            <button class="tab-btn activa font-semibold text-sm" data-tab="Damas" onclick="cambiarTab('Damas')">Damas</button>
+            <button class="tab-btn font-semibold text-sm" data-tab="Caballeros" onclick="cambiarTab('Caballeros')">Caballeros</button>
+            <button class="tab-btn font-semibold text-sm" data-tab="Niños" onclick="cambiarTab('Niños')">Niños</button>
         </div>
 
         <p id="estadoCarga">Cargando catálogo...</p>
-        <p id="contadorResultados" class="hidden"></p>
 
-        <div id="gridProductos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
-
-        <div class="text-center mt-12" id="containerVerMas" style="display: none;">
-            <button onclick="cargarMasProductos()" class="icon-touch hover-cyan bg-zinc-950 border border-zinc-900 text-slate-400 hover:text-white font-extrabold px-8 py-4 rounded-xl text-sm tracking-wider uppercase transition">
-                Buscar más prendas <i class="fa-solid fa-chevron-down ml-1.5 text-xs"></i>
+        <div class="relative">
+            <button onclick="deslizarCarrusel(-1)" class="hidden md:flex absolute -left-5 top-1/3 z-10 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm items-center justify-center text-gray-500 hover:text-gray-900">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <div id="carruselDestacados" class="carrusel flex gap-6 overflow-x-auto pb-2"></div>
+            <button onclick="deslizarCarrusel(1)" class="hidden md:flex absolute -right-5 top-1/3 z-10 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm items-center justify-center text-gray-500 hover:text-gray-900">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
             </button>
         </div>
 
-        <div id="sinResultados" class="text-center py-20">
-            <div class="w-14 h-14 mx-auto rounded-full bg-zinc-950 border border-zinc-900 flex items-center justify-center text-slate-600 mb-4"><i class="fa-solid fa-magnifying-glass text-lg"></i></div>
-            <p class="text-white font-bold">No encontramos prendas para tu búsqueda</p>
-            <p class="text-sm text-slate-500 mt-1">Intenta con otra palabra o quita el filtro de categoría.</p>
+        <p id="sinResultados" class="text-center text-gray-400 text-sm py-10">No hay productos en esta categoría todavía.</p>
+
+        <div class="text-center mt-12">
+            <a href="catalogo.html" class="inline-block bg-cyan-500 hover:bg-cyan-400 text-white font-semibold px-8 py-3.5 rounded-full text-sm tracking-wide transition">
+                Ver todo
+            </a>
         </div>
     </section>
 
     <!-- MODAL ESCÁNER QR -->
-    <div id="scannerModal" class="fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
-        <button onclick="cerrarScanner()" class="icon-touch absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full text-slate-300 hover:text-white hover:bg-zinc-900 text-base z-10">
+    <div id="scannerModal" class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
+        <button onclick="cerrarScanner()" class="icon-btn absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full text-white/80 hover:text-white text-base z-10">
             <i class="fa-solid fa-xmark"></i>
         </button>
         <div class="w-full max-w-sm">
-            <div class="relative rounded-2xl overflow-hidden border border-cyan-400/30 bg-black aspect-square">
+            <div class="relative rounded-2xl overflow-hidden border border-white/20 bg-black aspect-square">
                 <video id="scannerVideo" class="w-full h-full object-cover" playsinline autoplay muted></video>
-                <div class="absolute inset-0 pointer-events-none border-[3px] border-cyan-400/60 m-10 rounded-xl"></div>
+                <div class="absolute inset-0 pointer-events-none border-[3px] border-cyan-400/70 m-10 rounded-xl"></div>
             </div>
             <canvas id="scannerCanvas" class="hidden"></canvas>
-            <p id="scannerEstado" class="text-slate-400 text-sm mt-4 text-center">Apunta la cámara al código QR de la prenda</p>
+            <p id="scannerEstado" class="text-white/70 text-sm mt-4 text-center">Apunta la cámara al código QR de la prenda</p>
         </div>
     </div>
 
-    <!-- MODAL DETALLE -->
-    <div id="detalleModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass-card rounded-2xl w-full max-w-md p-6 relative shadow-2xl modal-transition scale-95 opacity-0 max-h-[90vh] overflow-y-auto" id="detalleModalContainer">
-            <button onclick="cerrarDetalle()" class="icon-touch hover-rose absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-zinc-900 text-sm z-10"><i class="fa-solid fa-xmark"></i></button>
-            <div class="w-full h-72 rounded-xl overflow-hidden bg-black flex items-center justify-center mb-3">
-                <img id="detalleImagen" src="" alt="" class="max-w-full max-h-full object-contain">
-            </div>
-            <div id="detalleGaleria" class="hidden flex gap-2 mb-5 overflow-x-auto pb-1"></div>
-            <span id="detalleCategoria" class="text-[10px] font-bold text-cyan-400/85 uppercase tracking-[0.15em] mb-1 block"></span>
-            <h3 id="detalleNombre" class="text-xl font-bold text-white mb-3"></h3>
-            <div class="mb-5">
-                <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-2">Colores disponibles:</label>
-                <div class="flex flex-wrap gap-2" id="detalleColores"></div>
-            </div>
-            <div class="bg-black p-4 rounded-xl border border-zinc-900 flex justify-between items-center mb-4">
-                <span class="text-xs text-slate-500 uppercase font-bold">Precio:</span>
-                <span class="text-2xl font-black text-white" id="detallePrecio"></span>
-            </div>
+    <!-- MODAL DETALLE / AGREGAR AL CARRITO -->
+    <div id="detalleModal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-3xl relative shadow-xl scale-95 opacity-0 max-h-[90vh] overflow-y-auto transition-all duration-200 grid grid-cols-1 md:grid-cols-2" id="detalleModalContainer">
+            <button onclick="cerrarDetalle()" class="icon-btn absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 text-gray-400 hover:text-gray-900 text-sm z-10"><i class="fa-solid fa-xmark"></i></button>
 
-            <!-- FORMULARIO DE PAGO (solo aplica al marcar como pagado) -->
-            <div id="detalleFormularioPago">
-                <div class="mb-3">
-                    <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-2">Método de pago:</label>
-                    <select id="detalleMetodoPago" onchange="actualizarCampoReferencia()" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-400">
-                        <option value="">Selecciona un método</option>
-                        <option value="Pago Móvil">Pago Móvil</option>
-                        <option value="Transferencia">Transferencia</option>
-                        <option value="Efectivo en tienda">Efectivo en tienda</option>
-                    </select>
+            <!-- IZQUIERDA: imagen -->
+            <div class="p-6 md:p-8 bg-gray-50 md:rounded-l-2xl">
+                <div class="w-full aspect-square rounded-xl overflow-hidden bg-white flex items-center justify-center mb-3">
+                    <img id="detalleImagen" src="" alt="" class="max-w-full max-h-full object-contain">
                 </div>
-                <div class="mb-4" id="contenedorReferencia">
-                    <label class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-2">N° de referencia / comprobante:</label>
-                    <input type="text" id="detalleReferencia" placeholder="Ej: 003456789" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-cyan-400">
+                <div id="detalleGaleria" class="hidden flex gap-2 overflow-x-auto pb-1"></div>
+            </div>
+
+            <!-- DERECHA: info y carrito -->
+            <div class="p-6 md:p-8">
+                <span id="detalleCategoria" class="text-[11px] font-semibold text-cyan-600 uppercase tracking-widest mb-1 block"></span>
+                <h3 id="detalleNombre" class="text-2xl font-bold text-gray-900 mb-2"></h3>
+                <span class="text-2xl font-black text-gray-900" id="detallePrecio"></span>
+
+                <div class="mt-6 mb-5">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Color</label>
+                    <div class="flex flex-wrap gap-2" id="detalleColores"></div>
                 </div>
-            </div>
 
-            <a id="detalleBotonWA" href="#" target="_blank" class="icon-touch w-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2">
-                <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
-            </a>
-            <button id="detalleBotonPagado" onclick="marcarComoPagado()" class="icon-touch w-full mt-3 bg-white/10 hover:bg-white/20 text-white font-black py-4 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 border border-white/10">
-                <i class="fa-solid fa-check text-base"></i> Marcar como pagado
-            </button>
-            <div id="detalleConfirmacion" class="hidden text-center bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold py-4 rounded-xl mt-3 text-sm">
-                ✅ ¡Pedido enviado! El vendedor lo confirmará en breve.
-            </div>
-            <p id="detalleNoDisponible" class="hidden text-center text-sm text-zinc-500 py-3">Actualmente no disponible</p>
-        </div>
-    </div>
-
-    <!-- MODAL MI CUENTA -->
-    <div id="cuentaModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass-card rounded-2xl w-full max-w-lg p-6 relative shadow-2xl scale-95 opacity-0 max-h-[85vh] overflow-y-auto" id="cuentaModalContainer">
-            <button onclick="cerrarCuenta()" class="icon-touch hover-rose absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-zinc-900 text-sm z-10"><i class="fa-solid fa-xmark"></i></button>
-
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-12 h-12 rounded-full bg-cyan-950 border border-cyan-800/30 flex items-center justify-center text-cyan-400">
-                    <i class="fa-solid fa-user text-lg"></i>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold text-white">Mi cuenta</h3>
-                    <p class="text-xs text-slate-500" id="cuentaCorreo"></p>
-                </div>
-            </div>
-
-            <div class="bg-gradient-to-br from-cyan-950/40 to-purple-950/40 border border-white/[0.1] rounded-2xl p-5 mb-6">
-                <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Total gastado en Valera Sport</p>
-                <p class="text-3xl font-black text-white" id="cuentaTotalGastado">$0.00</p>
-                <p class="text-xs text-slate-400 mt-1" id="cuentaCantidadCompras">0 compras</p>
-            </div>
-
-            <h4 class="text-sm font-bold text-white mb-3">Historial de compras</h4>
-            <p id="cuentaCargando" class="text-sm text-slate-500 text-center py-8">Cargando tu historial...</p>
-            <div id="cuentaListaCompras" class="space-y-3"></div>
-            <p id="cuentaSinCompras" class="hidden text-sm text-slate-500 text-center py-8">Todavía no tienes compras registradas.</p>
-
-            <button onclick="cerrarSesionCliente()" class="icon-touch w-full mt-6 bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-slate-400 hover:text-rose-400 font-bold py-3 rounded-xl text-sm transition">
-                <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Cerrar sesión
-            </button>
-        </div>
-    </div>
-
-    <!-- SECCIÓN CONTACTO -->
-    <section id="contacto" class="py-16 bg-black border-t border-zinc-900 w-full">
-        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div class="space-y-6">
-                <h2 class="text-3xl font-black text-white uppercase tracking-tight">Visítanos en Tienda</h2>
-                <p class="text-slate-400">Estamos ubicados en una de las mejores zonas comerciales de Barquisimeto. Acércate para probarte la ropa deportiva en persona y recibir asesoría directa de Clary.</p>
-                <div class="space-y-4">
-                    <div class="flex items-start gap-4">
-                        <div class="icon-touch w-9 h-9 rounded-lg bg-zinc-950 border border-zinc-900 flex items-center justify-center text-cyan-400 shrink-0 text-sm"><i class="fa-solid fa-location-dot"></i></div>
-                        <div>
-                            <p class="font-bold text-white text-sm">Dirección física</p>
-                            <p class="text-sm text-slate-400">Calle 28 entre Carreras 19 y 20, C.C. (Antiguo Beco), Local 121-122. Barquisimeto, Lara.</p>
-                        </div>
+                <div class="mb-6">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Cantidad</label>
+                    <div class="inline-flex items-center border border-gray-200 rounded-full">
+                        <button type="button" onclick="cambiarCantidad(-1)" class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-900">−</button>
+                        <span id="detalleCantidad" class="w-8 text-center text-sm font-semibold text-gray-900">1</span>
+                        <button type="button" onclick="cambiarCantidad(1)" class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-900">+</button>
                     </div>
                 </div>
+
+                <button id="detalleBotonCarrito" onclick="agregarAlCarritoDesdeModal()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bag-shopping text-base"></i> Agregar al carrito
+                </button>
+                <a id="detalleBotonWA" href="#" target="_blank" class="w-full mt-3 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
+                </a>
+                <div id="detalleConfirmacion" class="hidden text-center bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold py-4 rounded-xl mt-3 text-sm">
+                    ✅ ¡Agregado al carrito!
+                </div>
+                <p id="detalleNoDisponible" class="hidden text-center text-sm text-gray-400 py-3">Actualmente no disponible</p>
             </div>
-            <div class="h-64 md:h-80 bg-zinc-950 rounded-2xl border border-zinc-900 flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
-                <div class="relative space-y-4">
-                    <div class="w-14 h-14 bg-cyan-950 text-cyan-400 rounded-full flex items-center justify-center text-2xl mx-auto border border-cyan-800/30"><i class="fa-solid fa-map-location-dot"></i></div>
-                    <h3 class="text-xl font-bold text-white">Barquisimeto, Lara</h3>
+        </div>
+    </div>
+
+    <!-- CONTACTO -->
+    <section id="contacto" class="border-t border-gray-100 py-16 md:py-24">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-5">
+                <h2 class="font-brand font-bold text-3xl text-gray-900">Visítanos en tienda</h2>
+                <p class="text-gray-600">Calle 28 entre Carreras 19 y 20, C.C. (Antiguo Beco), Local 121-122. Barquisimeto, Lara.</p>
+                <a href="https://wa.me/584245939407" target="_blank" class="inline-block text-sm font-semibold text-cyan-600 hover:text-cyan-500 nav-link">
+                    Escríbenos por WhatsApp →
+                </a>
+            </div>
+            <div class="h-64 md:h-80 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-center">
+                <div class="text-center space-y-3">
+                    <i class="fa-solid fa-map-location-dot text-3xl text-cyan-500"></i>
+                    <h3 class="font-bold text-gray-900">Barquisimeto, Lara</h3>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- BOTÓN FLOTANTE WHATSAPP -->
-    <a href="https://wa.me/584245939407" target="_blank" class="icon-touch fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-400 text-gray-950 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-lg">
-        <i class="fa-brands fa-whatsapp"></i>
-    </a>
-
-    <!-- FOOTER -->
-    <footer class="bg-black py-10 border-t border-zinc-900 w-full text-center">
-        <div class="max-w-7xl mx-auto px-6 space-y-4">
-            <p class="text-xs tracking-wider uppercase font-semibold text-slate-500">© 2026 VALERA SPORT. TODOS LOS DERECHOS RESERVADOS.</p>
-            <p class="text-xs text-slate-600">Sitio Web diseñado e integrado por <span class="text-cyan-500/80 font-bold">Gregorio Yepez</span></p>
-        </div>
+    <footer class="border-t border-gray-100 py-10 text-center space-y-1">
+        <p class="text-xs tracking-wide text-gray-400">© 2026 Valera Sport. Todos los derechos reservados.</p>
+        <p class="text-xs text-gray-300">Sitio Web diseñado e integrado por <span class="text-cyan-500 font-semibold">Gregorio Yepez</span></p>
     </footer>
 
-    <!-- LÓGICA JAVASCRIPT -->
     <script>
         const WHATSAPP_PEDIDOS = "584245939407";
         let productos = [];
-        const productosPorPagina = 6;
-        let cantidadMostrada = productosPorPagina;
-        let categoriaActiva = null;
         let productoActual = null;
         let scannerStream = null;
         let scannerRAF = null;
-        let pedidoPollInterval = null;
+        let tabActiva = 'Damas';
+        let precioUnitarioActual = 0;
+        let cantidadActual = 1;
+
+        // ---------- CARRITO (localStorage, compartido entre páginas) ----------
+        const CARRITO_KEY = 'vs_carrito';
+
+        function obtenerCarrito() {
+            try { return JSON.parse(localStorage.getItem(CARRITO_KEY)) || []; } catch (e) { return []; }
+        }
+        function guardarCarrito(carrito) {
+            localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito));
+            actualizarContadorCarrito();
+        }
+        function actualizarContadorCarrito() {
+            const carrito = obtenerCarrito();
+            const totalItems = carrito.reduce((sum, it) => sum + (it.cantidad || 1), 0);
+            const badge = document.getElementById('contadorCarrito');
+            if (!badge) return;
+            if (totalItems > 0) { badge.textContent = totalItems > 99 ? '99+' : totalItems; badge.classList.remove('hidden'); }
+            else badge.classList.add('hidden');
+        }
+        function agregarAlCarrito(item) {
+            const carrito = obtenerCarrito();
+            const idx = carrito.findIndex(it => it.nombre === item.nombre);
+            if (idx >= 0) carrito[idx].cantidad += item.cantidad;
+            else carrito.push(item);
+            guardarCarrito(carrito);
+        }
+
+        function cambiarCantidad(delta) {
+            cantidadActual = Math.max(1, cantidadActual + delta);
+            document.getElementById('detalleCantidad').textContent = cantidadActual;
+            document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
+        }
+
+        function agregarAlCarritoDesdeModal() {
+            if (!productoActual) return;
+            agregarAlCarrito({
+                nombre: productoActual.nombre,
+                precio: precioUnitarioActual,
+                categoria: productoActual.categoria,
+                imagen: productoActual.imagen,
+                cantidad: cantidadActual
+            });
+            const confirmacion = document.getElementById('detalleConfirmacion');
+            if (confirmacion) confirmacion.classList.remove('hidden');
+        }
 
         async function cargarProductosDesdeSheet() {
             const estado = document.getElementById('estadoCarga');
             if (estado) estado.textContent = "Cargando catálogo...";
-
             try {
-                const respuesta = await fetch('/.netlify/functions/obtener-productos');
+                const respuesta = await fetch('/api/obtener-productos');
                 if (!respuesta.ok) throw new Error("El servidor respondió con error " + respuesta.status);
-
                 const texto = await respuesta.text();
                 productos = parseCSV(texto);
-
                 if (estado) estado.textContent = "";
-                renderizarProductos();
+                renderizarDestacados();
                 revisarParametroURL();
-
             } catch (error) {
                 console.error("Error al cargar el catálogo:", error);
-                if (estado) {
-                    estado.textContent = "No se pudo cargar el catálogo. Si estás probando en local, recuerda usar 'netlify dev' en vez de Live Server.";
-                }
+                if (estado) estado.textContent = "No se pudo cargar el catálogo. Si estás probando en local, recuerda usar 'netlify dev'.";
             }
         }
-      
-        document.addEventListener("DOMContentLoaded", cargarProductosDesdeSheet);
-   
+
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarProductosDesdeSheet();
+            actualizarContadorCarrito();
+        });
+
         function parseCSV(texto) {
             const filas = [];
             let fila = [], campo = "", entreComillas = false;
@@ -365,31 +326,20 @@
             }
             if (campo !== "" || fila.length) { fila.push(campo); filas.push(fila); }
             if (filas.length === 0) return [];
-            
             const cabeceras = filas[0].map(h => h.trim().toLowerCase());
             const resultados = [];
             for (let i = 1; i < filas.length; i++) {
                 const f = filas[i];
                 if (f.length === cabeceras.length) {
                     let obj = {};
-                    for (let j = 0; j < cabeceras.length; j++) {
-                        obj[cabeceras[j]] = f[j] ? f[j].trim() : "";
-                    }
+                    for (let j = 0; j < cabeceras.length; j++) obj[cabeceras[j]] = f[j] ? f[j].trim() : "";
                     resultados.push(obj);
                 }
             }
             return resultados;
         }
 
-        function escapeJS(str) {
-            return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        }
-
-        function escapeHTML(str) {
-            const div = document.createElement('div');
-            div.textContent = str == null ? '' : String(str);
-            return div.innerHTML;
-        }
+        function escapeJS(str) { return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 
         function obtenerListaImagenes(textoImagen) {
             if (!textoImagen || !textoImagen.trim()) return ['imagenes/logo.jpg'];
@@ -397,200 +347,108 @@
             return lista.length ? lista : ['imagenes/logo.jpg'];
         }
 
-        function crearTarjetaHTML(p) {
+        function normalizarCategoria(cat) {
+            const limpio = (cat || '').trim();
+            if (!limpio) return null;
+            if (limpio.toLowerCase() === 'revisar') return null;
+            return limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase();
+        }
+
+        // ---------- DESTACADOS: pestañas + carrusel ----------
+
+        function cambiarTab(cat) {
+            tabActiva = cat;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('activa', btn.dataset.tab === cat);
+            });
+            renderizarDestacados();
+        }
+
+        function renderizarDestacados() {
+            const filtrados = productos.filter(p => (p.categoria || '').toLowerCase().includes(tabActiva.toLowerCase()));
+            const cont = document.getElementById('carruselDestacados');
+            const vacio = document.getElementById('sinResultados');
+
+            if (!filtrados.length) {
+                cont.innerHTML = '';
+                vacio.style.display = 'block';
+                return;
+            }
+            vacio.style.display = 'none';
+            // Solo 5: el carrusel es una vitrina, el catálogo completo vive en catalogo.html
+            cont.innerHTML = filtrados.slice(0, 5).map(crearTarjetaCarrusel).join('');
+        }
+
+        function deslizarCarrusel(direccion) {
+            const cont = document.getElementById('carruselDestacados');
+            cont.scrollBy({ left: direccion * 320, behavior: 'smooth' });
+        }
+
+        function crearTarjetaCarrusel(p) {
             let nombreProducto = p.producto || p.nombre || "Producto sin nombre";
             let textoImagen = p.imagen || "";
-            let listaImagenes = obtenerListaImagenes(textoImagen);
-            let imagenUrl = listaImagenes[0];
+            let imagenUrl = obtenerListaImagenes(textoImagen)[0];
             let precioFormateado = p.precio ? parseFloat(p.precio).toFixed(2) : "0.00";
             let estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
-
-            let badgeDisponibilidad = estaDisponible 
-                ? '<span class="glass-pill px-3 py-1 text-[11px] font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/10">Disponible</span>'
-                : '<span class="glass-pill px-3 py-1 text-[11px] font-semibold rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/10">Agotado</span>';
-
-            let categoriaLabel = p.categoria || "Variados";
+            let categoriaLabel = normalizarCategoria(p.categoria) || "Variados";
             let coloresTexto = p.colores || "";
-
             let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}`;
 
-            let botonHtml = estaDisponible
-                ? `<button type="button" onclick="abrirDetalle(${argsAbrirDetalle})" class="icon-touch hover-cyan py-2 px-4 rounded-full font-semibold text-xs flex items-center gap-1.5 bg-white/10 text-cyan-400 border border-cyan-400/20">
-                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.458L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.488 2.01 14.028 1.01 11.417 1.01c-5.44 0-9.866 4.372-9.87 9.802 0 1.698.448 3.355 1.3 4.8l-.999 3.648 3.799-.985z"/></svg>
-                        <span>Consultar</span>
-                   </button>`
-                : `<button type="button" onclick="abrirDetalle(${argsAbrirDetalle})" class="py-2 px-4 rounded-full font-semibold text-xs flex items-center gap-1.5 bg-zinc-800/30 text-zinc-500 border border-zinc-800/20">No disponible</button>`;
-
             return `
-                <div class="glass-card relative rounded-[2rem] p-4 flex flex-col h-full hover:-translate-y-1 group overflow-hidden">
-                    <div class="relative w-full h-64 flex items-center justify-center rounded-2xl overflow-hidden mb-4 cursor-pointer" onclick="abrirDetalle(${argsAbrirDetalle})">
-                        <div class="absolute top-2 right-2 z-10">${badgeDisponibilidad}</div>
-                        <img src="${imagenUrl}" alt="${nombreProducto}" class="max-w-[90%] max-h-[90%] object-contain transition-all duration-700 group-hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
+                <div class="carrusel-item flex-shrink-0 w-64 cursor-pointer group" onclick="abrirDetalle(${argsAbrirDetalle})">
+                    <div class="w-full h-72 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center mb-3">
+                        <img src="${imagenUrl}" alt="${nombreProducto}" class="max-w-[85%] max-h-[85%] object-contain group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
                     </div>
-                    <div class="flex flex-col flex-grow justify-between px-2">
-                        <div>
-                            <span class="text-[10px] font-bold text-cyan-400/80 uppercase tracking-[0.15em] mb-1 block">${categoriaLabel}</span>
-                            <h3 class="text-zinc-200 font-normal text-base leading-snug line-clamp-2 group-hover:text-white transition-colors">${nombreProducto}</h3>
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between gap-3">
-                            <div class="flex flex-col">
-                                <span class="text-[9px] text-zinc-500 uppercase tracking-wider">Precio</span>
-                                <span class="text-xl font-bold text-zinc-100">$${precioFormateado}</span>
-                            </div>
-                            ${botonHtml}
-                        </div>
-                    </div>
+                    <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5">${categoriaLabel}</span>
+                    <h3 class="text-sm text-gray-900 font-medium leading-snug line-clamp-1">${nombreProducto}</h3>
+                    <p class="text-sm font-bold text-gray-900 mt-1">$${precioFormateado}${!estaDisponible ? ' <span class="text-gray-400 font-normal">· Agotado</span>' : ''}</p>
                 </div>
             `;
         }
 
-        function renderizarProductos() {
-            const textoInput = document.getElementById('buscador');
-            const texto = textoInput ? textoInput.value.trim().toLowerCase() : "";
-            const btnLimpiar = document.getElementById('btnLimpiar');
-            if (btnLimpiar) btnLimpiar.classList.toggle('hidden', texto.length === 0);
-
-            const filtrados = productos.filter(p => {
-                const nombre = (p.producto || p.nombre || "").toLowerCase();
-                const descripcion = (p.descripcion || "").toLowerCase();
-                const categoria = (p.categoria || "").toLowerCase();
-                const coincideTexto = !texto || nombre.includes(texto) || descripcion.includes(texto) || categoria.includes(texto);
-                const coincideCategoria = !categoriaActiva || categoria.includes(categoriaActiva.toLowerCase());
-                return coincideTexto && coincideCategoria;
-            });
-
-            const segmentados = filtrados.slice(0, cantidadMostrada);
-            const grid = document.getElementById('gridProductos');
-            const vacio = document.getElementById('sinResultados');
-            const contador = document.getElementById('contadorResultados');
-
-            if (grid) grid.innerHTML = segmentados.map(crearTarjetaHTML).join('');
-            if (vacio) vacio.style.display = filtrados.length === 0 ? 'block' : 'none';
-
-            if (contador) {
-                contador.textContent = filtrados.length > 0 ? `Mostrando ${segmentados.length} de ${filtrados.length} prendas` : '';
-            }
-
-            const btnVerMas = document.getElementById('containerVerMas');
-            if (btnVerMas) {
-                btnVerMas.style.display = filtrados.length > cantidadMostrada ? 'block' : 'none';
-            }
-        }
-
-        function cargarMasProductos() {
-            cantidadMostrada += productosPorPagina;
-            renderizarProductos();
-        }
-
-        function reiniciarYRenderizar() {
-            cantidadMostrada = productosPorPagina;
-            renderizarProductos();
-        }
-
-        function limpiarBusqueda() {
-            const buscador = document.getElementById('buscador');
-            if (buscador) buscador.value = '';
-            reiniciarYRenderizar();
-        }
-
-        function filtrarPorCategoria(categoria) {
-            categoriaActiva = categoria;
-            const chip = document.getElementById('chipCategoria');
-            if (categoria) {
-                if (chip) chip.classList.remove('hidden');
-                const chipTexto = document.getElementById('chipCategoriaTexto');
-                if (chipTexto) chipTexto.textContent = categoria;
-                const seccionProd = document.getElementById('productos');
-                if (seccionProd) seccionProd.scrollIntoView({ behavior: 'smooth' });
-            } else {
-                if (chip) chip.classList.add('hidden');
-            }
-            reiniciarYRenderizar();
-        }
-
-        // ---------- GALERÍA DE FOTOS DENTRO DEL MODAL ----------
+        // ---------- MODAL DETALLE / CARRITO ----------
 
         function renderizarGaleria(listaImagenes) {
             const cont = document.getElementById('detalleGaleria');
             if (!cont) return;
-
-            if (!listaImagenes || listaImagenes.length <= 1) {
-                cont.classList.add('hidden');
-                cont.innerHTML = '';
-                return;
-            }
-
+            if (!listaImagenes || listaImagenes.length <= 1) { cont.classList.add('hidden'); cont.innerHTML = ''; return; }
             cont.classList.remove('hidden');
             cont.innerHTML = listaImagenes.map((img, i) => `
-                <button onclick="cambiarImagenDetalle('${escapeJS(img)}', this)" class="icon-touch hover-cyan w-14 h-14 shrink-0 rounded-lg overflow-hidden border-2 ${i === 0 ? 'border-cyan-400' : 'border-white/10'}">
+                <button onclick="cambiarImagenDetalle('${escapeJS(img)}', this)" class="icon-btn w-14 h-14 shrink-0 rounded-lg overflow-hidden border-2 ${i === 0 ? 'border-cyan-400' : 'border-gray-200'}">
                     <img src="${img}" class="w-full h-full object-cover" onerror="this.src='imagenes/logo.jpg'">
                 </button>
             `).join('');
         }
 
         function cambiarImagenDetalle(url, btnClickeado) {
-            const imgPrincipal = document.getElementById('detalleImagen');
-            if (imgPrincipal) imgPrincipal.src = url;
-
-            document.querySelectorAll('#detalleGaleria button').forEach(btn => {
-                btn.classList.remove('border-cyan-400');
-                btn.classList.add('border-white/10');
-            });
-            btnClickeado.classList.remove('border-white/10');
+            document.getElementById('detalleImagen').src = url;
+            document.querySelectorAll('#detalleGaleria button').forEach(btn => { btn.classList.remove('border-cyan-400'); btn.classList.add('border-gray-200'); });
+            btnClickeado.classList.remove('border-gray-200');
             btnClickeado.classList.add('border-cyan-400');
-        }
-
-        // ---------- FORMULARIO DE PAGO ----------
-
-        function actualizarCampoReferencia() {
-            const metodo = document.getElementById('detalleMetodoPago').value;
-            const contenedor = document.getElementById('contenedorReferencia');
-            const input = document.getElementById('detalleReferencia');
-            if (metodo === 'Efectivo en tienda') {
-                contenedor.classList.add('hidden');
-                if (input) input.value = '';
-            } else {
-                contenedor.classList.remove('hidden');
-            }
-        }
-
-        function reiniciarFormularioPago() {
-            const metodo = document.getElementById('detalleMetodoPago');
-            const referencia = document.getElementById('detalleReferencia');
-            const contenedor = document.getElementById('contenedorReferencia');
-            const formulario = document.getElementById('detalleFormularioPago');
-            if (metodo) metodo.value = '';
-            if (referencia) referencia.value = '';
-            if (contenedor) contenedor.classList.remove('hidden');
-            if (formulario) formulario.classList.remove('hidden');
         }
 
         function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible) {
             let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombre + " ($" + precioFormateado + ")");
             let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
 
-            productoActual = { nombre: nombre, precio: precioFormateado, categoria: categoriaLabel };
-
-            const btnPagado = document.getElementById('detalleBotonPagado');
-            const confirmacion = document.getElementById('detalleConfirmacion');
-            reiniciarFormularioPago();
-            if (btnPagado) {
-                btnPagado.classList.toggle('hidden', !disponible);
-                btnPagado.disabled = false;
-                btnPagado.innerHTML = '<i class="fa-solid fa-check text-base"></i> Marcar como pagado';
-            }
-            if (confirmacion) {
-                confirmacion.classList.add('hidden');
-                confirmacion.classList.remove('bg-rose-500/10', 'border-rose-500/30', 'text-rose-400');
-                confirmacion.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
-                confirmacion.innerHTML = '✅ ¡Pedido enviado! El vendedor lo confirmará en breve.';
-            }
-
             const listaImagenes = obtenerListaImagenes(textoImagen);
+            productoActual = { nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0] };
+            precioUnitarioActual = parseFloat(precioFormateado) || 0;
+            cantidadActual = 1;
+            const spanCantidad = document.getElementById('detalleCantidad');
+            if (spanCantidad) spanCantidad.textContent = '1';
+
+            const btnCarrito = document.getElementById('detalleBotonCarrito');
+            const confirmacion = document.getElementById('detalleConfirmacion');
+            if (btnCarrito) {
+                btnCarrito.classList.toggle('hidden', !disponible);
+                btnCarrito.disabled = false;
+            }
+            if (confirmacion) confirmacion.classList.add('hidden');
+
             document.getElementById('detalleImagen').src = listaImagenes[0];
             document.getElementById('detalleImagen').alt = nombre;
             renderizarGaleria(listaImagenes);
-
             document.getElementById('detalleCategoria').textContent = categoriaLabel;
             document.getElementById('detalleNombre').textContent = nombre;
             document.getElementById('detallePrecio').textContent = '$' + precioFormateado;
@@ -600,401 +458,118 @@
             const listaColores = coloresTexto.split(',').map(c => c.trim()).filter(Boolean);
             if (listaColores.length) {
                 listaColores.forEach(color => {
-                    coloresContainer.innerHTML += `<span class="glass-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-white/[0.08] border border-white/[0.14] text-slate-200">${color}</span>`;
+                    coloresContainer.innerHTML += `<span class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-50 border border-gray-200 text-gray-700">${color}</span>`;
                 });
             } else {
-                coloresContainer.innerHTML = '<span class="text-xs text-slate-500">Colores variados, consulta disponibilidad</span>';
+                coloresContainer.innerHTML = '<span class="text-xs text-gray-400">Colores variados, consulta disponibilidad</span>';
             }
 
             const btnWA = document.getElementById('detalleBotonWA');
             const noDisp = document.getElementById('detalleNoDisponible');
-            if (disponible) {
-                btnWA.href = enlaceWhatsApp;
-                btnWA.classList.remove('hidden');
-                noDisp.classList.add('hidden');
-            } else {
-                btnWA.classList.add('hidden');
-                noDisp.classList.remove('hidden');
-            }
+            if (disponible) { btnWA.href = enlaceWhatsApp; btnWA.classList.remove('hidden'); noDisp.classList.add('hidden'); }
+            else { btnWA.href = enlaceWhatsApp; btnWA.classList.remove('hidden'); noDisp.classList.remove('hidden'); }
 
             const modal = document.getElementById('detalleModal');
             const container = document.getElementById('detalleModalContainer');
             modal.classList.remove('hidden');
-            setTimeout(() => {
-                container.classList.remove('scale-95', 'opacity-0');
-                container.classList.add('scale-100', 'opacity-100');
-            }, 50);
+            setTimeout(() => { container.classList.remove('scale-95', 'opacity-0'); }, 50);
         }
 
-        // ---------- ESCÁNER QR (sin app, funciona en el navegador) ----------
+        function cerrarDetalle() {
+            const container = document.getElementById('detalleModalContainer');
+            container.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { document.getElementById('detalleModal').classList.add('hidden'); }, 200);
+        }
+
+        // ---------- ESCÁNER QR ----------
 
         async function abrirScanner() {
             const modal = document.getElementById('scannerModal');
             const estado = document.getElementById('scannerEstado');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
             if (estado) estado.textContent = 'Apunta la cámara al código QR de la prenda';
-
             const video = document.getElementById('scannerVideo');
             try {
-                scannerStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { ideal: 'environment' } },
-                    audio: false
-                });
+                scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
                 video.srcObject = scannerStream;
                 await video.play();
                 scannerRAF = requestAnimationFrame(tickScanner);
             } catch (error) {
                 console.error('No se pudo abrir la cámara:', error);
-                if (estado) estado.textContent = 'No se pudo acceder a la cámara. Revisa que le hayas dado permiso en el navegador.';
+                if (estado) estado.textContent = 'No se pudo acceder a la cámara. Revisa los permisos del navegador.';
             }
         }
 
         function tickScanner() {
             const video = document.getElementById('scannerVideo');
             const canvas = document.getElementById('scannerCanvas');
-            if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
-                scannerRAF = requestAnimationFrame(tickScanner);
-                return;
-            }
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) { scannerRAF = requestAnimationFrame(tickScanner); return; }
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const imagen = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const codigo = jsQR(imagen.data, imagen.width, imagen.height);
-            if (codigo && codigo.data) {
-                procesarCodigoQR(codigo.data);
-                return;
-            }
+            if (codigo && codigo.data) { procesarCodigoQR(codigo.data); return; }
             scannerRAF = requestAnimationFrame(tickScanner);
         }
 
         function cerrarScanner() {
             const modal = document.getElementById('scannerModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
             if (scannerRAF) cancelAnimationFrame(scannerRAF);
             scannerRAF = null;
-            if (scannerStream) {
-                scannerStream.getTracks().forEach(t => t.stop());
-                scannerStream = null;
-            }
+            if (scannerStream) { scannerStream.getTracks().forEach(t => t.stop()); scannerStream = null; }
         }
 
         function procesarCodigoQR(textoLeido) {
             cerrarScanner();
-
             let valorBusqueda = textoLeido.trim();
             try {
                 const url = new URL(textoLeido);
                 const param = url.searchParams.get('producto') || url.searchParams.get('buscar');
                 if (param) valorBusqueda = param;
-            } catch (e) {
-                // No era una URL, se usa el texto tal cual (ej: el nombre del producto)
-            }
+            } catch (e) {}
 
-            const buscador = document.getElementById('buscador');
-            if (buscador) buscador.value = valorBusqueda;
-            reiniciarYRenderizar();
-
-            const seccionProd = document.getElementById('productos');
-            if (seccionProd) seccionProd.scrollIntoView({ behavior: 'smooth' });
-
-            const coincidencia = productos.find(p =>
-                (p.producto || p.nombre || '').toLowerCase().trim() === valorBusqueda.toLowerCase().trim()
-            );
-
+            const coincidencia = productos.find(p => (p.producto || p.nombre || '').toLowerCase().trim() === valorBusqueda.toLowerCase().trim());
             if (coincidencia) {
                 let nombreProducto = coincidencia.producto || coincidencia.nombre;
                 let textoImagen = coincidencia.imagen || '';
                 let precioFormateado = coincidencia.precio ? parseFloat(coincidencia.precio).toFixed(2) : '0.00';
                 let estaDisponible = (coincidencia.disponible && coincidencia.disponible.toLowerCase().trim() === 'si');
-
-                abrirDetalle(nombreProducto, textoImagen, precioFormateado, coincidencia.categoria || 'Variados', coincidencia.colores || '', estaDisponible);
+                abrirDetalle(nombreProducto, textoImagen, precioFormateado, normalizarCategoria(coincidencia.categoria) || 'Variados', coincidencia.colores || '', estaDisponible);
+            } else {
+                window.location.href = 'catalogo.html?buscar=' + encodeURIComponent(valorBusqueda);
             }
         }
 
         function revisarParametroURL() {
             const params = new URLSearchParams(window.location.search);
             const productoParam = params.get('producto') || params.get('buscar');
-            if (productoParam) {
-                procesarCodigoQR(productoParam);
-            }
+            if (productoParam) procesarCodigoQR(productoParam);
         }
 
-        // ---------- MARCAR COMO PAGADO (crea el pedido pendiente) ----------
-
-        async function marcarComoPagado() {
-            if (!productoActual) return;
-
-            const metodoPago = document.getElementById('detalleMetodoPago').value;
-            const referencia = document.getElementById('detalleReferencia').value.trim();
-
-            if (!metodoPago) {
-                alert('Por favor selecciona un método de pago.');
-                return;
-            }
-            if (metodoPago !== 'Efectivo en tienda' && !referencia) {
-                alert('Por favor escribe el número de referencia o comprobante de tu pago.');
-                return;
-            }
-
-            const confirmar = confirm('¿Enviar pedido de "' + productoActual.nombre + '" por $' + productoActual.precio + ' para confirmación del vendedor?');
-            if (!confirmar) return;
-
-            productoActual.metodoPago = metodoPago;
-            productoActual.referencia = referencia;
-
-            if (usuarioActual && usuarioActual.email) {
-                productoActual.correoCliente = usuarioActual.email;
-            }
-
-            const btn = document.getElementById('detalleBotonPagado');
-            const confirmacion = document.getElementById('detalleConfirmacion');
-            const formulario = document.getElementById('detalleFormularioPago');
-            const textoOriginal = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registrando...';
-
-            try {
-                const respuesta = await fetch("/.netlify/functions/marcar-pagado", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(productoActual)
-                });
-
-                const datos = await respuesta.json();
-
-                if (!respuesta.ok || !datos.ok) {
-                    throw new Error(datos.error || 'No se pudo registrar el pago');
-                }
-
-                btn.classList.add('hidden');
-                if (formulario) formulario.classList.add('hidden');
-                if (confirmacion) {
-                    confirmacion.classList.remove('hidden');
-                    confirmacion.innerHTML = '⏳ ¡Pedido enviado! Por favor no cierres esta ventana hasta que se confirme tu compra.';
-                }
-
-                if (datos.id) iniciarConsultaEstado(datos.id);
-
-            } catch (error) {
-                console.error('Error al marcar como pagado:', error);
-                btn.disabled = false;
-                btn.innerHTML = textoOriginal;
-                alert('Hubo un problema registrando el pago. Intenta de nuevo o avísale al vendedor por WhatsApp.');
-            }
-        }
-
-        // ---------- CONSULTAR ESTADO DEL PEDIDO ----------
-
-        function iniciarConsultaEstado(idPedido) {
-            if (pedidoPollInterval) clearInterval(pedidoPollInterval);
-
-            pedidoPollInterval = setInterval(async () => {
-                try {
-                    const resp = await fetch('/.netlify/functions/estado-pedido?id=' + encodeURIComponent(idPedido));
-                    const datos = await resp.json();
-                    if (!datos.ok) return;
-
-                    const confirmacion = document.getElementById('detalleConfirmacion');
-
-                    if (datos.estado === 'aceptado') {
-                        clearInterval(pedidoPollInterval);
-                        pedidoPollInterval = null;
-                        const codigoPedido = idPedido.slice(0, 8).toUpperCase();
-                        if (confirmacion) {
-                            confirmacion.innerHTML =
-                                '✅ ¡Aceptado! Gracias por su compra.<br>' +
-                                '<span class="block mt-2 text-xs font-mono tracking-wider text-emerald-300">N° de pedido: ' + codigoPedido + '</span>' +
-                                '<span class="block mt-1 text-[11px] font-normal text-emerald-300/80">Guarda una captura de esto como comprobante.</span>';
-                        }
-
-                        cargarProductosDesdeSheet();
-
-                    } else if (datos.estado === 'rechazado') {
-                        clearInterval(pedidoPollInterval);
-                        pedidoPollInterval = null;
-                        if (confirmacion) {
-                            confirmacion.classList.remove('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
-                            confirmacion.classList.add('bg-rose-500/10', 'border-rose-500/30', 'text-rose-400');
-                            confirmacion.innerHTML = '❌ Tu pedido fue rechazado. Contáctanos por WhatsApp para más info.';
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error consultando estado del pedido:', e);
-                }
-            }, 5000);
-        }
-
-        function cerrarDetalle() {
-            if (pedidoPollInterval) { clearInterval(pedidoPollInterval); pedidoPollInterval = null; }
-            const container = document.getElementById('detalleModalContainer');
-            container.classList.remove('scale-100', 'opacity-100');
-            container.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                document.getElementById('detalleModal').classList.add('hidden');
-            }, 250);
-        }
-
-        // ---------- CUENTA DE CLIENTE (Netlify Identity) ----------
+        // ---------- CUENTA DE CLIENTE ----------
 
         let usuarioActual = null;
 
         function clicBotonCuenta() {
-            if (typeof netlifyIdentity === 'undefined') {
-                alert('El sistema de cuentas está cargando, intenta de nuevo en un segundo.');
-                return;
-            }
-            if (usuarioActual) {
-                abrirCuenta();
-            } else {
-                netlifyIdentity.open('login');
-            }
+            if (usuarioActual) { window.location.href = 'cuenta.html'; return; }
+            if (typeof window.firebaseSignIn !== 'function') { alert('El sistema de cuentas está cargando, intenta de nuevo en un segundo.'); return; }
+            window.firebaseSignIn()
+                .then(() => { window.location.href = 'cuenta.html'; })
+                .catch((error) => { console.error(error); alert('No se pudo iniciar sesión: ' + error.message); });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof netlifyIdentity === 'undefined') return;
-
-            netlifyIdentity.on('init', (user) => {
-                usuarioActual = user;
-                actualizarBotonCuenta();
-            });
-
-            netlifyIdentity.on('login', (user) => {
-                usuarioActual = user;
-                actualizarBotonCuenta();
-                netlifyIdentity.close();
-                abrirCuenta();
-            });
-
-            netlifyIdentity.on('logout', () => {
-                usuarioActual = null;
-                actualizarBotonCuenta();
-            });
-
-            netlifyIdentity.init();
+        window.addEventListener('firebase-auth-changed', (e) => {
+            usuarioActual = e.detail.user;
+            actualizarBotonCuenta();
         });
 
         function actualizarBotonCuenta() {
             const btn = document.getElementById('btnCuenta');
             if (!btn) return;
-            if (usuarioActual) {
-                btn.title = usuarioActual.email;
-                btn.classList.add('text-cyan-400', 'border-cyan-400/40');
-            } else {
-                btn.title = 'Iniciar sesión / Registrarse';
-                btn.classList.remove('text-cyan-400', 'border-cyan-400/40');
-            }
-        }
-
-        function cerrarSesionCliente() {
-            if (typeof netlifyIdentity === 'undefined') return;
-            netlifyIdentity.logout();
-            cerrarCuenta();
-        }
-
-        // ---------- MODAL "MI CUENTA" (historial de compras) ----------
-
-        async function abrirCuenta() {
-            if (!usuarioActual) return;
-
-            document.getElementById('cuentaCorreo').textContent = usuarioActual.email;
-
-            const modal = document.getElementById('cuentaModal');
-            const container = document.getElementById('cuentaModalContainer');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                container.classList.remove('scale-95', 'opacity-0');
-                container.classList.add('scale-100', 'opacity-100');
-            }, 50);
-
-            await cargarHistorialCompras();
-        }
-
-        function cerrarCuenta() {
-            const container = document.getElementById('cuentaModalContainer');
-            container.classList.remove('scale-100', 'opacity-100');
-            container.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                document.getElementById('cuentaModal').classList.add('hidden');
-            }, 250);
-        }
-
-        async function cargarHistorialCompras() {
-            const cargando = document.getElementById('cuentaCargando');
-            const lista = document.getElementById('cuentaListaCompras');
-            const sinCompras = document.getElementById('cuentaSinCompras');
-
-            cargando.classList.remove('hidden');
-            lista.innerHTML = '';
-            sinCompras.classList.add('hidden');
-
-            try {
-                // Netlify Identity requiere el token en el header Authorization
-                // para que la función sepa quién está pidiendo su historial.
-                const token = usuarioActual && usuarioActual.token ? usuarioActual.token.access_token : null;
-
-                const resp = await fetch('/.netlify/functions/mis-compras', {
-                    headers: token ? { 'Authorization': 'Bearer ' + token } : {}
-                });
-                const datos = await resp.json();
-
-                cargando.classList.add('hidden');
-
-                if (!datos.ok) {
-                    lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-6">' + escapeHTML(datos.error || 'No se pudo cargar tu historial') + '</p>';
-                    return;
-                }
-
-                const compras = datos.compras || [];
-
-                if (!compras.length) {
-                    sinCompras.classList.remove('hidden');
-                    document.getElementById('cuentaTotalGastado').textContent = '$0.00';
-                    document.getElementById('cuentaCantidadCompras').textContent = '0 compras';
-                    return;
-                }
-
-                let total = 0;
-                compras.forEach(c => total += parseFloat(c.precio) || 0);
-
-                document.getElementById('cuentaTotalGastado').textContent = '$' + total.toFixed(2);
-                document.getElementById('cuentaCantidadCompras').textContent = compras.length + (compras.length === 1 ? ' compra' : ' compras');
-
-                lista.innerHTML = compras.map(tarjetaCompra).join('');
-
-            } catch (e) {
-                cargando.classList.add('hidden');
-                lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
-            }
-        }
-
-        function tarjetaCompra(c) {
-            const fecha = c.fecha ? new Date(c.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short', year: 'numeric' }) : '';
-            const precio = Number(c.precio || 0).toFixed(2);
-            const esFisica = (c.canal || '').toLowerCase() === 'física' || (c.canal || '').toLowerCase() === 'fisica';
-
-            const badgeCanal = esFisica
-                ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20"><i class="fa-solid fa-store mr-1"></i>Tienda física</span>'
-                : '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"><i class="fa-solid fa-globe mr-1"></i>Compra web</span>';
-
-            return `
-                <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h4 class="text-white font-bold text-sm">${escapeHTML(c.producto)}</h4>
-                            <p class="text-xs text-slate-500 mt-0.5">${escapeHTML(fecha)}</p>
-                        </div>
-                        <span class="text-lg font-black text-white">$${precio}</span>
-                    </div>
-                    <div class="flex items-center gap-2 mt-2">
-                        ${badgeCanal}
-                        <span class="text-[10px] text-slate-500 uppercase tracking-wide">${escapeHTML(c.categoria || 'Variados')}</span>
-                    </div>
-                </div>
-            `;
+            if (usuarioActual) { btn.title = usuarioActual.email + ' — Ver mi cuenta'; btn.classList.add('text-cyan-500'); }
+            else { btn.title = 'Iniciar sesión / Registrarse'; btn.classList.remove('text-cyan-500'); }
         }
     </script>
 </body>
