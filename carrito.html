@@ -31,7 +31,7 @@
         }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col">
+<body class="antialiased min-h-screen">
 
     <!-- HEADER -->
     <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
@@ -136,7 +136,7 @@
 
                             <div class="mb-5 hidden" id="contenedorComprobante">
                                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Foto del comprobante de pago</label>
-                                <input type="file" id="comprobanteInput" accept="image/*" capture="environment" class="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-900 file:text-white hover:file:bg-gray-700">
+                                <input type="file" id="comprobanteInput" accept="image/*" class="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-900 file:text-white hover:file:bg-gray-700">
                                 <p id="estadoComprobante" class="text-[11px] text-gray-400 mt-1"></p>
                                 <img id="previewComprobante" class="hidden mt-2 max-h-40 rounded-lg border border-gray-200" alt="Vista previa del comprobante">
                             </div>
@@ -331,14 +331,14 @@
                 lector.onload = (e) => {
                     const img = new Image();
                     img.onload = () => {
-                        const maxAncho = 1000;
+                        const maxAncho = 800;
                         const escala = Math.min(1, maxAncho / img.width);
                         const canvas = document.createElement('canvas');
                         canvas.width = Math.round(img.width * escala);
                         canvas.height = Math.round(img.height * escala);
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
                     };
                     img.onerror = () => reject(new Error('No se pudo leer la imagen'));
                     img.src = e.target.result;

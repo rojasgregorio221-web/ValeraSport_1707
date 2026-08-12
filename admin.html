@@ -278,10 +278,16 @@
                             <span class="text-gray-900 font-mono">${referencia}</span>
                         </div>` : ''}
                         ${comprobanteUrl ? `
+                        <div class="mt-3">
+                            <span class="text-gray-400 uppercase font-bold text-xs block mb-2">Comprobante:</span>
+                            <a href="${comprobanteUrl}" target="_blank">
+                                <img src="${comprobanteUrl}" class="w-full max-h-64 object-contain rounded-lg border border-gray-200 bg-white" alt="Comprobante de pago">
+                            </a>
+                        </div>` : `
                         <div class="flex justify-between items-center text-xs mt-2">
                             <span class="text-gray-400 uppercase font-bold">Comprobante:</span>
-                            <a href="${comprobanteUrl}" target="_blank" class="text-cyan-600 font-semibold hover:text-cyan-500">Ver foto ↗</a>
-                        </div>` : ''}
+                            <span class="text-gray-400">No adjuntado</span>
+                        </div>`}
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">

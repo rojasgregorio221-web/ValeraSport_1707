@@ -62,7 +62,7 @@
         #estadoCarga { text-align: center; color: #9ca3af; font-size: 13px; margin-bottom: 24px; }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col">
+<body class="antialiased min-h-screen">
 
     <!-- HEADER -->
     <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
@@ -291,6 +291,7 @@
             });
             const confirmacion = document.getElementById('detalleConfirmacion');
             if (confirmacion) confirmacion.classList.remove('hidden');
+            setTimeout(() => { window.location.href = 'carrito.html'; }, 500);
         }
 
         async function cargarProductosDesdeSheet() {
