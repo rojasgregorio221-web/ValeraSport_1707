@@ -52,9 +52,8 @@
         .blob-2 { width: 45vw; height: 45vw; background: #67e8f9; top: 10%; right: -5%; }
         .blob-3 { width: 40vw; height: 40vw; background: #c4b5fd; bottom: -15%; left: 20%; }
 
-        .carrusel { scroll-snap-type: x proximity; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .carrusel { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .carrusel::-webkit-scrollbar { display: none; }
-        .carrusel-item { scroll-snap-align: start; }
 
         .icon-btn { transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease; }
 
@@ -65,7 +64,7 @@
 <body class="antialiased min-h-screen flex flex-col">
 
     <!-- HEADER -->
-    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <a href="index.html" class="font-brand font-extrabold text-xl tracking-tight text-gray-900">
                 VALERA<span class="text-cyan-500">SPORT</span>
@@ -96,7 +95,7 @@
     </header>
 
     <!-- HERO: FOTO -->
-    <section class="relative w-full h-[60vh] md:h-[78vh] overflow-hidden bg-gray-100">
+    <section class="relative w-full h-[60vh] md:h-[78vh] overflow-hidden bg-gray-100 mt-20">
         <img
             src="https://images.unsplash.com/photo-1483721310020-03333e577078?q=80&w=1600&auto=format&fit=crop&h=900"
             alt="Ropa deportiva Valera Sport"
@@ -125,7 +124,7 @@
     <section id="productos" class="max-w-7xl mx-auto px-6 py-8 md:py-24">
         <h2 class="font-brand font-bold text-3xl text-center text-gray-900 mb-8">Destacados</h2>
 
-        <div class="flex items-center justify-center gap-8 border-b border-gray-100 mb-10">
+        <div class="flex items-center justify-center gap-4 sm:gap-8 border-b border-gray-100 mb-10">
             <button class="tab-btn activa font-semibold text-sm" data-tab="Damas" onclick="cambiarTab('Damas')">Damas</button>
             <button class="tab-btn font-semibold text-sm" data-tab="Caballeros" onclick="cambiarTab('Caballeros')">Caballeros</button>
             <button class="tab-btn font-semibold text-sm" data-tab="Niños" onclick="cambiarTab('Niños')">Niños</button>
