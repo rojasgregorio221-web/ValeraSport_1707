@@ -23,6 +23,11 @@
         .nav-link::after { content: ""; position: absolute; left: 0; bottom: -4px; width: 0; height: 1px; background: #111; transition: width 0.25s ease; }
         .nav-link:hover::after { width: 100%; }
         .icon-btn { transition: color 0.15s ease; }
+        .paso-activo { color: #111; }
+        .paso-inactivo { color: #d1d5db; }
+        @media (min-width: 1024px) {
+            .resumen-sticky { position: sticky; top: 96px; }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -55,13 +60,19 @@
         </div>
     </header>
 
-    <main class="max-w-2xl mx-auto px-6 py-10 w-full flex-1">
-        <h1 class="font-brand font-bold text-2xl text-gray-900 mb-8">Tu carrito</h1>
+    <main class="max-w-6xl mx-auto px-6 py-10 w-full flex-1">
 
-        <!-- VISTA CARRITO -->
+        <!-- INDICADOR DE PASOS -->
         <div id="vistaCarrito">
+            <div class="flex items-center gap-3 mb-10 text-xs font-bold uppercase tracking-widest">
+                <span class="paso-activo" id="pasoUno">1. Carrito</span>
+                <span class="text-gray-300">—</span>
+                <span class="paso-inactivo" id="pasoDos">2. Pago</span>
+                <span class="text-gray-300">—</span>
+                <span class="paso-inactivo">3. Confirmación</span>
+            </div>
 
-            <div id="carritoVacio" class="hidden text-center py-20">
+            <div id="carritoVacio" class="hidden text-center py-24">
                 <i class="fa-solid fa-bag-shopping text-3xl text-gray-200 mb-4"></i>
                 <p class="text-gray-400 text-sm mb-6">Tu carrito está vacío.</p>
                 <a href="catalogo.html" class="inline-block bg-gray-900 hover:bg-gray-700 text-white font-semibold px-8 py-3 rounded-full text-sm transition">
@@ -69,65 +80,76 @@
                 </a>
             </div>
 
-            <div id="listaCarrito" class="divide-y divide-gray-100 mb-8"></div>
+            <div id="grillaCarrito" class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12">
 
-            <div id="resumenCarrito" class="hidden">
-                <div class="bg-gray-50 border border-gray-100 rounded-2xl p-6 mb-6">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-bold text-gray-500 uppercase tracking-widest">Total</span>
-                        <span id="totalCarrito" class="text-3xl font-black text-gray-900">$0.00</span>
-                    </div>
+                <!-- COLUMNA IZQUIERDA: PRODUCTOS -->
+                <div>
+                    <h1 class="font-brand font-bold text-2xl text-gray-900 mb-6">Tu carrito</h1>
+                    <div id="listaCarrito" class="divide-y divide-gray-100"></div>
                 </div>
 
-                <!-- Antes de iniciar sesión: solo se ve el total y un botón para iniciar sesión -->
-                <div id="bloqueLogin">
-                    <button onclick="clicIniciarSesionCarrito()" class="w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
-                        <i class="fa-brands fa-google text-base"></i> Iniciar sesión con Google para pagar
-                    </button>
-                    <p class="text-center text-xs text-gray-400 mt-3">
-                        <i class="fa-solid fa-lock mr-1"></i> Necesitas iniciar sesión para elegir cómo pagaste y confirmar tu pedido.
-                    </p>
-                </div>
+                <!-- COLUMNA DERECHA: RESUMEN Y PAGO -->
+                <div id="resumenCarrito" class="hidden">
+                    <div class="resumen-sticky bg-gray-50 border border-gray-100 rounded-2xl p-6">
 
-                <!-- Después de iniciar sesión: método de pago, datos de la cuenta, comprobante y confirmar -->
-                <div id="bloquePago" class="hidden">
-                    <p class="text-xs text-gray-500 mb-4">
-                        <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>
-                        Sesión iniciada como <span id="correoSesion" class="font-semibold text-gray-700"></span>
-                    </p>
-                    <div class="mb-3">
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Método de pago</label>
-                        <select id="metodoPago" onchange="actualizarCampoReferencia()" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400">
-                            <option value="">Selecciona un método</option>
-                            <option value="Pago Móvil">Pago Móvil</option>
-                            <option value="Transferencia">Transferencia</option>
-                            <option value="Efectivo en tienda">Efectivo en tienda</option>
-                        </select>
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Resumen del pedido</p>
+
+                        <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
+                            <span class="text-sm text-gray-500">Total</span>
+                            <span id="totalCarrito" class="text-2xl font-black text-gray-900">$0.00</span>
+                        </div>
+
+                        <!-- Antes de iniciar sesión: solo botón de login -->
+                        <div id="bloqueLogin">
+                            <button onclick="clicIniciarSesionCarrito()" class="w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
+                                <i class="fa-brands fa-google text-base"></i> Iniciar sesión con Google
+                            </button>
+                            <p class="text-center text-xs text-gray-400 mt-3">
+                                <i class="fa-solid fa-lock mr-1"></i> Necesitas iniciar sesión para elegir cómo pagaste y confirmar tu pedido.
+                            </p>
+                        </div>
+
+                        <!-- Después de iniciar sesión: método de pago, referencia, comprobante y confirmar -->
+                        <div id="bloquePago" class="hidden">
+                            <p class="text-xs text-gray-500 mb-4">
+                                <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>
+                                Sesión iniciada como <span id="correoSesion" class="font-semibold text-gray-700"></span>
+                            </p>
+                            <div class="mb-3">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Método de pago</label>
+                                <select id="metodoPago" onchange="actualizarCampoReferencia()" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400">
+                                    <option value="">Selecciona un método</option>
+                                    <option value="Pago Móvil">Pago Móvil</option>
+                                    <option value="Transferencia">Transferencia</option>
+                                    <option value="Efectivo en tienda">Efectivo en tienda</option>
+                                </select>
+                            </div>
+
+                            <!-- Datos de la cuenta a la que debe pagar, según el método elegido -->
+                            <div id="datosPagoBox" class="hidden bg-cyan-50 border border-cyan-100 rounded-xl p-4 mb-4 space-y-0.5"></div>
+
+                            <div class="mb-4 hidden" id="contenedorReferencia">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">N° de referencia / comprobante</label>
+                                <input type="text" id="referencia" placeholder="Ej: 003456789" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                            </div>
+
+                            <div class="mb-5 hidden" id="contenedorComprobante">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Foto del comprobante de pago</label>
+                                <input type="file" id="comprobanteInput" accept="image/*" capture="environment" class="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-900 file:text-white hover:file:bg-gray-700">
+                                <p id="estadoComprobante" class="text-[11px] text-gray-400 mt-1"></p>
+                                <img id="previewComprobante" class="hidden mt-2 max-h-40 rounded-lg border border-gray-200" alt="Vista previa del comprobante">
+                            </div>
+
+                            <button id="btnConfirmar" onclick="confirmarPedido()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-check text-base"></i> Confirmar pedido
+                            </button>
+                        </div>
                     </div>
-
-                    <!-- Datos de la cuenta a la que debe pagar, según el método elegido -->
-                    <div id="datosPagoBox" class="hidden bg-cyan-50 border border-cyan-100 rounded-xl p-4 mb-4 space-y-0.5"></div>
-
-                    <div class="mb-4 hidden" id="contenedorReferencia">
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">N° de referencia / comprobante</label>
-                        <input type="text" id="referencia" placeholder="Ej: 003456789" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-                    </div>
-
-                    <div class="mb-5 hidden" id="contenedorComprobante">
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Foto del comprobante de pago</label>
-                        <input type="file" id="comprobanteInput" accept="image/*" capture="environment" class="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-900 file:text-white hover:file:bg-gray-700">
-                        <p id="estadoComprobante" class="text-[11px] text-gray-400 mt-1"></p>
-                        <img id="previewComprobante" class="hidden mt-2 max-h-40 rounded-lg border border-gray-200" alt="Vista previa del comprobante">
-                    </div>
-
-                    <button id="btnConfirmar" onclick="confirmarPedido()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-check text-base"></i> Confirmar pedido
-                    </button>
                 </div>
             </div>
 
             <!-- HISTORIAL DE COMPRAS -->
-            <div id="seccionHistorial" class="hidden mt-14 pt-10 border-t border-gray-100">
+            <div id="seccionHistorial" class="hidden mt-16 pt-10 border-t border-gray-100 max-w-3xl">
                 <h2 class="font-brand font-bold text-lg text-gray-900 mb-4">Tu historial de compras</h2>
                 <p id="estadoHistorial" class="text-xs text-gray-400 mb-3"></p>
                 <div id="listaHistorial"></div>
@@ -135,7 +157,14 @@
         </div>
 
         <!-- VISTA CONFIRMACIÓN -->
-        <div id="vistaConfirmacion" class="hidden text-center py-10">
+        <div id="vistaConfirmacion" class="hidden max-w-md mx-auto text-center py-16">
+            <div class="flex items-center justify-center gap-3 mb-10 text-xs font-bold uppercase tracking-widest">
+                <span class="text-gray-300">1. Carrito</span>
+                <span class="text-gray-300">—</span>
+                <span class="text-gray-300">2. Pago</span>
+                <span class="text-gray-300">—</span>
+                <span class="paso-activo">3. Confirmación</span>
+            </div>
             <div id="estadoConfirmacion" class="text-center bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold py-6 rounded-2xl text-sm">
                 ⏳ ¡Pedido enviado! Por favor no cierres esta ventana hasta que se confirme tu compra.
             </div>
@@ -201,36 +230,47 @@
             return obtenerCarrito().reduce((sum, it) => sum + (it.precio * it.cantidad), 0);
         }
 
+        function actualizarPaso() {
+            const pasoDos = document.getElementById('pasoDos');
+            if (!pasoDos) return;
+            pasoDos.classList.toggle('paso-activo', !!usuarioActual);
+            pasoDos.classList.toggle('paso-inactivo', !usuarioActual);
+        }
+
         function renderizarCarrito() {
             const carrito = obtenerCarrito();
             const lista = document.getElementById('listaCarrito');
             const vacio = document.getElementById('carritoVacio');
+            const grilla = document.getElementById('grillaCarrito');
             const resumen = document.getElementById('resumenCarrito');
 
             if (!carrito.length) {
                 lista.innerHTML = '';
                 vacio.classList.remove('hidden');
-                resumen.classList.add('hidden');
+                grilla.classList.add('hidden');
                 return;
             }
             vacio.classList.add('hidden');
+            grilla.classList.remove('hidden');
             resumen.classList.remove('hidden');
 
             lista.innerHTML = carrito.map(it => `
-                <div class="flex items-center gap-4 py-4">
-                    <img src="${escapeHTML(it.imagen || 'imagenes/logo.jpg')}" class="w-16 h-16 object-contain bg-gray-50 rounded-lg shrink-0" onerror="this.src='imagenes/logo.jpg'">
+                <div class="flex items-center gap-5 py-6">
+                    <div class="w-24 h-24 shrink-0 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center">
+                        <img src="${escapeHTML(it.imagen || 'imagenes/logo.jpg')}" class="w-full h-full object-contain" onerror="this.src='imagenes/logo.jpg'">
+                    </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-gray-900 truncate">${escapeHTML(it.nombre)}</p>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-widest">${escapeHTML(it.categoria || 'Variados')}</p>
-                        <div class="inline-flex items-center border border-gray-200 rounded-full mt-2">
-                            <button onclick="cambiarCantidadItem('${escapeJS(it.nombre)}', -1)" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-900 text-sm">−</button>
-                            <span class="w-6 text-center text-xs font-semibold">${it.cantidad}</span>
-                            <button onclick="cambiarCantidadItem('${escapeJS(it.nombre)}', 1)" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-900 text-sm">+</button>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">${escapeHTML(it.categoria || 'Variados')}</p>
+                        <div class="inline-flex items-center border border-gray-200 rounded-full mt-3">
+                            <button onclick="cambiarCantidadItem('${escapeJS(it.nombre)}', -1)" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 text-sm">−</button>
+                            <span class="w-7 text-center text-xs font-semibold">${it.cantidad}</span>
+                            <button onclick="cambiarCantidadItem('${escapeJS(it.nombre)}', 1)" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 text-sm">+</button>
                         </div>
                     </div>
                     <div class="text-right shrink-0">
-                        <p class="text-sm font-bold text-gray-900">$${(it.precio * it.cantidad).toFixed(2)}</p>
-                        <button onclick="quitarDelCarrito('${escapeJS(it.nombre)}')" class="text-[11px] text-gray-400 hover:text-rose-500 mt-1">Quitar</button>
+                        <p class="text-base font-bold text-gray-900">$${(it.precio * it.cantidad).toFixed(2)}</p>
+                        <button onclick="quitarDelCarrito('${escapeJS(it.nombre)}')" class="text-[11px] text-gray-400 hover:text-rose-500 mt-1.5">Quitar</button>
                     </div>
                 </div>
             `).join('');
@@ -284,7 +324,6 @@
             }
         }
 
-        // Comprime la imagen en el navegador antes de enviarla (ahorra datos al cliente y espacio en el servidor).
         function comprimirImagen(file) {
             return new Promise((resolve, reject) => {
                 const lector = new FileReader();
@@ -345,6 +384,7 @@
         function actualizarBloquePago() {
             const bloqueLogin = document.getElementById('bloqueLogin');
             const bloquePago = document.getElementById('bloquePago');
+            actualizarPaso();
             if (!bloqueLogin || !bloquePago) return;
             if (usuarioActual) {
                 bloqueLogin.classList.add('hidden');
@@ -455,9 +495,6 @@
         }
 
         // ---------- HISTORIAL DE COMPRAS ----------
-        // Nota: los nombres de campo (fecha, total, estado, items...) dependen de lo que
-        // devuelva tu Apps Script para la acción "historialCliente". Si ves campos vacíos
-        // o mal formateados, compárteme esa parte del Codigo.gs para ajustar esta función.
 
         async function cargarHistorial() {
             const seccion = document.getElementById('seccionHistorial');
