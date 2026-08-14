@@ -451,7 +451,7 @@
                 console.error('Error al confirmar el pedido:', error);
                 btn.disabled = false;
                 btn.innerHTML = original;
-                alert('Hubo un problema registrando tu pedido. Intenta de nuevo o escríbenos por WhatsApp.');
+                alert('Hubo un problema registrando tu pedido:\n\n' + error.message + '\n\nIntenta de nuevo o escríbenos por WhatsApp.');
             }
         }
 
