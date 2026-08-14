@@ -180,6 +180,7 @@
         const WHATSAPP_PEDIDOS = "584245939407";
         let productos = [];
         let productoActual = null;
+        let imagenesProductoActual = [];
         let categoriasSeleccionadas = new Set();
         let precioUnitarioActual = 0;
         let cantidadActual = 1;
@@ -216,7 +217,7 @@
             document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
         }
 
-        function seleccionarColor(color, btnClickeado) {
+        function seleccionarColor(color, btnClickeado, indice) {
             if (productoActual) productoActual.color = color;
             document.querySelectorAll('.color-btn').forEach(btn => {
                 btn.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
@@ -224,6 +225,16 @@
             });
             btnClickeado.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-700');
             btnClickeado.classList.add('bg-gray-900', 'border-gray-900', 'text-white');
+
+            if (typeof indice === 'number' && imagenesProductoActual[indice]) {
+                const img = imagenesProductoActual[indice];
+                document.getElementById('detalleImagen').src = img;
+                if (productoActual) productoActual.imagen = img;
+                document.querySelectorAll('#detalleGaleria button').forEach((btn, i) => {
+                    btn.classList.toggle('border-cyan-400', i === indice);
+                    btn.classList.toggle('border-gray-200', i !== indice);
+                });
+            }
         }
 
         function agregarAlCarritoDesdeModal() {
@@ -468,6 +479,7 @@
             let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
 
             const listaImagenes = obtenerListaImagenes(textoImagen);
+            imagenesProductoActual = listaImagenes;
             productoActual = { nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0], color: '' };
             precioUnitarioActual = parseFloat(precioFormateado) || 0;
             cantidadActual = 1;
@@ -496,7 +508,7 @@
                 listaColores.forEach((color, i) => {
                     const activo = i === 0;
                     if (activo) productoActual.color = color;
-                    coloresContainer.innerHTML += `<button type="button" onclick="seleccionarColor('${escapeJS(color)}', this)" class="color-btn px-3 py-1.5 rounded-full text-xs font-medium border transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}">${escapeHTML(color)}</button>`;
+                    coloresContainer.innerHTML += `<button type="button" onclick="seleccionarColor('${escapeJS(color)}', this, ${i})" class="color-btn px-3 py-1.5 rounded-full text-xs font-medium border transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}">${escapeHTML(color)}</button>`;
                 });
             } else {
                 coloresContainer.innerHTML = '<span class="text-xs text-gray-400">Colores variados, consulta disponibilidad</span>';
