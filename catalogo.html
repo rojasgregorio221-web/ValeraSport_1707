@@ -60,7 +60,7 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-6 py-10 mt-20 w-full flex-1">
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center justify-between mb-4">
             <h1 class="font-brand font-bold text-2xl text-gray-900">Catálogo</h1>
             <div class="flex items-center gap-3">
                 <p id="contadorResultados" class="text-sm text-gray-400"></p>
@@ -68,6 +68,11 @@
                     <i class="fa-solid fa-sliders mr-1"></i> Filtros
                 </button>
             </div>
+        </div>
+
+        <div class="relative mb-8">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" id="buscadorPrincipal" oninput="sincronizarBusqueda(this.value)" placeholder="Buscar productos..." class="w-full border border-gray-200 rounded-full pl-11 pr-4 py-3 text-sm outline-none focus:border-cyan-400">
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-[1fr_220px] gap-10">
@@ -199,7 +204,7 @@
         }
         function agregarAlCarrito(item) {
             const carrito = obtenerCarrito();
-            const idx = carrito.findIndex(it => it.nombre === item.nombre);
+            const idx = carrito.findIndex(it => it.nombre === item.nombre && (it.color || '') === (item.color || ''));
             if (idx >= 0) carrito[idx].cantidad += item.cantidad;
             else carrito.push(item);
             guardarCarrito(carrito);
@@ -211,6 +216,16 @@
             document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
         }
 
+        function seleccionarColor(color, btnClickeado) {
+            if (productoActual) productoActual.color = color;
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
+                btn.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-700');
+            });
+            btnClickeado.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-700');
+            btnClickeado.classList.add('bg-gray-900', 'border-gray-900', 'text-white');
+        }
+
         function agregarAlCarritoDesdeModal() {
             if (!productoActual) return;
             agregarAlCarrito({
@@ -218,6 +233,7 @@
                 precio: precioUnitarioActual,
                 categoria: productoActual.categoria,
                 imagen: productoActual.imagen,
+                color: productoActual.color || '',
                 cantidad: cantidadActual
             });
             const confirmacion = document.getElementById('detalleConfirmacion');
@@ -323,6 +339,12 @@
             aplicarFiltros();
         }
 
+        function sincronizarBusqueda(valor) {
+            const buscadorInterno = document.getElementById('buscador');
+            if (buscadorInterno) buscadorInterno.value = valor;
+            aplicarFiltros();
+        }
+
         function aplicarParametrosURL() {
             const params = new URLSearchParams(window.location.search);
             const cat = params.get('categoria');
@@ -333,7 +355,11 @@
                 });
             }
             const buscar = params.get('buscar');
-            if (buscar) document.getElementById('buscador').value = buscar;
+            if (buscar) {
+                document.getElementById('buscador').value = buscar;
+                const buscadorPrincipal = document.getElementById('buscadorPrincipal');
+                if (buscadorPrincipal) buscadorPrincipal.value = buscar;
+            }
         }
 
         function aplicarFiltros() {
@@ -364,6 +390,8 @@
             categoriasSeleccionadas.clear();
             document.querySelectorAll('.filtro-check').forEach(chk => chk.checked = false);
             document.getElementById('buscador').value = '';
+            const buscadorPrincipal = document.getElementById('buscadorPrincipal');
+            if (buscadorPrincipal) buscadorPrincipal.value = '';
             document.getElementById('precioMin').value = '';
             document.getElementById('precioMax').value = '';
             document.getElementById('soloDisponibles').checked = false;
@@ -440,7 +468,7 @@
             let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
 
             const listaImagenes = obtenerListaImagenes(textoImagen);
-            productoActual = { nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0] };
+            productoActual = { nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0], color: '' };
             precioUnitarioActual = parseFloat(precioFormateado) || 0;
             cantidadActual = 1;
             const spanCantidad = document.getElementById('detalleCantidad');
@@ -465,8 +493,10 @@
             coloresContainer.innerHTML = "";
             const listaColores = coloresTexto.split(',').map(c => c.trim()).filter(Boolean);
             if (listaColores.length) {
-                listaColores.forEach(color => {
-                    coloresContainer.innerHTML += `<span class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-50 border border-gray-200 text-gray-700">${color}</span>`;
+                listaColores.forEach((color, i) => {
+                    const activo = i === 0;
+                    if (activo) productoActual.color = color;
+                    coloresContainer.innerHTML += `<button type="button" onclick="seleccionarColor('${escapeJS(color)}', this)" class="color-btn px-3 py-1.5 rounded-full text-xs font-medium border transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}">${escapeHTML(color)}</button>`;
                 });
             } else {
                 coloresContainer.innerHTML = '<span class="text-xs text-gray-400">Colores variados, consulta disponibilidad</span>';

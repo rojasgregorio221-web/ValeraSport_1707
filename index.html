@@ -98,9 +98,9 @@
     <!-- HERO: FOTO -->
     <section class="relative w-full h-[60vh] md:h-[78vh] overflow-hidden bg-gray-100 mt-20">
         <img
-            src="imagenes/hero-banner.jpg"
+            src="https://images.unsplash.com/photo-1483721310020-03333e577078?q=80&w=1600&fm=jpg&fit=crop&h=900"
             alt="Ropa deportiva Valera Sport"
-            class="w-full h-full object-cover md:object-top"
+            class="w-full h-full object-cover"
         >
     </section>
 
@@ -274,7 +274,7 @@
         }
         function agregarAlCarrito(item) {
             const carrito = obtenerCarrito();
-            const idx = carrito.findIndex(it => it.nombre === item.nombre);
+            const idx = carrito.findIndex(it => it.nombre === item.nombre && (it.color || '') === (item.color || ''));
             if (idx >= 0) carrito[idx].cantidad += item.cantidad;
             else carrito.push(item);
             guardarCarrito(carrito);
@@ -286,6 +286,16 @@
             document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
         }
 
+        function seleccionarColor(color, btnClickeado) {
+            if (productoActual) productoActual.color = color;
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
+                btn.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-700');
+            });
+            btnClickeado.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-700');
+            btnClickeado.classList.add('bg-gray-900', 'border-gray-900', 'text-white');
+        }
+
         function agregarAlCarritoDesdeModal() {
             if (!productoActual) return;
             agregarAlCarrito({
@@ -293,6 +303,7 @@
                 precio: precioUnitarioActual,
                 categoria: productoActual.categoria,
                 imagen: productoActual.imagen,
+                color: productoActual.color || '',
                 cantidad: cantidadActual
             });
             const confirmacion = document.getElementById('detalleConfirmacion');
@@ -358,6 +369,7 @@
         }
 
         function escapeJS(str) { return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+        function escapeHTML(str) { const div = document.createElement('div'); div.textContent = str == null ? '' : String(str); return div.innerHTML; }
 
         function obtenerListaImagenes(textoImagen) {
             if (!textoImagen || !textoImagen.trim()) return ['imagenes/logo.jpg'];
@@ -450,7 +462,7 @@
             let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
 
             const listaImagenes = obtenerListaImagenes(textoImagen);
-            productoActual = { nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0] };
+            productoActual = { nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0], color: '' };
             precioUnitarioActual = parseFloat(precioFormateado) || 0;
             cantidadActual = 1;
             const spanCantidad = document.getElementById('detalleCantidad');
@@ -475,8 +487,10 @@
             coloresContainer.innerHTML = "";
             const listaColores = coloresTexto.split(',').map(c => c.trim()).filter(Boolean);
             if (listaColores.length) {
-                listaColores.forEach(color => {
-                    coloresContainer.innerHTML += `<span class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-50 border border-gray-200 text-gray-700">${color}</span>`;
+                listaColores.forEach((color, i) => {
+                    const activo = i === 0;
+                    if (activo) productoActual.color = color;
+                    coloresContainer.innerHTML += `<button type="button" onclick="seleccionarColor('${escapeJS(color)}', this)" class="color-btn px-3 py-1.5 rounded-full text-xs font-medium border transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}">${escapeHTML(color)}</button>`;
                 });
             } else {
                 coloresContainer.innerHTML = '<span class="text-xs text-gray-400">Colores variados, consulta disponibilidad</span>';
