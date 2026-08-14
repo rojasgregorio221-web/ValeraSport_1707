@@ -98,9 +98,9 @@
     <!-- HERO: FOTO -->
     <section class="relative w-full h-[60vh] md:h-[78vh] overflow-hidden bg-gray-100 mt-20">
         <img
-              src="imagenes/hero-banner.jpg"
+            src="imagenes/hero-banner.jpg"
             alt="Ropa deportiva Valera Sport"
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover md:object-top"
         >
     </section>
 
@@ -198,6 +198,7 @@
                         <span id="detalleCantidad" class="w-8 text-center text-sm font-semibold text-gray-900">1</span>
                         <button type="button" onclick="cambiarCantidad(1)" class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-900">+</button>
                     </div>
+                    <p id="detalleStock" class="text-xs text-gray-400 mt-2"></p>
                 </div>
 
                 <button id="detalleBotonCarrito" onclick="agregarAlCarritoDesdeModal()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
@@ -219,6 +220,32 @@
             </div>
         </div>
     </div>
+
+    <!-- POLÍTICAS -->
+    <section id="politicas" class="border-t border-gray-100 py-16 md:py-24 bg-gray-50">
+        <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div class="bg-white rounded-2xl border border-gray-100 p-8">
+                <div class="w-11 h-11 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-500 mb-4">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <h3 class="font-brand font-bold text-lg text-gray-900 mb-2">Ventas al mayor</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                    Para compras al mayor, escríbenos directo por
+                    <a href="https://wa.me/584245939407" target="_blank" class="text-cyan-600 font-semibold hover:text-cyan-500">WhatsApp</a>
+                    o dirígete a nuestra tienda física en Barquisimeto. Los pedidos al mayor no se procesan por la tienda en línea.
+                </p>
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-100 p-8">
+                <div class="w-11 h-11 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-500 mb-4">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </div>
+                <h3 class="font-brand font-bold text-lg text-gray-900 mb-2">Cambios y devoluciones</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                    Tienes hasta <strong>72 horas</strong> después de tu compra para solicitar un cambio, siempre que la prenda conserve su etiqueta original y no haya sido usada. Aplica por daños de fábrica. No aplica por daños ocasionados por el cliente o por terceros.
+                </p>
+            </div>
+        </div>
+    </section>
 
     <!-- CONTACTO -->
     <section id="contacto" class="border-t border-gray-100 py-16 md:py-24">
@@ -248,11 +275,13 @@
         const WHATSAPP_PEDIDOS = "584245939407";
         let productos = [];
         let productoActual = null;
+        let imagenesProductoActual = [];
         let scannerStream = null;
         let scannerRAF = null;
         let tabActiva = 'Damas';
         let precioUnitarioActual = 0;
         let cantidadActual = 1;
+        let stockActual = 99;
 
         // ---------- CARRITO (localStorage, compartido entre páginas) ----------
         const CARRITO_KEY = 'vs_carrito';
@@ -281,12 +310,12 @@
         }
 
         function cambiarCantidad(delta) {
-            cantidadActual = Math.max(1, cantidadActual + delta);
+            cantidadActual = Math.max(1, Math.min(stockActual, cantidadActual + delta));
             document.getElementById('detalleCantidad').textContent = cantidadActual;
             document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
         }
 
-        function seleccionarColor(color, btnClickeado) {
+        function seleccionarColor(color, btnClickeado, indice) {
             if (productoActual) productoActual.color = color;
             document.querySelectorAll('.color-btn').forEach(btn => {
                 btn.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
@@ -294,6 +323,17 @@
             });
             btnClickeado.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-700');
             btnClickeado.classList.add('bg-gray-900', 'border-gray-900', 'text-white');
+
+            // Si hay una foto guardada en el mismo orden que este color, la mostramos.
+            if (typeof indice === 'number' && imagenesProductoActual[indice]) {
+                const img = imagenesProductoActual[indice];
+                document.getElementById('detalleImagen').src = img;
+                if (productoActual) productoActual.imagen = img;
+                document.querySelectorAll('#detalleGaleria button').forEach((btn, i) => {
+                    btn.classList.toggle('border-cyan-400', i === indice);
+                    btn.classList.toggle('border-gray-200', i !== indice);
+                });
+            }
         }
 
         function agregarAlCarritoDesdeModal() {
@@ -380,7 +420,7 @@
         function normalizarCategoria(cat) {
             const limpio = (cat || '').trim();
             if (!limpio) return null;
-            if (limpio.toLowerCase() === 'revisar') return null;
+            if (limpio.toLowerCase() === 'revisar' || limpio.toLowerCase() === 'combos' || limpio.toLowerCase() === 'combo') return null;
             return limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase();
         }
 
@@ -422,7 +462,9 @@
             let estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
             let categoriaLabel = normalizarCategoria(p.categoria) || "Variados";
             let coloresTexto = p.colores || "";
-            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}`;
+            let stockDisponible = parseInt(p.stock, 10);
+            if (isNaN(stockDisponible)) stockDisponible = 99;
+            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}, ${stockDisponible}`;
 
             return `
                 <div class="carrusel-item flex-shrink-0 w-44 md:w-64 cursor-pointer group" onclick="abrirDetalle(${argsAbrirDetalle})">
@@ -457,16 +499,20 @@
             btnClickeado.classList.add('border-cyan-400');
         }
 
-        function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible) {
+        function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible, stock) {
             let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombre + " ($" + precioFormateado + ")");
             let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
+            stockActual = (typeof stock === 'number' && stock > 0) ? stock : 99;
 
             const listaImagenes = obtenerListaImagenes(textoImagen);
+            imagenesProductoActual = listaImagenes;
             productoActual = { nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0], color: '' };
             precioUnitarioActual = parseFloat(precioFormateado) || 0;
             cantidadActual = 1;
             const spanCantidad = document.getElementById('detalleCantidad');
             if (spanCantidad) spanCantidad.textContent = '1';
+            const spanStock = document.getElementById('detalleStock');
+            if (spanStock) spanStock.textContent = stockActual <= 99 ? 'Quedan ' + stockActual + ' disponibles' : '';
 
             const btnCarrito = document.getElementById('detalleBotonCarrito');
             const confirmacion = document.getElementById('detalleConfirmacion');
@@ -490,7 +536,7 @@
                 listaColores.forEach((color, i) => {
                     const activo = i === 0;
                     if (activo) productoActual.color = color;
-                    coloresContainer.innerHTML += `<button type="button" onclick="seleccionarColor('${escapeJS(color)}', this)" class="color-btn px-3 py-1.5 rounded-full text-xs font-medium border transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}">${escapeHTML(color)}</button>`;
+                    coloresContainer.innerHTML += `<button type="button" onclick="seleccionarColor('${escapeJS(color)}', this, ${i})" class="color-btn px-3 py-1.5 rounded-full text-xs font-medium border transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}">${escapeHTML(color)}</button>`;
                 });
             } else {
                 coloresContainer.innerHTML = '<span class="text-xs text-gray-400">Colores variados, consulta disponibilidad</span>';
@@ -568,7 +614,9 @@
                 let textoImagen = coincidencia.imagen || '';
                 let precioFormateado = coincidencia.precio ? parseFloat(coincidencia.precio).toFixed(2) : '0.00';
                 let estaDisponible = (coincidencia.disponible && coincidencia.disponible.toLowerCase().trim() === 'si');
-                abrirDetalle(nombreProducto, textoImagen, precioFormateado, normalizarCategoria(coincidencia.categoria) || 'Variados', coincidencia.colores || '', estaDisponible);
+                let stockCoincidencia = parseInt(coincidencia.stock, 10);
+                if (isNaN(stockCoincidencia)) stockCoincidencia = 99;
+                abrirDetalle(nombreProducto, textoImagen, precioFormateado, normalizarCategoria(coincidencia.categoria) || 'Variados', coincidencia.colores || '', estaDisponible, stockCoincidencia);
             } else {
                 window.location.href = 'catalogo.html?buscar=' + encodeURIComponent(valorBusqueda);
             }

@@ -151,6 +151,7 @@
                     <span id="detalleCantidad" class="w-8 text-center text-sm font-semibold text-gray-900">1</span>
                     <button type="button" onclick="cambiarCantidad(1)" class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-900">+</button>
                 </div>
+                <p id="detalleStock" class="text-xs text-gray-400 mt-2"></p>
             </div>
 
             <button id="detalleBotonCarrito" onclick="agregarAlCarritoDesdeModal()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
@@ -184,6 +185,7 @@
         let categoriasSeleccionadas = new Set();
         let precioUnitarioActual = 0;
         let cantidadActual = 1;
+        let stockActual = 99;
 
         // ---------- CARRITO (localStorage, compartido entre páginas) ----------
         const CARRITO_KEY = 'vs_carrito';
@@ -212,7 +214,7 @@
         }
 
         function cambiarCantidad(delta) {
-            cantidadActual = Math.max(1, cantidadActual + delta);
+            cantidadActual = Math.max(1, Math.min(stockActual, cantidadActual + delta));
             document.getElementById('detalleCantidad').textContent = cantidadActual;
             document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
         }
@@ -322,7 +324,7 @@
         function normalizarCategoria(cat) {
             const limpio = (cat || '').trim();
             if (!limpio) return null;
-            if (limpio.toLowerCase() === 'revisar') return null;
+            if (limpio.toLowerCase() === 'revisar' || limpio.toLowerCase() === 'combos' || limpio.toLowerCase() === 'combo') return null;
             return limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase();
         }
 
@@ -439,7 +441,9 @@
             let estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
             let categoriaLabel = normalizarCategoria(p.categoria) || "Variados";
             let coloresTexto = p.colores || "";
-            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}`;
+            let stockDisponible = parseInt(p.stock, 10);
+            if (isNaN(stockDisponible)) stockDisponible = 99;
+            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}, ${stockDisponible}`;
 
             return `
                 <div class="cursor-pointer group" onclick="abrirDetalle(${argsAbrirDetalle})">
@@ -474,9 +478,10 @@
             btnClickeado.classList.add('border-cyan-400');
         }
 
-        function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible) {
+        function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible, stock) {
             let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombre + " ($" + precioFormateado + ")");
             let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
+            stockActual = (typeof stock === 'number' && stock > 0) ? stock : 99;
 
             const listaImagenes = obtenerListaImagenes(textoImagen);
             imagenesProductoActual = listaImagenes;
@@ -485,6 +490,8 @@
             cantidadActual = 1;
             const spanCantidad = document.getElementById('detalleCantidad');
             if (spanCantidad) spanCantidad.textContent = '1';
+            const spanStock = document.getElementById('detalleStock');
+            if (spanStock) spanStock.textContent = stockActual <= 99 ? 'Quedan ' + stockActual + ' disponibles' : '';
 
             const btnCarrito = document.getElementById('detalleBotonCarrito');
             const confirmacion = document.getElementById('detalleConfirmacion');

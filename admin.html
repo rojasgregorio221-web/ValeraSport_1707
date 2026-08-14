@@ -1,621 +1,442 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valera Sport | Tienda Oficial</title>
+    <meta name="robots" content="noindex, nofollow">
+    <title>Panel de Pedidos | Valera Sport</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module" src="firebase-auth.js"></script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
     <style>
-        html, body { overflow-x: hidden; max-width: 100vw; width: 100%; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #ffffff;
-            color: #111111;
-            width: 100%;
-        }
-        h1, h2, h3, .font-brand { font-family: 'Outfit', sans-serif; }
-        .font-editorial { font-family: 'Fraunces', serif; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #111111; }
+        h1, h2, .font-brand { font-family: 'Outfit', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #fff; }
         ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
-
-        .nav-link { position: relative; }
-        .nav-link::after {
-            content: ""; position: absolute; left: 0; bottom: -4px; width: 0; height: 1px;
-            background: #111; transition: width 0.25s ease;
-        }
-        .nav-link:hover::after { width: 100%; }
-
-        .tab-btn { position: relative; padding-bottom: 10px; color: #9ca3af; }
-        .tab-btn.activa { color: #111; }
-        .tab-btn::after {
-            content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
-            background: #06b6d4; transform: scaleX(0); transition: transform 0.25s ease;
-        }
-        .tab-btn.activa::after { transform: scaleX(1); }
-
-        .hero-blob {
-            position: absolute; inset: 0; overflow: hidden; filter: blur(60px) saturate(140%);
-            opacity: 0.55;
-        }
-        .hero-blob span { position: absolute; border-radius: 9999px; }
-        .blob-1 { width: 50vw; height: 50vw; background: #fde68a; top: -10%; left: -5%; }
-        .blob-2 { width: 45vw; height: 45vw; background: #67e8f9; top: 10%; right: -5%; }
-        .blob-3 { width: 40vw; height: 40vw; background: #c4b5fd; bottom: -15%; left: 20%; }
-
-        .carrusel { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-        .carrusel::-webkit-scrollbar { display: none; }
-
-        .icon-btn { transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease; }
-
-        #sinResultados { display: none; }
-        #estadoCarga { text-align: center; color: #9ca3af; font-size: 13px; margin-bottom: 24px; }
+        .icon-btn { transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease; }
     </style>
 </head>
 <body class="antialiased min-h-screen">
 
-    <!-- HEADER -->
-    <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <a href="index.html" class="font-brand font-extrabold text-xl tracking-tight text-gray-900">
-                VALERA<span class="text-cyan-500">SPORT</span>
-            </a>
-            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-800">
-                <a href="catalogo.html" class="nav-link">Catálogo</a>
-                <a href="catalogo.html?categoria=Damas" class="nav-link">Damas</a>
-                <a href="catalogo.html?categoria=Caballeros" class="nav-link">Caballeros</a>
-                <a href="catalogo.html?categoria=Niños" class="nav-link">Niños</a>
-                <a href="#contacto" class="nav-link">Ubicación</a>
-            </nav>
-            <div class="flex items-center gap-1">
-                <button id="btnEscanear" onclick="abrirScanner()" title="Escanear código QR" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
-                    <i class="fa-solid fa-qrcode text-sm"></i>
-                </button>
-                <button onclick="location.href='carrito.html'" title="Carrito" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
-                    <i class="fa-solid fa-bag-shopping text-sm"></i>
-                    <span id="contadorCarrito" class="hidden absolute top-1 right-1.5 bg-cyan-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">0</span>
-                </button>
-                <button id="btnCuenta" onclick="clicBotonCuenta()" title="Mi cuenta" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
-                    <i class="fa-solid fa-user text-sm"></i>
-                </button>
-                <a href="https://wa.me/584245939407" target="_blank" title="WhatsApp" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-emerald-500">
-                    <i class="fa-brands fa-whatsapp text-base"></i>
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <!-- HERO: FOTO -->
-    <section class="relative w-full h-[60vh] md:h-[78vh] overflow-hidden bg-gray-100 mt-20">
-        <img
-            src="imagenes/hero-banner.jpg"
-            alt="Ropa deportiva Valera Sport"
-            class="w-full h-full object-cover"
-        >
-    </section>
-
-    <!-- HERO: TEXTO -->
-    <section class="relative overflow-hidden bg-gradient-to-br from-amber-100 via-cyan-50 to-violet-100">
-        <div class="hero-blob"><span class="blob-1"></span><span class="blob-2"></span><span class="blob-3"></span></div>
-        <div class="relative max-w-7xl mx-auto px-6 py-12 md:py-32 text-center">
-            <h1 class="font-brand font-extrabold text-4xl md:text-6xl tracking-tight text-gray-900">
-                RENDIMIENTO<br>SIN LÍMITES
-            </h1>
-            <div class="w-12 h-[2px] bg-cyan-500 mx-auto mt-6"></div>
-            <p class="mt-5 text-gray-600 max-w-md mx-auto">
-                Ropa deportiva para toda la familia, directo desde Barquisimeto.
-            </p>
-            <a href="catalogo.html" class="inline-block mt-8 bg-gray-900 hover:bg-gray-700 text-white font-semibold px-8 py-3.5 rounded-full text-sm tracking-wide transition">
-                Explora
-            </a>
-        </div>
-    </section>
-
-    <!-- DESTACADOS -->
-    <section id="productos" class="max-w-7xl mx-auto px-6 py-8 md:py-24">
-        <h2 class="font-brand font-bold text-3xl text-center text-gray-900 mb-8">Destacados</h2>
-
-        <div class="flex items-center justify-center gap-4 sm:gap-8 border-b border-gray-100 mb-10">
-            <button class="tab-btn activa font-semibold text-sm" data-tab="Damas" onclick="cambiarTab('Damas')">Damas</button>
-            <button class="tab-btn font-semibold text-sm" data-tab="Caballeros" onclick="cambiarTab('Caballeros')">Caballeros</button>
-            <button class="tab-btn font-semibold text-sm" data-tab="Niños" onclick="cambiarTab('Niños')">Niños</button>
-        </div>
-
-        <p id="estadoCarga">Cargando catálogo...</p>
-
-        <div class="relative">
-            <button onclick="deslizarCarrusel(-1)" class="flex absolute -left-2 md:-left-5 top-1/3 z-10 w-9 h-9 md:w-10 md:h-10 rounded-full bg-white border border-gray-200 shadow-md items-center justify-center text-gray-500 hover:text-gray-900">
-                <i class="fa-solid fa-chevron-left text-xs"></i>
-            </button>
-            <div id="carruselDestacados" class="carrusel flex gap-6 overflow-x-auto pb-2"></div>
-            <button onclick="deslizarCarrusel(1)" class="flex absolute -right-2 md:-right-5 top-1/3 z-10 w-9 h-9 md:w-10 md:h-10 rounded-full bg-white border border-gray-200 shadow-md items-center justify-center text-gray-500 hover:text-gray-900">
-                <i class="fa-solid fa-chevron-right text-xs"></i>
-            </button>
-        </div>
-
-        <p id="sinResultados" class="text-center text-gray-400 text-sm py-10">No hay productos en esta categoría todavía.</p>
-
-        <div class="text-center mt-12">
-            <a href="catalogo.html" class="inline-block bg-cyan-500 hover:bg-cyan-400 text-white font-semibold px-8 py-3.5 rounded-full text-sm tracking-wide transition">
-                Ver todo
-            </a>
-        </div>
-    </section>
-
-    <!-- MODAL ESCÁNER QR -->
-    <div id="scannerModal" class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
-        <button onclick="cerrarScanner()" class="icon-btn absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full text-white/80 hover:text-white text-base z-10">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
+    <!-- PANTALLA DE CONTRASEÑA -->
+    <div id="pantallaLogin" class="min-h-screen flex items-center justify-center px-6">
         <div class="w-full max-w-sm">
-            <div class="relative rounded-2xl overflow-hidden border border-white/20 bg-black aspect-square">
-                <video id="scannerVideo" class="w-full h-full object-cover" playsinline autoplay muted></video>
-                <div class="absolute inset-0 pointer-events-none border-[3px] border-cyan-400/70 m-10 rounded-xl"></div>
+            <div class="text-center mb-8">
+                <span class="font-brand text-2xl font-extrabold tracking-tight text-gray-900">VALERA<span class="text-cyan-500">SPORT</span></span>
+                <p class="text-xs text-gray-400 uppercase tracking-widest mt-2">Panel de pedidos</p>
             </div>
-            <canvas id="scannerCanvas" class="hidden"></canvas>
-            <p id="scannerEstado" class="text-white/70 text-sm mt-4 text-center">Apunta la cámara al código QR de la prenda</p>
+            <form id="formLogin" class="space-y-4">
+                <input type="password" id="inputPassword" placeholder="Contraseña del panel" autocomplete="current-password" class="w-full bg-white border border-gray-200 focus:border-cyan-400 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none">
+                <button type="submit" class="w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition">
+                    Entrar
+                </button>
+                <p id="errorLogin" class="hidden text-rose-500 text-xs text-center">Contraseña incorrecta</p>
+            </form>
         </div>
     </div>
 
-    <!-- MODAL DETALLE / AGREGAR AL CARRITO -->
-    <div id="detalleModal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-3xl relative shadow-xl scale-95 opacity-0 max-h-[90vh] overflow-y-auto transition-all duration-200 grid grid-cols-1 md:grid-cols-2" id="detalleModalContainer">
-            <button onclick="cerrarDetalle()" class="icon-btn absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 text-gray-400 hover:text-gray-900 text-sm z-10"><i class="fa-solid fa-xmark"></i></button>
+    <!-- PANEL PRINCIPAL -->
+    <div id="panelPrincipal" class="hidden max-w-2xl mx-auto px-5 py-8">
 
-            <!-- IZQUIERDA: imagen -->
-            <div class="p-6 md:p-8 bg-gray-50 md:rounded-l-2xl">
-                <div class="w-full aspect-square rounded-xl overflow-hidden bg-white flex items-center justify-center mb-3">
-                    <img id="detalleImagen" src="" alt="" class="max-w-full max-h-full object-contain">
+        <header class="flex items-center justify-between mb-8">
+            <span class="font-brand text-xl font-extrabold tracking-tight text-gray-900">VALERA<span class="text-cyan-500">SPORT</span></span>
+            <button onclick="cerrarSesion()" class="text-xs text-gray-400 hover:text-gray-900 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Salir
+            </button>
+        </header>
+
+        <!-- RESUMEN DEL DÍA -->
+        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-6 mb-8">
+            <p class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Vendido hoy</p>
+            <p class="text-4xl font-black text-gray-900" id="totalHoy">$0.00</p>
+            <p class="text-sm text-gray-500 mt-1" id="cantidadHoy">0 ítems aceptados</p>
+        </div>
+
+        <!-- REGISTRAR VENTA FÍSICA -->
+        <div class="mb-8">
+            <button onclick="toggleFormularioFisica()" id="btnToggleFisica" class="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-2xl p-4 flex items-center justify-between transition">
+                <span class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-store text-cyan-500"></i> Registrar venta en tienda física
+                </span>
+                <i class="fa-solid fa-chevron-down text-gray-400 text-xs" id="iconoToggleFisica"></i>
+            </button>
+
+            <div id="formularioFisica" class="hidden mt-3 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Correo del cliente (opcional)</label>
+                    <input type="email" id="fisicaCorreo" placeholder="cliente@correo.com" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                 </div>
-                <div id="detalleGaleria" class="hidden flex gap-2 overflow-x-auto pb-1"></div>
-            </div>
-
-            <!-- DERECHA: info y carrito -->
-            <div class="p-6 md:p-8">
-                <span id="detalleCategoria" class="text-[11px] font-semibold text-cyan-600 uppercase tracking-widest mb-1 block"></span>
-                <h3 id="detalleNombre" class="text-2xl font-bold text-gray-900 mb-2"></h3>
-                <span class="text-2xl font-black text-gray-900" id="detallePrecio"></span>
-
-                <div class="mt-6 mb-5">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Color</label>
-                    <div class="flex flex-wrap gap-2" id="detalleColores"></div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Producto</label>
+                    <input type="text" id="fisicaProducto" placeholder="Nombre del producto" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                 </div>
-
-                <div class="mb-6">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Cantidad</label>
-                    <div class="inline-flex items-center border border-gray-200 rounded-full">
-                        <button type="button" onclick="cambiarCantidad(-1)" class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-900">−</button>
-                        <span id="detalleCantidad" class="w-8 text-center text-sm font-semibold text-gray-900">1</span>
-                        <button type="button" onclick="cambiarCantidad(1)" class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-900">+</button>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Precio</label>
+                        <input type="number" step="0.01" id="fisicaPrecio" placeholder="0.00" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Categoría</label>
+                        <input type="text" id="fisicaCategoria" placeholder="Damas / Caballeros..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                     </div>
                 </div>
-
-                <button id="detalleBotonCarrito" onclick="agregarAlCarritoDesdeModal()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-bag-shopping text-base"></i> Agregar al carrito
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Método de pago</label>
+                    <select id="fisicaMetodoPago" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400">
+                        <option value="Efectivo en tienda">Efectivo en tienda</option>
+                        <option value="Pago Móvil">Pago Móvil</option>
+                        <option value="Transferencia">Transferencia</option>
+                    </select>
+                </div>
+                <button onclick="registrarVentaFisica()" class="icon-btn w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition mt-2">
+                    <i class="fa-solid fa-plus mr-1"></i> Registrar venta
                 </button>
-                <a id="detalleBotonWA" href="#" target="_blank" class="w-full mt-3 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
-                    <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
-                </a>
-                <div id="detalleConfirmacion" class="hidden text-center bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold py-4 px-4 rounded-xl mt-3 text-sm">
-                    ✅ ¡Agregado al carrito!
-                    <a href="carrito.html" class="block mt-3 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3 rounded-full text-sm transition">
-                        Ir a pagar →
-                    </a>
-                    <button onclick="cerrarDetalle()" class="block w-full mt-2 text-emerald-700/70 hover:text-emerald-700 text-xs font-semibold py-1">
-                        Seguir comprando
-                    </button>
-                </div>
-                <p id="detalleNoDisponible" class="hidden text-center text-sm text-gray-400 py-3">Actualmente no disponible</p>
+                <p id="mensajeFisica" class="hidden text-center text-xs font-semibold py-2"></p>
             </div>
         </div>
+
+        <!-- LISTA DE ÓRDENES PENDIENTES -->
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-gray-900">Órdenes pendientes</h2>
+            <div class="flex items-center gap-1">
+                <button onclick="cargarTodo()" title="Actualizar" class="icon-btn text-gray-400 hover:text-cyan-500 w-8 h-8 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-arrows-rotate text-sm"></i>
+                </button>
+                <button onclick="rechazarTodosPendientes()" title="Rechazar todas las órdenes pendientes" class="icon-btn text-gray-400 hover:text-rose-500 w-8 h-8 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-trash text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <p id="cargando" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
+        <div id="listaPedidos" class="space-y-4"></div>
+        <p id="sinPedidos" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes pendientes por ahora.</p>
     </div>
-
-    <!-- CONTACTO -->
-    <section id="contacto" class="border-t border-gray-100 py-16 md:py-24">
-        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div class="space-y-5">
-                <h2 class="font-brand font-bold text-3xl text-gray-900">Visítanos en tienda</h2>
-                <p class="text-gray-600">Calle 28 entre Carreras 19 y 20, C.C. (Antiguo Beco), Local 121-122. Barquisimeto, Lara.</p>
-                <a href="https://wa.me/584245939407" target="_blank" class="inline-block text-sm font-semibold text-cyan-600 hover:text-cyan-500 nav-link">
-                    Escríbenos por WhatsApp →
-                </a>
-            </div>
-            <div class="h-64 md:h-80 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-center">
-                <div class="text-center space-y-3">
-                    <i class="fa-solid fa-map-location-dot text-3xl text-cyan-500"></i>
-                    <h3 class="font-bold text-gray-900">Barquisimeto, Lara</h3>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer class="border-t border-gray-100 py-10 text-center space-y-1">
-        <p class="text-xs tracking-wide text-gray-400">© 2026 Valera Sport. Todos los derechos reservados.</p>
-        <p class="text-xs text-gray-300">Sitio Web diseñado e integrado por <span class="text-cyan-500 font-semibold">Gregorio Yepez</span></p>
-    </footer>
 
     <script>
-        const WHATSAPP_PEDIDOS = "584245939407";
-        let productos = [];
-        let productoActual = null;
-        let imagenesProductoActual = [];
-        let scannerStream = null;
-        let scannerRAF = null;
-        let tabActiva = 'Damas';
-        let precioUnitarioActual = 0;
-        let cantidadActual = 1;
+        const PASSWORD_KEY = 'vs_admin_password';
 
-        // ---------- CARRITO (localStorage, compartido entre páginas) ----------
-        const CARRITO_KEY = 'vs_carrito';
+        const formLogin = document.getElementById('formLogin');
+        const inputPassword = document.getElementById('inputPassword');
+        const errorLogin = document.getElementById('errorLogin');
+        const pantallaLogin = document.getElementById('pantallaLogin');
+        const panelPrincipal = document.getElementById('panelPrincipal');
 
-        function obtenerCarrito() {
-            try { return JSON.parse(localStorage.getItem(CARRITO_KEY)) || []; } catch (e) { return []; }
-        }
-        function guardarCarrito(carrito) {
-            localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito));
-            actualizarContadorCarrito();
-        }
-        function actualizarContadorCarrito() {
-            const carrito = obtenerCarrito();
-            const totalItems = carrito.reduce((sum, it) => sum + (it.cantidad || 1), 0);
-            const badge = document.getElementById('contadorCarrito');
-            if (!badge) return;
-            if (totalItems > 0) { badge.textContent = totalItems > 99 ? '99+' : totalItems; badge.classList.remove('hidden'); }
-            else badge.classList.add('hidden');
-        }
-        function agregarAlCarrito(item) {
-            const carrito = obtenerCarrito();
-            const idx = carrito.findIndex(it => it.nombre === item.nombre && (it.color || '') === (item.color || ''));
-            if (idx >= 0) carrito[idx].cantidad += item.cantidad;
-            else carrito.push(item);
-            guardarCarrito(carrito);
-        }
+        formLogin.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const clave = inputPassword.value.trim();
+            if (!clave) return;
 
-        function cambiarCantidad(delta) {
-            cantidadActual = Math.max(1, cantidadActual + delta);
-            document.getElementById('detalleCantidad').textContent = cantidadActual;
-            document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
-        }
-
-        function seleccionarColor(color, btnClickeado, indice) {
-            if (productoActual) productoActual.color = color;
-            document.querySelectorAll('.color-btn').forEach(btn => {
-                btn.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
-                btn.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-700');
-            });
-            btnClickeado.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-700');
-            btnClickeado.classList.add('bg-gray-900', 'border-gray-900', 'text-white');
-
-            // Si hay una foto guardada en el mismo orden que este color, la mostramos.
-            if (typeof indice === 'number' && imagenesProductoActual[indice]) {
-                const img = imagenesProductoActual[indice];
-                document.getElementById('detalleImagen').src = img;
-                if (productoActual) productoActual.imagen = img;
-                document.querySelectorAll('#detalleGaleria button').forEach((btn, i) => {
-                    btn.classList.toggle('border-cyan-400', i === indice);
-                    btn.classList.toggle('border-gray-200', i !== indice);
-                });
+            errorLogin.classList.add('hidden');
+            const valida = await probarPassword(clave);
+            if (valida) {
+                sessionStorage.setItem(PASSWORD_KEY, clave);
+                mostrarPanel();
+            } else {
+                errorLogin.classList.remove('hidden');
             }
-        }
-
-        function agregarAlCarritoDesdeModal() {
-            if (!productoActual) return;
-            agregarAlCarrito({
-                nombre: productoActual.nombre,
-                precio: precioUnitarioActual,
-                categoria: productoActual.categoria,
-                imagen: productoActual.imagen,
-                color: productoActual.color || '',
-                cantidad: cantidadActual
-            });
-            const confirmacion = document.getElementById('detalleConfirmacion');
-            if (confirmacion) confirmacion.classList.remove('hidden');
-            const btnCarrito = document.getElementById('detalleBotonCarrito');
-            if (btnCarrito) btnCarrito.classList.add('hidden');
-        }
-
-        async function cargarProductosDesdeSheet() {
-            const estado = document.getElementById('estadoCarga');
-            if (estado) estado.textContent = "Cargando catálogo...";
-            try {
-                const respuesta = await fetch('/api/obtener-productos');
-                if (!respuesta.ok) throw new Error("El servidor respondió con error " + respuesta.status);
-                const texto = await respuesta.text();
-                productos = parseCSV(texto);
-                if (estado) estado.textContent = "";
-                renderizarDestacados();
-                revisarParametroURL();
-            } catch (error) {
-                console.error("Error al cargar el catálogo:", error);
-                if (estado) estado.textContent = "No se pudo cargar el catálogo. Si estás probando en local, recuerda usar 'netlify dev'.";
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            cargarProductosDesdeSheet();
-            actualizarContadorCarrito();
         });
 
-        function parseCSV(texto) {
-            const filas = [];
-            let fila = [], campo = "", entreComillas = false;
-            for (let i = 0; i < texto.length; i++) {
-                const c = texto[i];
-                if (entreComillas) {
-                    if (c === '"' && texto[i + 1] === '"') { campo += '"'; i++; }
-                    else if (c === '"') { entreComillas = false; }
-                    else { campo += c; }
-                } else {
-                    if (c === '"') entreComillas = true;
-                    else if (c === ',') { fila.push(campo); campo = ""; }
-                    else if (c === '\n' || c === '\r') {
-                        if (campo !== "" || fila.length) { fila.push(campo); filas.push(fila); }
-                        fila = []; campo = "";
-                        if (c === '\r' && texto[i + 1] === '\n') i++;
-                    } else { campo += c; }
+        async function probarPassword(clave) {
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: clave, tipo: 'pedidos' })
+                });
+                return resp.status !== 401;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function mostrarPanel() {
+            pantallaLogin.classList.add('hidden');
+            panelPrincipal.classList.remove('hidden');
+            cargarTodo();
+        }
+
+        function cerrarSesion() {
+            sessionStorage.removeItem(PASSWORD_KEY);
+            panelPrincipal.classList.add('hidden');
+            pantallaLogin.classList.remove('hidden');
+            inputPassword.value = '';
+        }
+
+        function obtenerPassword() {
+            return sessionStorage.getItem(PASSWORD_KEY) || '';
+        }
+
+        async function cargarTodo() {
+            await Promise.all([cargarResumen(), cargarPedidos()]);
+        }
+
+        async function cargarResumen() {
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), tipo: 'resumen' })
+                });
+                const datos = await resp.json();
+                if (datos.ok) {
+                    document.getElementById('totalHoy').textContent = '$' + Number(datos.resumen.totalHoy).toFixed(2);
+                    document.getElementById('cantidadHoy').textContent = datos.resumen.cantidadHoy + ' ítems aceptados';
                 }
+            } catch (e) {
+                console.error('Error cargando resumen:', e);
             }
-            if (campo !== "" || fila.length) { fila.push(campo); filas.push(fila); }
-            if (filas.length === 0) return [];
-            const cabeceras = filas[0].map(h => h.trim().toLowerCase());
-            const resultados = [];
-            for (let i = 1; i < filas.length; i++) {
-                const f = filas[i];
-                if (f.length === cabeceras.length) {
-                    let obj = {};
-                    for (let j = 0; j < cabeceras.length; j++) obj[cabeceras[j]] = f[j] ? f[j].trim() : "";
-                    resultados.push(obj);
+        }
+
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? '' : String(str);
+            return div.innerHTML;
+        }
+
+        async function cargarPedidos() {
+            const cargando = document.getElementById('cargando');
+            const lista = document.getElementById('listaPedidos');
+            const sinPedidos = document.getElementById('sinPedidos');
+
+            cargando.classList.remove('hidden');
+            sinPedidos.classList.add('hidden');
+
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), tipo: 'pedidos' })
+                });
+                const datos = await resp.json();
+                cargando.classList.add('hidden');
+
+                if (!datos.ok) {
+                    lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar órdenes') + '</p>';
+                    return;
                 }
+
+                const ordenes = datos.ordenes || [];
+
+                if (!ordenes.length) {
+                    lista.innerHTML = '';
+                    sinPedidos.classList.remove('hidden');
+                    return;
+                }
+
+                lista.innerHTML = ordenes.map(tarjetaOrden).join('');
+            } catch (e) {
+                cargando.classList.add('hidden');
+                lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
             }
-            return resultados;
         }
 
-        function escapeJS(str) { return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
-        function escapeHTML(str) { const div = document.createElement('div'); div.textContent = str == null ? '' : String(str); return div.innerHTML; }
+        function tarjetaOrden(orden) {
+            const fecha = orden.fecha ? new Date(orden.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
+            const total = Number(orden.total || 0).toFixed(2);
+            const idAttr = escapeHTML(orden.idOrden);
+            const metodoPago = escapeHTML(orden.metodoPago || 'No especificado');
+            const referencia = orden.referencia && String(orden.referencia).trim() ? escapeHTML(orden.referencia) : null;
+            const comprobanteUrl = orden.comprobanteUrl && String(orden.comprobanteUrl).trim() ? orden.comprobanteUrl : null;
+            const items = orden.items || [];
 
-        function obtenerListaImagenes(textoImagen) {
-            if (!textoImagen || !textoImagen.trim()) return ['imagenes/logo.jpg'];
-            const lista = textoImagen.split('|').map(s => s.trim()).filter(Boolean);
-            return lista.length ? lista : ['imagenes/logo.jpg'];
-        }
-
-        function normalizarCategoria(cat) {
-            const limpio = (cat || '').trim();
-            if (!limpio) return null;
-            if (limpio.toLowerCase() === 'revisar') return null;
-            return limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase();
-        }
-
-        // ---------- DESTACADOS: pestañas + carrusel ----------
-
-        function cambiarTab(cat) {
-            tabActiva = cat;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.toggle('activa', btn.dataset.tab === cat);
-            });
-            renderizarDestacados();
-        }
-
-        function renderizarDestacados() {
-            const filtrados = productos.filter(p => (p.categoria || '').toLowerCase().includes(tabActiva.toLowerCase()));
-            const cont = document.getElementById('carruselDestacados');
-            const vacio = document.getElementById('sinResultados');
-
-            if (!filtrados.length) {
-                cont.innerHTML = '';
-                vacio.style.display = 'block';
-                return;
-            }
-            vacio.style.display = 'none';
-            // Solo 5: el carrusel es una vitrina, el catálogo completo vive en catalogo.html
-            cont.innerHTML = filtrados.slice(0, 5).map(crearTarjetaCarrusel).join('');
-        }
-
-        function deslizarCarrusel(direccion) {
-            const cont = document.getElementById('carruselDestacados');
-            cont.scrollBy({ left: direccion * 320, behavior: 'smooth' });
-        }
-
-        function crearTarjetaCarrusel(p) {
-            let nombreProducto = p.producto || p.nombre || "Producto sin nombre";
-            let textoImagen = p.imagen || "";
-            let imagenUrl = obtenerListaImagenes(textoImagen)[0];
-            let precioFormateado = p.precio ? parseFloat(p.precio).toFixed(2) : "0.00";
-            let estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
-            let categoriaLabel = normalizarCategoria(p.categoria) || "Variados";
-            let coloresTexto = p.colores || "";
-            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}`;
+            const listaItems = items.map(it => `
+                <div class="flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
+                    <div>
+                        <span class="text-gray-900">${escapeHTML(it.producto)}</span>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wide ml-2">${escapeHTML(it.categoria || 'Variados')}</span>
+                    </div>
+                    <span class="text-gray-500 text-xs font-mono">$${Number(it.precio || 0).toFixed(2)}</span>
+                </div>
+            `).join('');
 
             return `
-                <div class="carrusel-item flex-shrink-0 w-44 md:w-64 cursor-pointer group" onclick="abrirDetalle(${argsAbrirDetalle})">
-                    <div class="w-full h-48 md:h-72 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center mb-3">
-                        <img src="${imagenUrl}" alt="${nombreProducto}" class="max-w-[85%] max-h-[85%] object-contain group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
+                <div class="bg-white border border-gray-100 rounded-2xl p-5" id="orden-${idAttr}" data-idorden="${idAttr}">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-[10px] font-bold text-cyan-600 uppercase tracking-widest block mb-1">${items.length} ${items.length === 1 ? 'producto' : 'productos'}</span>
+                            <p class="text-xs text-gray-400">${escapeHTML(fecha)}</p>
+                        </div>
+                        <span class="text-xl font-black text-gray-900">$${total}</span>
                     </div>
-                    <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5">${categoriaLabel}</span>
-                    <h3 class="text-sm text-gray-900 font-medium leading-snug line-clamp-1">${nombreProducto}</h3>
-                    <p class="text-sm font-bold text-gray-900 mt-1">$${precioFormateado}${!estaDisponible ? ' <span class="text-gray-400 font-normal">· Agotado</span>' : ''}</p>
+
+                    <div class="bg-gray-50 rounded-xl px-4 py-2 mb-3">
+                        ${listaItems}
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-400 uppercase font-bold">Método de pago:</span>
+                            <span class="text-gray-900 font-semibold">${metodoPago}</span>
+                        </div>
+                        ${referencia ? `
+                        <div class="flex justify-between items-center text-xs mt-2">
+                            <span class="text-gray-400 uppercase font-bold">Referencia:</span>
+                            <span class="text-gray-900 font-mono">${referencia}</span>
+                        </div>` : ''}
+                        ${comprobanteUrl ? `
+                        <div class="mt-3">
+                            <span class="text-gray-400 uppercase font-bold text-xs block mb-2">Comprobante:</span>
+                            <a href="${comprobanteUrl}" target="_blank">
+                                <img src="${comprobanteUrl}" class="w-full max-h-64 object-contain rounded-lg border border-gray-200 bg-white" alt="Comprobante de pago">
+                            </a>
+                        </div>` : `
+                        <div class="flex justify-between items-center text-xs mt-2">
+                            <span class="text-gray-400 uppercase font-bold">Comprobante:</span>
+                            <span class="text-gray-400">No adjuntado</span>
+                        </div>`}
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button data-accion="rechazarOrden" class="bg-white hover:bg-rose-50 border border-gray-200 hover:border-rose-300 text-gray-600 hover:text-rose-600 font-bold py-3 rounded-full text-sm transition">
+                            <i class="fa-solid fa-xmark mr-1"></i> Rechazar
+                        </button>
+                        <button data-accion="aceptarOrden" class="bg-cyan-500 hover:bg-cyan-400 text-white font-black py-3 rounded-full text-sm transition">
+                            <i class="fa-solid fa-check mr-1"></i> Aceptar
+                        </button>
+                    </div>
                 </div>
             `;
         }
 
-        // ---------- MODAL DETALLE / CARRITO ----------
-
-        function renderizarGaleria(listaImagenes) {
-            const cont = document.getElementById('detalleGaleria');
-            if (!cont) return;
-            if (!listaImagenes || listaImagenes.length <= 1) { cont.classList.add('hidden'); cont.innerHTML = ''; return; }
-            cont.classList.remove('hidden');
-            cont.innerHTML = listaImagenes.map((img, i) => `
-                <button onclick="cambiarImagenDetalle('${escapeJS(img)}', this)" class="icon-btn w-14 h-14 shrink-0 rounded-lg overflow-hidden border-2 ${i === 0 ? 'border-cyan-400' : 'border-gray-200'}">
-                    <img src="${img}" class="w-full h-full object-cover" onerror="this.src='imagenes/logo.jpg'">
-                </button>
-            `).join('');
-        }
-
-        function cambiarImagenDetalle(url, btnClickeado) {
-            document.getElementById('detalleImagen').src = url;
-            document.querySelectorAll('#detalleGaleria button').forEach(btn => { btn.classList.remove('border-cyan-400'); btn.classList.add('border-gray-200'); });
-            btnClickeado.classList.remove('border-gray-200');
-            btnClickeado.classList.add('border-cyan-400');
-        }
-
-        function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible) {
-            let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombre + " ($" + precioFormateado + ")");
-            let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
-
-            const listaImagenes = obtenerListaImagenes(textoImagen);
-            imagenesProductoActual = listaImagenes;
-            productoActual = { nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0], color: '' };
-            precioUnitarioActual = parseFloat(precioFormateado) || 0;
-            cantidadActual = 1;
-            const spanCantidad = document.getElementById('detalleCantidad');
-            if (spanCantidad) spanCantidad.textContent = '1';
-
-            const btnCarrito = document.getElementById('detalleBotonCarrito');
-            const confirmacion = document.getElementById('detalleConfirmacion');
-            if (btnCarrito) {
-                btnCarrito.classList.toggle('hidden', !disponible);
-                btnCarrito.disabled = false;
-            }
-            if (confirmacion) confirmacion.classList.add('hidden');
-
-            document.getElementById('detalleImagen').src = listaImagenes[0];
-            document.getElementById('detalleImagen').alt = nombre;
-            renderizarGaleria(listaImagenes);
-            document.getElementById('detalleCategoria').textContent = categoriaLabel;
-            document.getElementById('detalleNombre').textContent = nombre;
-            document.getElementById('detallePrecio').textContent = '$' + precioFormateado;
-
-            const coloresContainer = document.getElementById('detalleColores');
-            coloresContainer.innerHTML = "";
-            const listaColores = coloresTexto.split(',').map(c => c.trim()).filter(Boolean);
-            if (listaColores.length) {
-                listaColores.forEach((color, i) => {
-                    const activo = i === 0;
-                    if (activo) productoActual.color = color;
-                    coloresContainer.innerHTML += `<button type="button" onclick="seleccionarColor('${escapeJS(color)}', this, ${i})" class="color-btn px-3 py-1.5 rounded-full text-xs font-medium border transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}">${escapeHTML(color)}</button>`;
-                });
-            } else {
-                coloresContainer.innerHTML = '<span class="text-xs text-gray-400">Colores variados, consulta disponibilidad</span>';
-            }
-
-            const btnWA = document.getElementById('detalleBotonWA');
-            const noDisp = document.getElementById('detalleNoDisponible');
-            if (disponible) { btnWA.href = enlaceWhatsApp; btnWA.classList.remove('hidden'); noDisp.classList.add('hidden'); }
-            else { btnWA.href = enlaceWhatsApp; btnWA.classList.remove('hidden'); noDisp.classList.remove('hidden'); }
-
-            const modal = document.getElementById('detalleModal');
-            const container = document.getElementById('detalleModalContainer');
-            modal.classList.remove('hidden');
-            setTimeout(() => { container.classList.remove('scale-95', 'opacity-0'); }, 50);
-        }
-
-        function cerrarDetalle() {
-            const container = document.getElementById('detalleModalContainer');
-            container.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { document.getElementById('detalleModal').classList.add('hidden'); }, 200);
-        }
-
-        // ---------- ESCÁNER QR ----------
-
-        async function abrirScanner() {
-            const modal = document.getElementById('scannerModal');
-            const estado = document.getElementById('scannerEstado');
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-            if (estado) estado.textContent = 'Apunta la cámara al código QR de la prenda';
-            const video = document.getElementById('scannerVideo');
-            try {
-                scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
-                video.srcObject = scannerStream;
-                await video.play();
-                scannerRAF = requestAnimationFrame(tickScanner);
-            } catch (error) {
-                console.error('No se pudo abrir la cámara:', error);
-                if (estado) estado.textContent = 'No se pudo acceder a la cámara. Revisa los permisos del navegador.';
-            }
-        }
-
-        function tickScanner() {
-            const video = document.getElementById('scannerVideo');
-            const canvas = document.getElementById('scannerCanvas');
-            if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) { scannerRAF = requestAnimationFrame(tickScanner); return; }
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imagen = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const codigo = jsQR(imagen.data, imagen.width, imagen.height);
-            if (codigo && codigo.data) { procesarCodigoQR(codigo.data); return; }
-            scannerRAF = requestAnimationFrame(tickScanner);
-        }
-
-        function cerrarScanner() {
-            const modal = document.getElementById('scannerModal');
-            modal.classList.add('hidden'); modal.classList.remove('flex');
-            if (scannerRAF) cancelAnimationFrame(scannerRAF);
-            scannerRAF = null;
-            if (scannerStream) { scannerStream.getTracks().forEach(t => t.stop()); scannerStream = null; }
-        }
-
-        function procesarCodigoQR(textoLeido) {
-            cerrarScanner();
-            let valorBusqueda = textoLeido.trim();
-            try {
-                const url = new URL(textoLeido);
-                const param = url.searchParams.get('producto') || url.searchParams.get('buscar');
-                if (param) valorBusqueda = param;
-            } catch (e) {}
-
-            const coincidencia = productos.find(p => (p.producto || p.nombre || '').toLowerCase().trim() === valorBusqueda.toLowerCase().trim());
-            if (coincidencia) {
-                let nombreProducto = coincidencia.producto || coincidencia.nombre;
-                let textoImagen = coincidencia.imagen || '';
-                let precioFormateado = coincidencia.precio ? parseFloat(coincidencia.precio).toFixed(2) : '0.00';
-                let estaDisponible = (coincidencia.disponible && coincidencia.disponible.toLowerCase().trim() === 'si');
-                abrirDetalle(nombreProducto, textoImagen, precioFormateado, normalizarCategoria(coincidencia.categoria) || 'Variados', coincidencia.colores || '', estaDisponible);
-            } else {
-                window.location.href = 'catalogo.html?buscar=' + encodeURIComponent(valorBusqueda);
-            }
-        }
-
-        function revisarParametroURL() {
-            const params = new URLSearchParams(window.location.search);
-            const productoParam = params.get('producto') || params.get('buscar');
-            if (productoParam) procesarCodigoQR(productoParam);
-        }
-
-        // ---------- CUENTA DE CLIENTE ----------
-
-        let usuarioActual = null;
-
-        function clicBotonCuenta() {
-            if (usuarioActual) { window.location.href = 'cuenta.html'; return; }
-            if (typeof window.firebaseSignIn !== 'function') { alert('El sistema de cuentas está cargando, intenta de nuevo en un segundo.'); return; }
-            window.firebaseSignIn()
-                .then(() => { window.location.href = 'cuenta.html'; })
-                .catch((error) => { console.error(error); alert('No se pudo iniciar sesión: ' + error.message); });
-        }
-
-        window.addEventListener('firebase-auth-changed', (e) => {
-            usuarioActual = e.detail.user;
-            actualizarBotonCuenta();
+        document.getElementById('listaPedidos').addEventListener('click', (e) => {
+            const boton = e.target.closest('button[data-accion]');
+            if (!boton) return;
+            const tarjeta = boton.closest('[data-idorden]');
+            if (!tarjeta) return;
+            responderOrden(tarjeta.dataset.idorden, boton.dataset.accion);
         });
 
-        function actualizarBotonCuenta() {
-            const btn = document.getElementById('btnCuenta');
-            if (!btn) return;
-            if (usuarioActual) { btn.title = usuarioActual.email + ' — Ver mi cuenta'; btn.classList.add('text-cyan-500'); }
-            else { btn.title = 'Iniciar sesión / Registrarse'; btn.classList.remove('text-cyan-500'); }
+        async function responderOrden(idOrden, accion) {
+            const tarjeta = document.querySelector(`[data-idorden="${CSS.escape(idOrden)}"]`);
+            if (tarjeta) tarjeta.style.opacity = '0.4';
+
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), accion, idOrden })
+                });
+                const datos = await resp.json();
+
+                if (!datos.ok) {
+                    alert('Error: ' + (datos.error || 'no se pudo procesar la orden'));
+                    if (tarjeta) tarjeta.style.opacity = '1';
+                    return;
+                }
+
+                if (tarjeta) tarjeta.remove();
+                cargarResumen();
+
+                const lista = document.getElementById('listaPedidos');
+                if (!lista.children.length) {
+                    document.getElementById('sinPedidos').classList.remove('hidden');
+                }
+            } catch (e) {
+                alert('No se pudo conectar con el servidor.');
+                if (tarjeta) tarjeta.style.opacity = '1';
+            }
         }
+
+        async function rechazarTodosPendientes() {
+            const confirmar = confirm('¿Seguro que quieres rechazar TODAS las órdenes pendientes? El stock reservado se devuelve automáticamente, no se borra nada del Sheet, pero esta acción no se puede deshacer desde aquí.');
+            if (!confirmar) return;
+
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), accion: 'rechazar_todos' })
+                });
+                const datos = await resp.json();
+
+                if (!datos.ok) {
+                    alert('Error: ' + (datos.error || 'no se pudo procesar'));
+                    return;
+                }
+
+                cargarTodo();
+            } catch (e) {
+                alert('No se pudo conectar con el servidor.');
+            }
+        }
+
+        // ---------- REGISTRAR VENTA FÍSICA ----------
+
+        function toggleFormularioFisica() {
+            const form = document.getElementById('formularioFisica');
+            const icono = document.getElementById('iconoToggleFisica');
+            form.classList.toggle('hidden');
+            icono.classList.toggle('fa-chevron-down');
+            icono.classList.toggle('fa-chevron-up');
+        }
+
+        async function registrarVentaFisica() {
+            const correo = document.getElementById('fisicaCorreo').value.trim();
+            const producto = document.getElementById('fisicaProducto').value.trim();
+            const precio = document.getElementById('fisicaPrecio').value.trim();
+            const categoria = document.getElementById('fisicaCategoria').value.trim();
+            const metodoPago = document.getElementById('fisicaMetodoPago').value;
+
+            const mensaje = document.getElementById('mensajeFisica');
+            mensaje.classList.add('hidden');
+
+            if (!producto || !precio) {
+                mensaje.textContent = 'Completa al menos producto y precio.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        password: obtenerPassword(),
+                        accion: 'ventaFisica',
+                        nombre: producto,
+                        precio: precio,
+                        categoria: categoria,
+                        metodoPago: metodoPago,
+                        correoCliente: correo
+                    })
+                });
+                const datos = await resp.json();
+
+                if (!datos.ok) {
+                    mensaje.textContent = 'Error: ' + (datos.error || 'no se pudo registrar');
+                    mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
+                    return;
+                }
+
+                mensaje.textContent = '✅ Venta registrada correctamente.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-600';
+
+                document.getElementById('fisicaCorreo').value = '';
+                document.getElementById('fisicaProducto').value = '';
+                document.getElementById('fisicaPrecio').value = '';
+                document.getElementById('fisicaCategoria').value = '';
+
+                cargarResumen();
+            } catch (e) {
+                mensaje.textContent = 'No se pudo conectar con el servidor.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
+            }
+        }
+
+        (function iniciar() {
+            const claveGuardada = obtenerPassword();
+            if (claveGuardada) {
+                mostrarPanel();
+            }
+        })();
+
+        setInterval(() => {
+            if (!panelPrincipal.classList.contains('hidden')) cargarTodo();
+        }, 30000);
     </script>
 </body>
 </html>

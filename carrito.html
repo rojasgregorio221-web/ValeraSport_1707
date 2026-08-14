@@ -424,7 +424,7 @@
 
             try {
                 const cuerpo = {
-                    items: carrito.map(it => ({ nombre: it.nombre + (it.color ? ' - ' + it.color : ''), precio: it.precio, categoria: it.categoria, cantidad: it.cantidad })),
+                    items: carrito.map(it => ({ nombre: it.nombre, precio: it.precio, categoria: it.categoria, cantidad: it.cantidad, color: it.color || '' })),
                     metodoPago: metodoPago,
                     referencia: referencia,
                     correoCliente: usuarioActual.email
