@@ -49,6 +49,10 @@
                     <i class="fa-solid fa-bag-shopping text-sm"></i>
                     <span id="contadorCarrito" class="hidden absolute top-1 right-1.5 bg-cyan-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">0</span>
                 </button>
+                <button id="btnMiPedido" onclick="location.href='carrito.html#pedido'" title="Estado de mi pedido" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
+                    <i class="fa-solid fa-receipt text-sm"></i>
+                    <span id="puntoMiPedido" class="hidden absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full"></span>
+                </button>
                 <button id="btnCuenta" onclick="clicBotonCuenta()" title="Mi cuenta" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
                     <i class="fa-solid fa-user text-sm"></i>
                 </button>
@@ -197,6 +201,14 @@
             localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito));
             actualizarContadorCarrito();
         }
+        const ULTIMO_PEDIDO_KEY = 'vs_ultimo_pedido';
+
+        function actualizarIndicadorPedido() {
+            const punto = document.getElementById('puntoMiPedido');
+            if (!punto) return;
+            punto.classList.toggle('hidden', !localStorage.getItem(ULTIMO_PEDIDO_KEY));
+        }
+
         function actualizarContadorCarrito() {
             const carrito = obtenerCarrito();
             const totalItems = carrito.reduce((sum, it) => sum + (it.cantidad || 1), 0);
@@ -275,6 +287,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             cargarProductosDesdeSheet();
             actualizarContadorCarrito();
+            actualizarIndicadorPedido();
         });
 
         function parseCSV(texto) {

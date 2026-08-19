@@ -51,6 +51,10 @@
                     <i class="fa-solid fa-bag-shopping text-sm"></i>
                     <span id="contadorCarrito" class="hidden absolute top-1 right-1.5 bg-cyan-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">0</span>
                 </button>
+                <button id="btnMiPedido" onclick="document.getElementById('bannerUltimoPedido')?.scrollIntoView({behavior:'smooth'})" title="Estado de mi pedido" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
+                    <i class="fa-solid fa-receipt text-sm"></i>
+                    <span id="puntoMiPedido" class="hidden absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full"></span>
+                </button>
                 <button id="btnCuenta" onclick="clicBotonCuenta()" title="Mi cuenta" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
                     <i class="fa-solid fa-user text-sm"></i>
                 </button>
@@ -471,6 +475,7 @@
                     // le dé "Seguir comprando", pueda volver a carrito.html más tarde
                     // y ver si su pedido fue aceptado o rechazado.
                     localStorage.setItem(ULTIMO_PEDIDO_KEY, JSON.stringify({ idOrden: idOrden, fecha: Date.now() }));
+                    actualizarIndicadorPedido();
                     iniciarConsultaEstado(idOrden);
                 }
             } catch (error) {
@@ -518,12 +523,13 @@
             if (!guardado) return;
 
             let datosGuardados;
-            try { datosGuardados = JSON.parse(guardado); } catch (e) { localStorage.removeItem(ULTIMO_PEDIDO_KEY); return; }
-            if (!datosGuardados || !datosGuardados.idOrden) { localStorage.removeItem(ULTIMO_PEDIDO_KEY); return; }
+            try { datosGuardados = JSON.parse(guardado); } catch (e) { localStorage.removeItem(ULTIMO_PEDIDO_KEY); actualizarIndicadorPedido(); return; }
+            if (!datosGuardados || !datosGuardados.idOrden) { localStorage.removeItem(ULTIMO_PEDIDO_KEY); actualizarIndicadorPedido(); return; }
 
             // Después de 30 días dejamos de mostrarlo, ya no es información útil.
             if (datosGuardados.fecha && (Date.now() - datosGuardados.fecha) > 30 * 24 * 60 * 60 * 1000) {
                 localStorage.removeItem(ULTIMO_PEDIDO_KEY);
+                actualizarIndicadorPedido();
                 return;
             }
 
@@ -565,6 +571,7 @@
                     // "no encontrado" u otro valor inesperado: dejamos de mostrarlo
                     localStorage.removeItem(ULTIMO_PEDIDO_KEY);
                     banner.classList.add('hidden');
+                    actualizarIndicadorPedido();
                 }
             } catch (e) {
                 console.error('Error consultando el último pedido:', e);
@@ -575,6 +582,13 @@
             localStorage.removeItem(ULTIMO_PEDIDO_KEY);
             const banner = document.getElementById('bannerUltimoPedido');
             if (banner) banner.classList.add('hidden');
+            actualizarIndicadorPedido();
+        }
+
+        function actualizarIndicadorPedido() {
+            const punto = document.getElementById('puntoMiPedido');
+            if (!punto) return;
+            punto.classList.toggle('hidden', !localStorage.getItem(ULTIMO_PEDIDO_KEY));
         }
 
         // ---------- HISTORIAL DE COMPRAS ----------
@@ -643,6 +657,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             actualizarContadorCarrito();
+            actualizarIndicadorPedido();
             renderizarCarrito();
             revisarUltimoPedido();
         });
