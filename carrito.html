@@ -65,6 +65,20 @@
 
         <!-- INDICADOR DE PASOS -->
         <div id="vistaCarrito">
+            <!-- Aviso del estado de tu último pedido: persiste aunque salgas y vuelvas -->
+            <div id="bannerUltimoPedido" class="hidden mb-6 rounded-2xl border p-4 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <i id="iconoUltimoPedido" class="fa-solid fa-clock text-lg shrink-0"></i>
+                    <div class="min-w-0">
+                        <p id="textoUltimoPedido" class="text-sm font-semibold"></p>
+                        <p id="subtextoUltimoPedido" class="text-xs text-gray-400"></p>
+                    </div>
+                </div>
+                <button onclick="ocultarUltimoPedido()" title="Ocultar" class="text-gray-300 hover:text-gray-600 text-sm px-2 shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
             <div class="flex items-center gap-3 mb-10 text-xs font-bold uppercase tracking-widest">
                 <span class="paso-activo" id="pasoUno">1. Carrito</span>
                 <span class="text-gray-300">—</span>
@@ -185,6 +199,7 @@
 
     <script>
         const CARRITO_KEY = 'vs_carrito';
+        const ULTIMO_PEDIDO_KEY = 'vs_ultimo_pedido';
         let usuarioActual = null;
         let comprobanteBase64 = null;
 
@@ -451,7 +466,13 @@
                 document.getElementById('vistaConfirmacion').classList.remove('hidden');
 
                 const idOrden = datos.idOrden || datos.id;
-                if (idOrden) iniciarConsultaEstado(idOrden);
+                if (idOrden) {
+                    // Se guarda aquí para que, aunque el cliente cierre la pestaña o
+                    // le dé "Seguir comprando", pueda volver a carrito.html más tarde
+                    // y ver si su pedido fue aceptado o rechazado.
+                    localStorage.setItem(ULTIMO_PEDIDO_KEY, JSON.stringify({ idOrden: idOrden, fecha: Date.now() }));
+                    iniciarConsultaEstado(idOrden);
+                }
             } catch (error) {
                 console.error('Error al confirmar el pedido:', error);
                 btn.disabled = false;
@@ -488,6 +509,72 @@
                 } catch (e) { console.error('Error consultando estado del pedido:', e); }
                 if (intentos > 60) clearInterval(intervalo);
             }, 5000);
+        }
+
+        // ---------- ESTADO DEL ÚLTIMO PEDIDO (persiste al salir/volver) ----------
+
+        async function revisarUltimoPedido() {
+            const guardado = localStorage.getItem(ULTIMO_PEDIDO_KEY);
+            if (!guardado) return;
+
+            let datosGuardados;
+            try { datosGuardados = JSON.parse(guardado); } catch (e) { localStorage.removeItem(ULTIMO_PEDIDO_KEY); return; }
+            if (!datosGuardados || !datosGuardados.idOrden) { localStorage.removeItem(ULTIMO_PEDIDO_KEY); return; }
+
+            // Después de 30 días dejamos de mostrarlo, ya no es información útil.
+            if (datosGuardados.fecha && (Date.now() - datosGuardados.fecha) > 30 * 24 * 60 * 60 * 1000) {
+                localStorage.removeItem(ULTIMO_PEDIDO_KEY);
+                return;
+            }
+
+            const banner = document.getElementById('bannerUltimoPedido');
+            const icono = document.getElementById('iconoUltimoPedido');
+            const texto = document.getElementById('textoUltimoPedido');
+            const subtexto = document.getElementById('subtextoUltimoPedido');
+            if (!banner) return;
+
+            try {
+                const resp = await fetch('/api/estado-pedido?idOrden=' + encodeURIComponent(datosGuardados.idOrden));
+                const resultado = await resp.json();
+                if (!resultado.ok) return;
+
+                const codigo = String(datosGuardados.idOrden).slice(0, 8).toUpperCase();
+
+                if (resultado.estado === 'aceptado') {
+                    banner.className = 'mb-6 rounded-2xl border p-4 flex items-center justify-between gap-3 bg-emerald-50 border-emerald-200';
+                    icono.className = 'fa-solid fa-circle-check text-lg shrink-0 text-emerald-500';
+                    texto.className = 'text-sm font-semibold text-emerald-700';
+                    texto.textContent = '✅ Tu pedido fue aceptado';
+                    subtexto.textContent = 'N° de pedido: ' + codigo;
+                    banner.classList.remove('hidden');
+                } else if (resultado.estado === 'rechazado') {
+                    banner.className = 'mb-6 rounded-2xl border p-4 flex items-center justify-between gap-3 bg-rose-50 border-rose-200';
+                    icono.className = 'fa-solid fa-circle-xmark text-lg shrink-0 text-rose-500';
+                    texto.className = 'text-sm font-semibold text-rose-700';
+                    texto.textContent = '❌ Tu pedido fue rechazado';
+                    subtexto.textContent = 'N° ' + codigo + ' · Escríbenos por WhatsApp si tienes dudas';
+                    banner.classList.remove('hidden');
+                } else if (resultado.estado === 'pendiente') {
+                    banner.className = 'mb-6 rounded-2xl border p-4 flex items-center justify-between gap-3 bg-amber-50 border-amber-200';
+                    icono.className = 'fa-solid fa-clock text-lg shrink-0 text-amber-500';
+                    texto.className = 'text-sm font-semibold text-amber-700';
+                    texto.textContent = '⏳ Tienes un pedido pendiente de revisión';
+                    subtexto.textContent = 'N° de pedido: ' + codigo;
+                    banner.classList.remove('hidden');
+                } else {
+                    // "no encontrado" u otro valor inesperado: dejamos de mostrarlo
+                    localStorage.removeItem(ULTIMO_PEDIDO_KEY);
+                    banner.classList.add('hidden');
+                }
+            } catch (e) {
+                console.error('Error consultando el último pedido:', e);
+            }
+        }
+
+        function ocultarUltimoPedido() {
+            localStorage.removeItem(ULTIMO_PEDIDO_KEY);
+            const banner = document.getElementById('bannerUltimoPedido');
+            if (banner) banner.classList.add('hidden');
         }
 
         // ---------- HISTORIAL DE COMPRAS ----------
@@ -557,6 +644,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             actualizarContadorCarrito();
             renderizarCarrito();
+            revisarUltimoPedido();
         });
 
         window.addEventListener('firebase-auth-changed', (e) => {
