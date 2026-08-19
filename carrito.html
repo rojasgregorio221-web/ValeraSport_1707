@@ -426,14 +426,14 @@
                 const cuerpo = {
                     items: carrito.map(it => ({ nombre: it.nombre, precio: it.precio, categoria: it.categoria, cantidad: it.cantidad, color: it.color || '' })),
                     metodoPago: metodoPago,
-                    referencia: referencia,
-                    correoCliente: usuarioActual.email
+                    referencia: referencia
                 };
                 if (comprobanteBase64) cuerpo.comprobante = comprobanteBase64;
 
+                const token = await usuarioActual.getIdToken();
                 const respuesta = await fetch('/api/marcar-pagado', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify(cuerpo)
                 });
                 const datos = await respuesta.json();

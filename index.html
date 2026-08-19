@@ -225,16 +225,24 @@
     <section id="politicas" class="border-t border-gray-100 py-16 md:py-24 bg-gray-50">
         <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-10">
             <div class="bg-white rounded-2xl border border-gray-100 p-8">
-                <div class="w-11 h-11 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-500 mb-4">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                </div>
-                <h3 class="font-brand font-bold text-lg text-gray-900 mb-2">Ventas al mayor</h3>
-                <p class="text-sm text-gray-600 leading-relaxed">
-                    Para compras al mayor, escríbenos directo por
-                    <a href="https://wa.me/584245939407" target="_blank" class="text-cyan-600 font-semibold hover:text-cyan-500">WhatsApp</a>
-                    o dirígete a nuestra tienda física en Barquisimeto. Los pedidos al mayor no se procesan por la tienda en línea.
-                </p>
-            </div>
+  <div class="w-11 h-11 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-500 mb-4">
+    <i class="fa-solid fa-boxes-stacked"></i>
+  </div>
+  <h3 class="font-brand font-bold text-lg text-gray-900 mb-2">Ventas al mayor</h3>
+  <div class="text-sm text-gray-600 leading-relaxed space-y-2">
+    <p>
+      A partir de 3 piezas (de cualquier modelo), obtén <strong>$1 de descuento en cada prenda</strong>, disponible tanto en nuestra web como en la tienda física.
+    </p>
+    <p>
+      Para pedidos por docenas o gran volumen, escríbenos a 
+      <a href="https://wa.me/584245939407" target="_blank" class="text-cyan-600 font-semibold hover:text-cyan-500">WhatsApp</a> 
+      o visítanos en Barquisimeto.
+    </p>
+    <p class="text-xs text-gray-500 italic pt-1">
+      *Todos los pagos en Bs. están sujetos a la tasa oficial del BCV del día.
+    </p>
+  </div>
+</div>
             <div class="bg-white rounded-2xl border border-gray-100 p-8">
                 <div class="w-11 h-11 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-500 mb-4">
                     <i class="fa-solid fa-rotate-left"></i>
@@ -365,7 +373,7 @@
                 revisarParametroURL();
             } catch (error) {
                 console.error("Error al cargar el catálogo:", error);
-                if (estado) estado.textContent = "No se pudo cargar el catálogo. Si estás probando en local, recuerda usar 'netlify dev'.";
+                if (estado) estado.textContent = "No se pudo cargar el catálogo. Si estás probando en local, recuerda usar 'wrangler pages dev .'.";
             }
         }
 
@@ -469,10 +477,10 @@
             return `
                 <div class="carrusel-item flex-shrink-0 w-44 md:w-64 cursor-pointer group" onclick="abrirDetalle(${argsAbrirDetalle})">
                     <div class="w-full h-48 md:h-72 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center mb-3">
-                        <img src="${imagenUrl}" alt="${nombreProducto}" class="max-w-[85%] max-h-[85%] object-contain group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
+                        <img src="${escapeHTML(imagenUrl)}" alt="${escapeHTML(nombreProducto)}" class="max-w-[85%] max-h-[85%] object-contain group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
                     </div>
-                    <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5">${categoriaLabel}</span>
-                    <h3 class="text-sm text-gray-900 font-medium leading-snug line-clamp-1">${nombreProducto}</h3>
+                    <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5">${escapeHTML(categoriaLabel)}</span>
+                    <h3 class="text-sm text-gray-900 font-medium leading-snug line-clamp-1">${escapeHTML(nombreProducto)}</h3>
                     <p class="text-sm font-bold text-gray-900 mt-1">$${precioFormateado}${!estaDisponible ? ' <span class="text-gray-400 font-normal">· Agotado</span>' : ''}</p>
                 </div>
             `;
@@ -487,7 +495,7 @@
             cont.classList.remove('hidden');
             cont.innerHTML = listaImagenes.map((img, i) => `
                 <button onclick="cambiarImagenDetalle('${escapeJS(img)}', this)" class="icon-btn w-14 h-14 shrink-0 rounded-lg overflow-hidden border-2 ${i === 0 ? 'border-cyan-400' : 'border-gray-200'}">
-                    <img src="${img}" class="w-full h-full object-cover" onerror="this.src='imagenes/logo.jpg'">
+                    <img src="${escapeHTML(img)}" class="w-full h-full object-cover" onerror="this.src='imagenes/logo.jpg'">
                 </button>
             `).join('');
         }

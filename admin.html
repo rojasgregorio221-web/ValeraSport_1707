@@ -197,6 +197,16 @@
             return div.innerHTML;
         }
 
+        // Solo aceptamos URLs http(s) o imágenes data:, para que un valor
+        // malicioso en el Sheet (ej. "javascript:...") no pueda ejecutarse
+        // al hacer clic en el comprobante.
+        function sanitizarURLImagen(url) {
+            const valor = url && String(url).trim();
+            if (!valor) return null;
+            if (/^https?:\/\//i.test(valor) || /^data:image\//i.test(valor)) return valor;
+            return null;
+        }
+
         async function cargarPedidos() {
             const cargando = document.getElementById('cargando');
             const lista = document.getElementById('listaPedidos');
@@ -240,7 +250,7 @@
             const idAttr = escapeHTML(orden.idOrden);
             const metodoPago = escapeHTML(orden.metodoPago || 'No especificado');
             const referencia = orden.referencia && String(orden.referencia).trim() ? escapeHTML(orden.referencia) : null;
-            const comprobanteUrl = orden.comprobanteUrl && String(orden.comprobanteUrl).trim() ? orden.comprobanteUrl : null;
+            const comprobanteUrl = sanitizarURLImagen(orden.comprobanteUrl);
             const items = orden.items || [];
 
             const listaItems = items.map(it => `
@@ -280,8 +290,8 @@
                         ${comprobanteUrl ? `
                         <div class="mt-3">
                             <span class="text-gray-400 uppercase font-bold text-xs block mb-2">Comprobante:</span>
-                            <a href="${comprobanteUrl}" target="_blank">
-                                <img src="${comprobanteUrl}" class="w-full max-h-64 object-contain rounded-lg border border-gray-200 bg-white" alt="Comprobante de pago">
+                            <a href="${escapeHTML(comprobanteUrl)}" target="_blank" rel="noopener noreferrer">
+                                <img src="${escapeHTML(comprobanteUrl)}" class="w-full max-h-64 object-contain rounded-lg border border-gray-200 bg-white" alt="Comprobante de pago">
                             </a>
                         </div>` : `
                         <div class="flex justify-between items-center text-xs mt-2">

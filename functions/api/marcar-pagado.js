@@ -4,12 +4,19 @@
 // una ORDEN PENDIENTE en el Sheet. El stock de cada producto se reserva
 // (descuenta) al instante. El admin la aprueba o rechaza desde admin.html.
 //
+// Requiere sesión de Firebase (Authorization: Bearer <idToken>) -- el correo
+// del cliente se toma SIEMPRE del token verificado, nunca de lo que mande el
+// body, para que nadie pueda crear pedidos a nombre de otra persona ni
+// golpear este endpoint público sin haber iniciado sesión.
+//
 // Body esperado:
 // {
 //   items: [{ nombre, precio, categoria, cantidad }, ...],
-//   metodoPago, referencia, correoCliente,
+//   metodoPago, referencia,
 //   comprobante  // opcional: imagen en base64 (data URL) del comprobante de pago
 // }
+
+import { verificarTokenFirebase } from "../_utils/verificarFirebase.js";
 
 const MAX_COMPROBANTE_BASE64 = 2_000_000;
 
@@ -23,11 +30,25 @@ function jsonResponse(obj, status) {
 export async function onRequestPost(context) {
   const { request, env } = context;
   const SHEET_WRITE_URL = env.SHEET_WRITE_URL;
+  const FIREBASE_PROJECT_ID = env.FIREBASE_PROJECT_ID;
 
-  if (!SHEET_WRITE_URL) {
+  if (!SHEET_WRITE_URL || !FIREBASE_PROJECT_ID) {
     return jsonResponse(
-      { ok: false, error: "Falta configurar la variable de entorno SHEET_WRITE_URL en Cloudflare Pages" },
+      { ok: false, error: "Faltan variables de entorno en Cloudflare Pages" },
       500
+    );
+  }
+
+  const encabezadoAuth = request.headers.get("Authorization") || "";
+  const idToken = encabezadoAuth.startsWith("Bearer ") ? encabezadoAuth.slice(7) : null;
+
+  let payload;
+  try {
+    payload = await verificarTokenFirebase(idToken, FIREBASE_PROJECT_ID);
+  } catch (error) {
+    return jsonResponse(
+      { ok: false, error: "Debes iniciar sesión para confirmar tu pedido (" + error.message + ")" },
+      401
     );
   }
 
@@ -72,7 +93,7 @@ export async function onRequestPost(context) {
     items: itemsLimpios,
     metodoPago: recortar(datos.metodoPago, 50),
     referencia: recortar(datos.referencia, 100),
-    correoCliente: recortar(datos.correoCliente, 200),
+    correoCliente: payload.email,
   };
   if (datos.comprobante && typeof datos.comprobante === "string") {
     cuerpoParaSheet.comprobante = datos.comprobante;
