@@ -625,11 +625,15 @@
             let valorBusqueda = textoLeido.trim();
             try {
                 const url = new URL(textoLeido);
-                const param = url.searchParams.get('producto') || url.searchParams.get('buscar');
+                const param = url.searchParams.get('producto') || url.searchParams.get('buscar') || url.searchParams.get('codigo');
                 if (param) valorBusqueda = param;
             } catch (e) {}
 
-            const coincidencia = productos.find(p => (p.producto || p.nombre || '').toLowerCase().trim() === valorBusqueda.toLowerCase().trim());
+            const buscado = valorBusqueda.toLowerCase().trim();
+            // Primero por "codigo" (el QR físico fijo y reutilizable), y si no
+            // existe esa columna o no coincide, buscamos por nombre como antes.
+            const coincidencia = productos.find(p => (p.codigo || '').toLowerCase().trim() === buscado)
+                || productos.find(p => (p.producto || p.nombre || '').toLowerCase().trim() === buscado);
             if (coincidencia) {
                 let nombreProducto = coincidencia.producto || coincidencia.nombre;
                 let textoImagen = coincidencia.imagen || '';
@@ -645,7 +649,7 @@
 
         function revisarParametroURL() {
             const params = new URLSearchParams(window.location.search);
-            const productoParam = params.get('producto') || params.get('buscar');
+            const productoParam = params.get('producto') || params.get('buscar') || params.get('codigo');
             if (productoParam) procesarCodigoQR(productoParam);
         }
 
