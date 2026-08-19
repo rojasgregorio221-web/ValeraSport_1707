@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta tu pedido | Valera Sport</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        html, body { overflow-x: hidden; max-width: 100vw; width: 100%; }
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #111111; width: 100%; }
+        h1, h2, h3, .font-brand { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="antialiased min-h-screen">
+
+    <!-- HEADER -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+        <div class="max-w-3xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="index.html" class="font-brand font-extrabold text-xl tracking-tight text-gray-900">
+                VALERA<span class="text-cyan-500">SPORT</span>
+            </a>
+            <a href="index.html" class="text-sm text-gray-500 hover:text-gray-900 transition">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Volver a la tienda
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-6 pt-32 pb-20">
+        <div class="text-center mb-10">
+            <h1 class="font-brand font-bold text-3xl text-gray-900 mb-2">Consulta tu pedido</h1>
+            <p class="text-gray-500 text-sm">Escribe el número de pedido que te mostramos al confirmar tu compra (ej: <span class="font-mono">08D0286E</span>).</p>
+        </div>
+
+        <form id="formBuscar" class="flex items-center gap-2 mb-10">
+            <input type="text" id="inputCodigo" placeholder="Número de pedido" autocomplete="off"
+                class="flex-1 border border-gray-200 rounded-full px-5 py-3.5 text-sm outline-none focus:border-cyan-400 uppercase tracking-wider font-mono">
+            <button type="submit" class="bg-gray-900 hover:bg-gray-700 text-white font-semibold px-6 py-3.5 rounded-full text-sm transition shrink-0">
+                <i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar
+            </button>
+        </form>
+
+        <div id="resultado"></div>
+    </main>
+
+    <footer class="border-t border-gray-100 py-10 text-center">
+        <p class="text-xs tracking-wide text-gray-400">© 2026 Valera Sport. Todos los derechos reservados.</p>
+        <a href="https://wa.me/584245939407" target="_blank" class="inline-block mt-3 text-xs font-semibold text-cyan-600 hover:text-cyan-500">
+            <i class="fa-brands fa-whatsapp mr-1"></i> ¿No encuentras tu pedido? Escríbenos
+        </a>
+    </footer>
+
+    <script>
+        const ULTIMO_PEDIDO_KEY = 'vs_ultimo_pedido';
+
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? '' : String(str);
+            return div.innerHTML;
+        }
+
+        function sanitizarURLImagen(url) {
+            const valor = url && String(url).trim();
+            if (!valor) return null;
+            if (/^https?:\/\//i.test(valor) || /^data:image\//i.test(valor)) return valor;
+            return null;
+        }
+
+        const formBuscar = document.getElementById('formBuscar');
+        const inputCodigo = document.getElementById('inputCodigo');
+        const resultado = document.getElementById('resultado');
+
+        formBuscar.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const codigo = inputCodigo.value.trim();
+            if (!codigo) return;
+            buscarPedido(codigo);
+        });
+
+        async function buscarPedido(codigo) {
+            resultado.innerHTML = `
+                <p class="text-center text-sm text-gray-400 py-10">
+                    <i class="fa-solid fa-spinner fa-spin mr-1"></i> Buscando tu pedido...
+                </p>
+            `;
+
+            try {
+                const resp = await fetch('/api/estado-pedido?idOrden=' + encodeURIComponent(codigo));
+                const datos = await resp.json();
+
+                if (!datos.ok) {
+                    mostrarNoEncontrado();
+                    return;
+                }
+
+                if (!datos.estado || datos.estado === 'no encontrado') {
+                    mostrarNoEncontrado();
+                    return;
+                }
+
+                mostrarOrden(datos);
+            } catch (e) {
+                resultado.innerHTML = `
+                    <p class="text-center text-sm text-rose-500 py-10">
+                        No se pudo conectar con el servidor. Intenta de nuevo en un momento.
+                    </p>
+                `;
+            }
+        }
+
+        function mostrarNoEncontrado() {
+            resultado.innerHTML = `
+                <div class="text-center py-10">
+                    <i class="fa-solid fa-circle-question text-3xl text-gray-200 mb-4"></i>
+                    <p class="text-gray-500 text-sm">No encontramos ningún pedido con ese código.</p>
+                    <p class="text-gray-400 text-xs mt-1">Verifica que esté bien escrito o escríbenos por WhatsApp.</p>
+                </div>
+            `;
+        }
+
+        function mostrarOrden(orden) {
+            const codigo = String(orden.idOrden || '').slice(0, 8).toUpperCase();
+            const fecha = orden.fecha ? new Date(orden.fecha).toLocaleString('es-VE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+            const total = Number(orden.total || 0).toFixed(2);
+            const items = orden.items || [];
+            const comprobanteUrl = sanitizarURLImagen(orden.comprobanteUrl);
+
+            let estadoBadge;
+            if (orden.estado === 'aceptado') {
+                estadoBadge = `<span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full"><i class="fa-solid fa-circle-check"></i> Aceptado</span>`;
+            } else if (orden.estado === 'rechazado') {
+                estadoBadge = `<span class="inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full"><i class="fa-solid fa-circle-xmark"></i> Rechazado</span>`;
+            } else {
+                estadoBadge = `<span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full"><i class="fa-solid fa-clock"></i> Pendiente de revisión</span>`;
+            }
+
+            const listaItems = items.map(it => `
+                <div class="flex justify-between items-center text-sm py-2.5 border-b border-gray-50 last:border-0">
+                    <div class="min-w-0 pr-3">
+                        <p class="text-gray-900 font-medium">${escapeHTML(it.producto)}</p>
+                        <p class="text-[11px] text-gray-400 uppercase tracking-wide">${escapeHTML(it.categoria || 'Variados')}</p>
+                    </div>
+                    <span class="text-gray-700 text-sm font-mono shrink-0">$${Number(it.precio || 0).toFixed(2)}</span>
+                </div>
+            `).join('');
+
+            resultado.innerHTML = `
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-start justify-between mb-4 gap-3">
+                        <div>
+                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">N° de pedido</p>
+                            <p class="font-mono text-lg font-bold text-gray-900">${escapeHTML(codigo)}</p>
+                        </div>
+                        ${estadoBadge}
+                    </div>
+
+                    <p class="text-xs text-gray-400 mb-4">${escapeHTML(fecha)}</p>
+
+                    <div class="bg-gray-50 rounded-xl px-4 py-1 mb-4">
+                        ${listaItems || '<p class="text-xs text-gray-400 py-3">Sin productos registrados</p>'}
+                    </div>
+
+                    <div class="flex justify-between items-center text-sm font-bold text-gray-900 mb-4">
+                        <span>Total</span>
+                        <span>$${total}</span>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-400 uppercase font-bold">Método de pago:</span>
+                            <span class="text-gray-900 font-semibold">${escapeHTML(orden.metodoPago || 'No especificado')}</span>
+                        </div>
+                        ${orden.referencia ? `
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-400 uppercase font-bold">Referencia:</span>
+                            <span class="text-gray-900 font-mono">${escapeHTML(orden.referencia)}</span>
+                        </div>` : ''}
+                    </div>
+
+                    ${comprobanteUrl ? `
+                    <div class="mt-4">
+                        <span class="text-gray-400 uppercase font-bold text-xs block mb-2">Tu comprobante:</span>
+                        <a href="${escapeHTML(comprobanteUrl)}" target="_blank" rel="noopener noreferrer">
+                            <img src="${escapeHTML(comprobanteUrl)}" class="w-full max-h-64 object-contain rounded-lg border border-gray-200 bg-white" alt="Comprobante de pago">
+                        </a>
+                    </div>` : ''}
+
+                    ${orden.estado === 'rechazado' ? `
+                    <a href="https://wa.me/584245939407" target="_blank" class="block text-center mt-5 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3 rounded-full text-sm transition">
+                        <i class="fa-brands fa-whatsapp mr-1"></i> Escríbenos por WhatsApp
+                    </a>` : ''}
+                </div>
+            `;
+        }
+
+        // Si venimos de un link directo (?idOrden=... o ?codigo=...), buscamos de una vez.
+        // Si no, y hay un pedido guardado en este navegador, lo autocompletamos.
+        (function iniciar() {
+            const params = new URLSearchParams(window.location.search);
+            const desdeURL = params.get('idOrden') || params.get('codigo');
+            if (desdeURL) {
+                inputCodigo.value = desdeURL;
+                buscarPedido(desdeURL);
+                return;
+            }
+
+            try {
+                const guardado = JSON.parse(localStorage.getItem(ULTIMO_PEDIDO_KEY) || 'null');
+                if (guardado && guardado.idOrden) {
+                    const codigo = String(guardado.idOrden).slice(0, 8).toUpperCase();
+                    inputCodigo.value = codigo;
+                    buscarPedido(guardado.idOrden);
+                }
+            } catch (e) {}
+        })();
+    </script>
+</body>
+</html>
