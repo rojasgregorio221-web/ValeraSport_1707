@@ -17,6 +17,8 @@
         ::-webkit-scrollbar-track { background: #fff; }
         ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
         .icon-btn { transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease; }
+        .tab-pedidos { color: #9ca3af; border-bottom: 2px solid transparent; }
+        .tab-pedidos.activa { color: #111; border-bottom-color: #06b6d4; }
     </style>
 </head>
 <body class="antialiased min-h-screen">
@@ -98,32 +100,61 @@
             </div>
         </div>
 
-        <!-- LISTA DE ÓRDENES PENDIENTES -->
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-gray-900">Órdenes pendientes</h2>
-            <div class="flex items-center gap-1">
-                <button onclick="cargarTodo()" title="Actualizar" class="icon-btn text-gray-400 hover:text-cyan-500 w-8 h-8 flex items-center justify-center rounded-full">
-                    <i class="fa-solid fa-arrows-rotate text-sm"></i>
+        <!-- PESTAÑAS: PENDIENTES / ACEPTADAS -->
+        <div class="flex items-center justify-between mb-1 border-b border-gray-100">
+            <div class="flex items-center gap-6">
+                <button data-tab="pendientes" onclick="cambiarTabPedidos('pendientes')" class="tab-pedidos activa font-bold text-sm pb-3">
+                    Pendientes
                 </button>
-                <button onclick="rechazarTodosPendientes()" title="Rechazar todas las órdenes pendientes" class="icon-btn text-gray-400 hover:text-rose-500 w-8 h-8 flex items-center justify-center rounded-full">
+                <button data-tab="aceptadas" onclick="cambiarTabPedidos('aceptadas')" class="tab-pedidos font-bold text-sm pb-3">
+                    Aceptadas
+                </button>
+            </div>
+            <div class="flex items-center gap-1 pb-2">
+                <button onclick="refrescarManual()" title="Actualizar" class="icon-btn text-gray-400 hover:text-cyan-500 w-8 h-8 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-arrows-rotate text-sm" id="iconoRefrescar"></i>
+                </button>
+                <button id="btnRechazarTodos" onclick="rechazarTodosPendientes()" title="Rechazar todas las órdenes pendientes" class="icon-btn text-gray-400 hover:text-rose-500 w-8 h-8 flex items-center justify-center rounded-full">
                     <i class="fa-solid fa-trash text-sm"></i>
                 </button>
             </div>
         </div>
+        <p id="ultimaActualizacion" class="text-[11px] text-gray-300 mb-4"></p>
 
-        <p id="cargando" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
-        <div id="listaPedidos" class="space-y-4"></div>
-        <p id="sinPedidos" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes pendientes por ahora.</p>
+        <!-- VISTA: PENDIENTES -->
+        <div id="vistaPendientes">
+            <p id="cargando" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
+            <div id="listaPedidos" class="space-y-4"></div>
+            <p id="sinPedidos" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes pendientes por ahora.</p>
+        </div>
+
+        <!-- VISTA: ACEPTADAS -->
+        <div id="vistaAceptadas" class="hidden">
+            <p id="cargandoAceptadas" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
+            <div id="listaAceptadas" class="space-y-4"></div>
+            <p id="sinAceptadas" class="hidden text-sm text-gray-400 text-center py-10">Todavía no hay órdenes aceptadas.</p>
+        </div>
     </div>
 
     <script>
         const PASSWORD_KEY = 'vs_admin_password';
+        const INTERVALO_REFRESCO = 30000;
 
         const formLogin = document.getElementById('formLogin');
         const inputPassword = document.getElementById('inputPassword');
         const errorLogin = document.getElementById('errorLogin');
         const pantallaLogin = document.getElementById('pantallaLogin');
         const panelPrincipal = document.getElementById('panelPrincipal');
+
+        let tabActiva = 'pendientes';
+
+        // Contadores para descartar respuestas "viejas" que lleguen después de
+        // una más reciente (evita que una petición lenta pise a una nueva y
+        // haga que un pedido recién llegado "desaparezca" de la pantalla).
+        let idSolicitudPedidos = 0;
+        let idSolicitudAceptadas = 0;
+        let peticionPedidosEnCurso = false;
+        let peticionAceptadasEnCurso = false;
 
         formLogin.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -170,8 +201,51 @@
             return sessionStorage.getItem(PASSWORD_KEY) || '';
         }
 
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? '' : String(str);
+            return div.innerHTML;
+        }
+
+        // Solo aceptamos URLs http(s) o imágenes data:, para que un valor
+        // malicioso en el Sheet (ej. "javascript:...") no pueda ejecutarse
+        // al hacer clic en el comprobante.
+        function sanitizarURLImagen(url) {
+            const valor = url && String(url).trim();
+            if (!valor) return null;
+            if (/^https?:\/\//i.test(valor) || /^data:image\//i.test(valor)) return valor;
+            return null;
+        }
+
+        function marcarActualizado() {
+            const el = document.getElementById('ultimaActualizacion');
+            if (!el) return;
+            const ahora = new Date();
+            el.textContent = 'Actualizado ' + ahora.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        // ---------- PESTAÑAS ----------
+
+        function cambiarTabPedidos(tab) {
+            tabActiva = tab;
+            document.querySelectorAll('.tab-pedidos').forEach(btn => btn.classList.toggle('activa', btn.dataset.tab === tab));
+            document.getElementById('vistaPendientes').classList.toggle('hidden', tab !== 'pendientes');
+            document.getElementById('vistaAceptadas').classList.toggle('hidden', tab !== 'aceptadas');
+            document.getElementById('btnRechazarTodos').classList.toggle('hidden', tab !== 'pendientes');
+            if (tab === 'aceptadas') cargarAceptadas();
+        }
+
+        function refrescarManual() {
+            const icono = document.getElementById('iconoRefrescar');
+            if (icono) { icono.classList.add('fa-spin'); setTimeout(() => icono.classList.remove('fa-spin'), 600); }
+            cargarTodo();
+        }
+
         async function cargarTodo() {
-            await Promise.all([cargarResumen(), cargarPedidos()]);
+            const tareas = [cargarResumen(), cargarPedidos()];
+            if (tabActiva === 'aceptadas') tareas.push(cargarAceptadas());
+            await Promise.all(tareas);
+            marcarActualizado();
         }
 
         async function cargarResumen() {
@@ -191,29 +265,18 @@
             }
         }
 
-        function escapeHTML(str) {
-            const div = document.createElement('div');
-            div.textContent = str == null ? '' : String(str);
-            return div.innerHTML;
-        }
-
-        // Solo aceptamos URLs http(s) o imágenes data:, para que un valor
-        // malicioso en el Sheet (ej. "javascript:...") no pueda ejecutarse
-        // al hacer clic en el comprobante.
-        function sanitizarURLImagen(url) {
-            const valor = url && String(url).trim();
-            if (!valor) return null;
-            if (/^https?:\/\//i.test(valor) || /^data:image\//i.test(valor)) return valor;
-            return null;
-        }
+        // ---------- PEDIDOS PENDIENTES ----------
 
         async function cargarPedidos() {
+            if (peticionPedidosEnCurso) return; // ya hay una en camino, no se apilan
+            peticionPedidosEnCurso = true;
+            const miId = ++idSolicitudPedidos;
+
             const cargando = document.getElementById('cargando');
             const lista = document.getElementById('listaPedidos');
             const sinPedidos = document.getElementById('sinPedidos');
 
-            cargando.classList.remove('hidden');
-            sinPedidos.classList.add('hidden');
+            if (!lista.children.length) cargando.classList.remove('hidden');
 
             try {
                 const resp = await fetch('/api/admin-pedidos', {
@@ -222,7 +285,13 @@
                     body: JSON.stringify({ password: obtenerPassword(), tipo: 'pedidos' })
                 });
                 const datos = await resp.json();
+
+                // Si mientras esperábamos ya salió una solicitud más nueva,
+                // esta respuesta está vieja: la ignoramos para no pisar datos frescos.
+                if (miId !== idSolicitudPedidos) return;
+
                 cargando.classList.add('hidden');
+                sinPedidos.classList.add('hidden');
 
                 if (!datos.ok) {
                     lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar órdenes') + '</p>';
@@ -237,14 +306,67 @@
                     return;
                 }
 
-                lista.innerHTML = ordenes.map(tarjetaOrden).join('');
+                lista.innerHTML = ordenes.map(o => tarjetaOrden(o, true)).join('');
             } catch (e) {
+                if (miId !== idSolicitudPedidos) return;
                 cargando.classList.add('hidden');
                 lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
+            } finally {
+                peticionPedidosEnCurso = false;
             }
         }
 
-        function tarjetaOrden(orden) {
+        // ---------- ÓRDENES ACEPTADAS ----------
+
+        async function cargarAceptadas() {
+            if (peticionAceptadasEnCurso) return;
+            peticionAceptadasEnCurso = true;
+            const miId = ++idSolicitudAceptadas;
+
+            const cargando = document.getElementById('cargandoAceptadas');
+            const lista = document.getElementById('listaAceptadas');
+            const sinAceptadas = document.getElementById('sinAceptadas');
+
+            if (!lista.children.length) cargando.classList.remove('hidden');
+
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), tipo: 'aceptados' })
+                });
+                const datos = await resp.json();
+
+                if (miId !== idSolicitudAceptadas) return;
+
+                cargando.classList.add('hidden');
+                sinAceptadas.classList.add('hidden');
+
+                if (!datos.ok) {
+                    lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar órdenes') + '</p>';
+                    return;
+                }
+
+                const ordenes = datos.ordenes || [];
+
+                if (!ordenes.length) {
+                    lista.innerHTML = '';
+                    sinAceptadas.classList.remove('hidden');
+                    return;
+                }
+
+                lista.innerHTML = ordenes.map(o => tarjetaOrden(o, false)).join('');
+            } catch (e) {
+                if (miId !== idSolicitudAceptadas) return;
+                cargando.classList.add('hidden');
+                lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
+            } finally {
+                peticionAceptadasEnCurso = false;
+            }
+        }
+
+        // `conBotones` = true para pendientes (aceptar/rechazar), false para aceptadas (solo lectura)
+        function tarjetaOrden(orden, conBotones) {
             const fecha = orden.fecha ? new Date(orden.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
             const total = Number(orden.total || 0).toFixed(2);
             const idAttr = escapeHTML(orden.idOrden);
@@ -267,7 +389,9 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5" id="orden-${idAttr}" data-idorden="${idAttr}">
                     <div class="flex justify-between items-start mb-3">
                         <div>
-                            <span class="text-[10px] font-bold text-cyan-600 uppercase tracking-widest block mb-1">${items.length} ${items.length === 1 ? 'producto' : 'productos'}</span>
+                            <span class="text-[10px] font-bold ${conBotones ? 'text-cyan-600' : 'text-emerald-600'} uppercase tracking-widest block mb-1">
+                                ${conBotones ? '' : '<i class="fa-solid fa-check mr-1"></i> '}${items.length} ${items.length === 1 ? 'producto' : 'productos'}
+                            </span>
                             <p class="text-xs text-gray-400">${escapeHTML(fecha)}</p>
                         </div>
                         <span class="text-xl font-black text-gray-900">$${total}</span>
@@ -277,7 +401,7 @@
                         ${listaItems}
                     </div>
 
-                    <div class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4">
+                    <div class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 ${conBotones ? 'mb-4' : ''}">
                         <div class="flex justify-between items-center text-xs">
                             <span class="text-gray-400 uppercase font-bold">Método de pago:</span>
                             <span class="text-gray-900 font-semibold">${metodoPago}</span>
@@ -300,6 +424,7 @@
                         </div>`}
                     </div>
 
+                    ${conBotones ? `
                     <div class="grid grid-cols-2 gap-3">
                         <button data-accion="rechazarOrden" class="bg-white hover:bg-rose-50 border border-gray-200 hover:border-rose-300 text-gray-600 hover:text-rose-600 font-bold py-3 rounded-full text-sm transition">
                             <i class="fa-solid fa-xmark mr-1"></i> Rechazar
@@ -307,7 +432,7 @@
                         <button data-accion="aceptarOrden" class="bg-cyan-500 hover:bg-cyan-400 text-white font-black py-3 rounded-full text-sm transition">
                             <i class="fa-solid fa-check mr-1"></i> Aceptar
                         </button>
-                    </div>
+                    </div>` : ''}
                 </div>
             `;
         }
@@ -321,7 +446,7 @@
         });
 
         async function responderOrden(idOrden, accion) {
-            const tarjeta = document.querySelector(`[data-idorden="${CSS.escape(idOrden)}"]`);
+            const tarjeta = document.querySelector(`#listaPedidos [data-idorden="${CSS.escape(idOrden)}"]`);
             if (tarjeta) tarjeta.style.opacity = '0.4';
 
             try {
@@ -345,6 +470,7 @@
                 if (!lista.children.length) {
                     document.getElementById('sinPedidos').classList.remove('hidden');
                 }
+                if (accion === 'aceptarOrden' && tabActiva === 'aceptadas') cargarAceptadas();
             } catch (e) {
                 alert('No se pudo conectar con el servidor.');
                 if (tarjeta) tarjeta.style.opacity = '1';
@@ -446,7 +572,7 @@
 
         setInterval(() => {
             if (!panelPrincipal.classList.contains('hidden')) cargarTodo();
-        }, 30000);
+        }, INTERVALO_REFRESCO);
     </script>
 </body>
 </html>

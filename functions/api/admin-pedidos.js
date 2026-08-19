@@ -4,6 +4,7 @@
 // contraseña (ADMIN_PASSWORD), sin relación con el login de clientes.
 //
 // POST { password, tipo: "pedidos" }   -> lista de órdenes pendientes (agrupadas)
+// POST { password, tipo: "aceptados" } -> últimas órdenes ya aceptadas (agrupadas)
 // POST { password, tipo: "resumen" }   -> total vendido hoy
 // POST { password, accion: "aceptarOrden"|"rechazarOrden"|"rechazar_todos", idOrden }
 // POST { password, accion: "ventaFisica", nombre, precio, categoria,
@@ -52,8 +53,8 @@ export async function onRequestPost(context) {
     return jsonResponse({ ok: false, error: "Contraseña incorrecta" }, 401);
   }
 
-  // Lectura: listar órdenes pendientes o el resumen de ventas del día
-  if (datos.tipo === "pedidos" || datos.tipo === "resumen") {
+  // Lectura: listar órdenes pendientes/aceptadas o el resumen de ventas del día
+  if (datos.tipo === "pedidos" || datos.tipo === "aceptados" || datos.tipo === "resumen") {
     const url = SHEET_WRITE_URL + "?accion=" + datos.tipo + "&clave=" + encodeURIComponent(CLAVE_ADMIN);
     const respuesta = await fetch(url, { method: "GET" });
     const resultado = await parsearRespuesta(respuesta);
