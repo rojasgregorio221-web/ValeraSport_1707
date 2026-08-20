@@ -7,6 +7,7 @@
     <title>Panel de Pedidos | Valera Sport</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -72,7 +73,12 @@
                     <input type="email" id="fisicaCorreo" placeholder="cliente@correo.com" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Producto</label>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Producto</label>
+                        <button type="button" onclick="abrirScannerVenta()" class="icon-btn text-xs font-bold text-cyan-600 hover:text-cyan-500 flex items-center gap-1">
+                            <i class="fa-solid fa-qrcode"></i> Escanear
+                        </button>
+                    </div>
                     <input type="text" id="fisicaProducto" placeholder="Nombre del producto" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
@@ -97,6 +103,21 @@
                     <i class="fa-solid fa-plus mr-1"></i> Registrar venta
                 </button>
                 <p id="mensajeFisica" class="hidden text-center text-xs font-semibold py-2"></p>
+            </div>
+        </div>
+
+        <!-- MODAL ESCÁNER QR (venta física) -->
+        <div id="scannerModalVenta" class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
+            <button onclick="cerrarScannerVenta()" class="icon-btn absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full text-white/80 hover:text-white text-base z-10">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="w-full max-w-sm">
+                <div class="relative rounded-2xl overflow-hidden border border-white/20 bg-black aspect-square">
+                    <video id="scannerVideoVenta" class="w-full h-full object-cover" playsinline autoplay muted></video>
+                    <div class="absolute inset-0 pointer-events-none border-[3px] border-cyan-400/70 m-10 rounded-xl"></div>
+                </div>
+                <canvas id="scannerCanvasVenta" class="hidden"></canvas>
+                <p id="scannerEstadoVenta" class="text-white/70 text-sm mt-4 text-center">Apunta la cámara al código QR de la prenda</p>
             </div>
         </div>
 
@@ -156,6 +177,10 @@
         let peticionPedidosEnCurso = false;
         let peticionAceptadasEnCurso = false;
 
+        let productosCatalogo = [];
+        let scannerVentaStream = null;
+        let scannerVentaRAF = null;
+
         formLogin.addEventListener('submit', async (e) => {
             e.preventDefault();
             const clave = inputPassword.value.trim();
@@ -188,6 +213,7 @@
             pantallaLogin.classList.add('hidden');
             panelPrincipal.classList.remove('hidden');
             cargarTodo();
+            cargarProductosCatalogo();
         }
 
         function cerrarSesion() {
@@ -497,6 +523,137 @@
                 cargarTodo();
             } catch (e) {
                 alert('No se pudo conectar con el servidor.');
+            }
+        }
+
+        // ---------- CATÁLOGO (para el escáner de venta física) ----------
+
+        async function cargarProductosCatalogo() {
+            try {
+                const respuesta = await fetch('/api/obtener-productos');
+                if (!respuesta.ok) return;
+                const texto = await respuesta.text();
+                productosCatalogo = parseCSV(texto);
+            } catch (e) {
+                console.error('No se pudo cargar el catálogo para el escáner:', e);
+            }
+        }
+
+        function parseCSV(texto) {
+            const filas = [];
+            let fila = [], campo = "", entreComillas = false;
+            for (let i = 0; i < texto.length; i++) {
+                const c = texto[i];
+                if (entreComillas) {
+                    if (c === '"' && texto[i + 1] === '"') { campo += '"'; i++; }
+                    else if (c === '"') { entreComillas = false; }
+                    else { campo += c; }
+                } else {
+                    if (c === '"') entreComillas = true;
+                    else if (c === ',') { fila.push(campo); campo = ""; }
+                    else if (c === '\n' || c === '\r') {
+                        if (campo !== "" || fila.length) { fila.push(campo); filas.push(fila); }
+                        fila = []; campo = "";
+                        if (c === '\r' && texto[i + 1] === '\n') i++;
+                    } else { campo += c; }
+                }
+            }
+            if (campo !== "" || fila.length) { fila.push(campo); filas.push(fila); }
+            if (filas.length === 0) return [];
+            const cabeceras = filas[0].map(h => h.trim().toLowerCase());
+            const resultados = [];
+            for (let i = 1; i < filas.length; i++) {
+                const f = filas[i];
+                if (f.length === cabeceras.length) {
+                    let obj = {};
+                    for (let j = 0; j < cabeceras.length; j++) obj[cabeceras[j]] = f[j] ? f[j].trim() : "";
+                    resultados.push(obj);
+                }
+            }
+            return resultados;
+        }
+
+        function normalizarCategoria(cat) {
+            const limpio = (cat || '').trim();
+            if (!limpio) return '';
+            if (limpio.toLowerCase() === 'revisar' || limpio.toLowerCase() === 'combos' || limpio.toLowerCase() === 'combo') return '';
+            return limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase();
+        }
+
+        // ---------- ESCÁNER QR (venta física) ----------
+
+        async function abrirScannerVenta() {
+            const form = document.getElementById('formularioFisica');
+            if (form.classList.contains('hidden')) toggleFormularioFisica();
+
+            if (!productosCatalogo.length) cargarProductosCatalogo();
+
+            const modal = document.getElementById('scannerModalVenta');
+            const estado = document.getElementById('scannerEstadoVenta');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            if (estado) estado.textContent = 'Apunta la cámara al código QR de la prenda';
+            const video = document.getElementById('scannerVideoVenta');
+            try {
+                scannerVentaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+                video.srcObject = scannerVentaStream;
+                await video.play();
+                scannerVentaRAF = requestAnimationFrame(tickScannerVenta);
+            } catch (error) {
+                console.error('No se pudo abrir la cámara:', error);
+                if (estado) estado.textContent = 'No se pudo acceder a la cámara. Revisa los permisos del navegador.';
+            }
+        }
+
+        function tickScannerVenta() {
+            const video = document.getElementById('scannerVideoVenta');
+            const canvas = document.getElementById('scannerCanvasVenta');
+            if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) { scannerVentaRAF = requestAnimationFrame(tickScannerVenta); return; }
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imagen = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const codigo = jsQR(imagen.data, imagen.width, imagen.height);
+            if (codigo && codigo.data) { procesarCodigoQRVenta(codigo.data); return; }
+            scannerVentaRAF = requestAnimationFrame(tickScannerVenta);
+        }
+
+        function cerrarScannerVenta() {
+            const modal = document.getElementById('scannerModalVenta');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+            if (scannerVentaRAF) cancelAnimationFrame(scannerVentaRAF);
+            scannerVentaRAF = null;
+            if (scannerVentaStream) { scannerVentaStream.getTracks().forEach(t => t.stop()); scannerVentaStream = null; }
+        }
+
+        function procesarCodigoQRVenta(textoLeido) {
+            cerrarScannerVenta();
+            let valorBusqueda = textoLeido.trim();
+            try {
+                const url = new URL(textoLeido);
+                const param = url.searchParams.get('producto') || url.searchParams.get('buscar') || url.searchParams.get('codigo');
+                if (param) valorBusqueda = param;
+            } catch (e) {}
+
+            const buscado = valorBusqueda.toLowerCase().trim();
+            // Primero por "codigo" (el QR físico fijo y reutilizable), y si no
+            // existe esa columna o no coincide, buscamos por nombre.
+            const coincidencia = productosCatalogo.find(p => (p.codigo || '').toLowerCase().trim() === buscado)
+                || productosCatalogo.find(p => (p.producto || p.nombre || '').toLowerCase().trim() === buscado);
+
+            const mensaje = document.getElementById('mensajeFisica');
+
+            if (coincidencia) {
+                document.getElementById('fisicaProducto').value = coincidencia.producto || coincidencia.nombre || '';
+                document.getElementById('fisicaPrecio').value = coincidencia.precio ? parseFloat(coincidencia.precio).toFixed(2) : '';
+                document.getElementById('fisicaCategoria').value = normalizarCategoria(coincidencia.categoria);
+                mensaje.classList.remove('hidden');
+                mensaje.textContent = 'Producto encontrado. Revisa los datos antes de registrar.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-600';
+            } else {
+                document.getElementById('fisicaProducto').value = valorBusqueda;
+                mensaje.classList.remove('hidden');
+                mensaje.textContent = 'No se encontró el producto en el catálogo. Completa los datos manualmente.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
             }
         }
 
