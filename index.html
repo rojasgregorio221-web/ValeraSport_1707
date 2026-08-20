@@ -269,12 +269,17 @@
                     Escríbenos por WhatsApp →
                 </a>
             </div>
-            <div class="h-64 md:h-80 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-center">
-                <div class="text-center space-y-3">
-                    <i class="fa-solid fa-map-location-dot text-3xl text-cyan-500"></i>
-                    <h3 class="font-bold text-gray-900">Barquisimeto, Lara</h3>
-                </div>
-            </div>
+           <div id="mapa-contenedor" class="relative h-64 md:h-80 rounded-2xl overflow-hidden border border-gray-100 bg-gray-50">
+    <button id="mapa-toggle" type="button" class="w-full h-full flex flex-col items-center justify-center gap-3 group">
+        <div class="w-14 h-14 rounded-full bg-cyan-50 flex items-center justify-center group-hover:bg-cyan-100 transition-colors">
+            <i class="fa-solid fa-location-dot text-cyan-600 text-xl"></i>
+        </div>
+        <div class="text-center">
+            <p class="font-semibold text-gray-900">Ver ubicación en el mapa</p>
+            <p class="text-sm text-gray-500">Toca para desplegar Google Maps</p>
+        </div>
+    </button>
+</div>
         </div>
     </section>
 
@@ -675,6 +680,16 @@
             if (!btn) return;
             if (usuarioActual) { btn.title = usuarioActual.email + ' — Ver mi cuenta'; btn.classList.add('text-cyan-500'); }
             else { btn.title = 'Iniciar sesión / Registrarse'; btn.classList.remove('text-cyan-500'); }
+        }
+
+        // ---------- MAPA (desplegar solo al hacer clic) ----------
+
+        const btnMapa = document.getElementById('mapa-toggle');
+        if (btnMapa) {
+            btnMapa.addEventListener('click', () => {
+                const contenedor = document.getElementById('mapa-contenedor');
+                contenedor.innerHTML = '<iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d204.28465606686223!2d-69.31918688527836!3d10.0659839430056!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1ses-419!2sus!4v1787254528866!5m2!1ses-419!2sus" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+            }, { once: true });
         }
     </script>
 </body>
