@@ -144,7 +144,6 @@
                                 <select id="metodoPago" onchange="actualizarCampoReferencia()" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400">
                                     <option value="">Selecciona un método</option>
                                     <option value="Pago Móvil">Pago Móvil</option>
-                                    <option value="Efectivo en tienda">Efectivo en tienda</option>
                                 </select>
                             </div>
 
@@ -317,7 +316,7 @@
             const datosPagoBox = document.getElementById('datosPagoBox');
             const input = document.getElementById('referencia');
 
-            if (!metodo || metodo === 'Efectivo en tienda') {
+            if (!metodo) {
                 contenedorRef.classList.add('hidden');
                 contenedorComprobante.classList.add('hidden');
                 datosPagoBox.classList.add('hidden');
@@ -433,10 +432,8 @@
             const referencia = document.getElementById('referencia').value.trim();
 
             if (!metodoPago) { alert('Selecciona un método de pago.'); return; }
-            if (metodoPago !== 'Efectivo en tienda') {
-                if (!referencia) { alert('Escribe el número de referencia o comprobante de tu pago.'); return; }
-                if (!comprobanteBase64) { alert('Por favor sube una foto de tu comprobante de pago.'); return; }
-            }
+            if (!referencia) { alert('Escribe el número de referencia o comprobante de tu pago.'); return; }
+            if (!comprobanteBase64) { alert('Por favor sube una foto de tu comprobante de pago.'); return; }
 
             const confirmar = confirm('¿Confirmar pedido por $' + calcularTotal().toFixed(2) + ' para revisión del vendedor?');
             if (!confirmar) return;
