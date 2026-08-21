@@ -1,3 +1,4 @@
-# Local Netlify folder
-.netlify
+# Local Cloudflare folder
+.wrangler
 .env
+.dev.vars

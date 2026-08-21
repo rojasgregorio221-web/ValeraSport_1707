@@ -55,6 +55,7 @@ export async function onRequestGet(context) {
 
     return jsonResponse(resultado, resultado.ok ? 200 : 500);
   } catch (error) {
-    return jsonResponse({ ok: false, error: "No se pudo conectar: " + error.message }, 500);
+    console.error("mis-compras: fallo al conectar con Google Sheets", error);
+    return jsonResponse({ ok: false, error: "No se pudo conectar con el servidor. Intenta de nuevo." }, 500);
   }
 }

@@ -116,6 +116,7 @@ export async function onRequestPost(context) {
 
     return jsonResponse(resultado, resultado.ok ? 200 : 500);
   } catch (error) {
-    return jsonResponse({ ok: false, error: "No se pudo conectar con Google Sheets: " + error.message }, 500);
+    console.error("marcar-pagado: fallo al conectar con Google Sheets", error);
+    return jsonResponse({ ok: false, error: "No se pudo conectar con el servidor. Intenta de nuevo." }, 500);
   }
 }
