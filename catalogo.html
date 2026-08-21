@@ -234,15 +234,15 @@
             if (confirmacion) confirmacion.classList.add('hidden');
         }
 
-        function seleccionarColor(color, btnClickeado, indice) {
+        function seleccionarColor(color, chipClickeado, indice) {
             ocultarConfirmacion();
             if (productoActual) productoActual.color = color;
-            document.querySelectorAll('.color-btn').forEach(btn => {
-                btn.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
-                btn.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-700');
+            document.querySelectorAll('.color-chip').forEach(chip => {
+                chip.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
+                chip.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-700');
             });
-            btnClickeado.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-700');
-            btnClickeado.classList.add('bg-gray-900', 'border-gray-900', 'text-white');
+            chipClickeado.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-700');
+            chipClickeado.classList.add('bg-gray-900', 'border-gray-900', 'text-white');
 
             if (typeof indice === 'number' && imagenesProductoActual[indice]) {
                 const img = imagenesProductoActual[indice];
@@ -253,6 +253,47 @@
                     btn.classList.toggle('border-gray-200', i !== indice);
                 });
             }
+        }
+
+        function obtenerCantidadColorEnCarrito(nombre, color) {
+            const item = obtenerCarrito().find(it => it.nombre === nombre && (it.color || '') === (color || ''));
+            return item ? item.cantidad : 0;
+        }
+
+        function actualizarBadgeColor(color) {
+            if (!productoActual) return;
+            const cantidad = obtenerCantidadColorEnCarrito(productoActual.nombre, color);
+            document.querySelectorAll('#detalleColores .color-chip').forEach(chip => {
+                if (chip.dataset.color !== color) return;
+                const contador = chip.querySelector('.color-add-count');
+                if (!contador) return;
+                contador.textContent = cantidad;
+                contador.classList.toggle('hidden', cantidad <= 0);
+            });
+        }
+
+        // Agrega 1 unidad de este color directamente, sin pasar por el selector de cantidad.
+        function agregarColorRapido(color, indice, botonClickeado) {
+            if (!productoActual) return;
+            const imagenColor = (typeof indice === 'number' && imagenesProductoActual[indice]) ? imagenesProductoActual[indice] : productoActual.imagen;
+            agregarAlCarrito({
+                nombre: productoActual.nombre,
+                precio: precioUnitarioActual,
+                categoria: productoActual.categoria,
+                imagen: imagenColor,
+                color: color,
+                cantidad: 1
+            });
+
+            const icono = botonClickeado.querySelector('.color-add-icon');
+            botonClickeado.classList.add('bg-emerald-500', 'text-white');
+            if (icono) icono.innerHTML = '<i class="fa-solid fa-check"></i>';
+
+            setTimeout(() => {
+                botonClickeado.classList.remove('bg-emerald-500', 'text-white');
+                if (icono) icono.textContent = '+';
+                actualizarBadgeColor(color);
+            }, 700);
         }
 
         function agregarAlCarritoDesdeModal() {
@@ -267,6 +308,7 @@
             });
             const confirmacion = document.getElementById('detalleConfirmacion');
             if (confirmacion) confirmacion.classList.remove('hidden');
+            actualizarBadgeColor(productoActual.color || '');
             cantidadActual = 1;
             const spanCantidad = document.getElementById('detalleCantidad');
             if (spanCantidad) spanCantidad.textContent = '1';
@@ -534,7 +576,15 @@
                 listaColores.forEach((color, i) => {
                     const activo = i === 0;
                     if (activo) productoActual.color = color;
-                    coloresContainer.innerHTML += `<button type="button" onclick="seleccionarColor('${escapeJS(color)}', this, ${i})" class="color-btn px-3 py-1.5 rounded-full text-xs font-medium border transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}">${escapeHTML(color)}</button>`;
+                    const cantidadPrevia = obtenerCantidadColorEnCarrito(nombre, color);
+                    coloresContainer.innerHTML += `
+                        <div class="color-chip inline-flex items-center rounded-full border text-xs font-medium transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}" data-color="${escapeHTML(color)}">
+                            <button type="button" onclick="seleccionarColor('${escapeJS(color)}', this.closest('.color-chip'), ${i})" class="rounded-l-full pl-3 pr-2 py-1.5">${escapeHTML(color)}</button>
+                            <button type="button" onclick="agregarColorRapido('${escapeJS(color)}', ${i}, this)" class="color-add-btn relative rounded-r-full w-6 h-6 mr-0.5 flex items-center justify-center shrink-0 hover:bg-black/10 transition-colors" title="Agregar ${escapeHTML(color)} al carrito">
+                                <span class="color-add-icon font-bold text-sm leading-none">+</span>
+                                <span class="color-add-count ${cantidadPrevia > 0 ? '' : 'hidden'} absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">${cantidadPrevia}</span>
+                            </button>
+                        </div>`;
                 });
             } else {
                 coloresContainer.innerHTML = '<span class="text-xs text-gray-400">Colores variados, consulta disponibilidad</span>';
