@@ -212,13 +212,10 @@
                     <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
                 </a>
                 <div id="detalleConfirmacion" class="hidden text-center bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold py-4 px-4 rounded-xl mt-3 text-sm">
-                    ✅ ¡Agregado al carrito!
+                    ✅ ¡Agregado al carrito! Puedes elegir otro color y seguir agregando.
                     <a href="carrito.html" class="block mt-3 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3 rounded-full text-sm transition">
                         Ir a pagar →
                     </a>
-                    <button onclick="cerrarDetalle()" class="block w-full mt-2 text-emerald-700/70 hover:text-emerald-700 text-xs font-semibold py-1">
-                        Seguir comprando
-                    </button>
                 </div>
                 <p id="detalleNoDisponible" class="hidden text-center text-sm text-gray-400 py-3">Actualmente no disponible</p>
             </div>
@@ -338,9 +335,16 @@
             cantidadActual = Math.max(1, Math.min(stockActual, cantidadActual + delta));
             document.getElementById('detalleCantidad').textContent = cantidadActual;
             document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
+            ocultarConfirmacion();
+        }
+
+        function ocultarConfirmacion() {
+            const confirmacion = document.getElementById('detalleConfirmacion');
+            if (confirmacion) confirmacion.classList.add('hidden');
         }
 
         function seleccionarColor(color, btnClickeado, indice) {
+            ocultarConfirmacion();
             if (productoActual) productoActual.color = color;
             document.querySelectorAll('.color-btn').forEach(btn => {
                 btn.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
@@ -373,8 +377,10 @@
             });
             const confirmacion = document.getElementById('detalleConfirmacion');
             if (confirmacion) confirmacion.classList.remove('hidden');
-            const btnCarrito = document.getElementById('detalleBotonCarrito');
-            if (btnCarrito) btnCarrito.classList.add('hidden');
+            cantidadActual = 1;
+            const spanCantidad = document.getElementById('detalleCantidad');
+            if (spanCantidad) spanCantidad.textContent = '1';
+            document.getElementById('detallePrecio').textContent = '$' + precioUnitarioActual.toFixed(2);
         }
 
         async function cargarProductosDesdeSheet() {
