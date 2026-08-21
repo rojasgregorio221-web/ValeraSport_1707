@@ -26,6 +26,20 @@ async function parsearRespuesta(respuesta) {
   }
 }
 
+// ---------- Freno anti fuerza-bruta para la contraseña del panel ----------
+// Vive en memoria del "worker" de Cloudflare mientras esté activo (no es un
+// contador 100% global entre todos los centros de datos, pero sí frena de
+// forma efectiva a un script que intente adivinar la contraseña a golpes).
+const MAX_INTENTOS_FALLIDOS = 5;
+const VENTANA_BLOQUEO_MS = 15 * 60 * 1000; // 15 minutos
+const intentosFallidosPorIP = new Map();
+
+function limpiarIntentosViejos(ahora) {
+  for (const [ip, info] of intentosFallidosPorIP) {
+    if (ahora - info.ultimoIntento > VENTANA_BLOQUEO_MS) intentosFallidosPorIP.delete(ip);
+  }
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const SHEET_WRITE_URL = env.SHEET_WRITE_URL;
@@ -42,6 +56,19 @@ export async function onRequestPost(context) {
     );
   }
 
+  const ip = request.headers.get("CF-Connecting-IP") || "desconocida";
+  const ahora = Date.now();
+  limpiarIntentosViejos(ahora);
+
+  const registro = intentosFallidosPorIP.get(ip);
+  if (registro && registro.cantidad >= MAX_INTENTOS_FALLIDOS && ahora - registro.ultimoIntento < VENTANA_BLOQUEO_MS) {
+    const minutosRestantes = Math.ceil((VENTANA_BLOQUEO_MS - (ahora - registro.ultimoIntento)) / 60000);
+    return jsonResponse(
+      { ok: false, error: "Demasiados intentos fallidos. Intenta de nuevo en " + minutosRestantes + " minuto(s)." },
+      429
+    );
+  }
+
   let datos;
   try {
     datos = await request.json();
@@ -50,8 +77,12 @@ export async function onRequestPost(context) {
   }
 
   if (datos.password !== ADMIN_PASSWORD) {
+    const actual = intentosFallidosPorIP.get(ip) || { cantidad: 0, ultimoIntento: 0 };
+    intentosFallidosPorIP.set(ip, { cantidad: actual.cantidad + 1, ultimoIntento: ahora });
     return jsonResponse({ ok: false, error: "Contraseña incorrecta" }, 401);
   }
+
+  intentosFallidosPorIP.delete(ip);
 
   // Lectura: listar órdenes pendientes/aceptadas o el resumen de ventas del día
   if (datos.tipo === "pedidos" || datos.tipo === "aceptados" || datos.tipo === "resumen") {
