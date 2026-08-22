@@ -278,15 +278,44 @@
             return obtenerCarrito().filter(it => it.nombre === nombre).reduce((sum, it) => sum + (it.cantidad || 0), 0);
         }
 
+        // Convierte "Rojo:5, Azul Cielo:40" en { rojo: 5, 'azul cielo': 40 }.
+        function parsearStockColores(texto) {
+            const mapa = {};
+            if (!texto || !texto.trim()) return mapa;
+            texto.split(',').forEach(par => {
+                const partes = par.split(':');
+                if (partes.length !== 2) return;
+                const nombre = partes[0].trim().toLowerCase();
+                const cantidad = parseInt(partes[1].trim(), 10);
+                if (nombre && !isNaN(cantidad)) mapa[nombre] = cantidad;
+            });
+            return mapa;
+        }
+
+        // Si el producto tiene stock cargado por color, usa ese número para ese color en particular.
+        // Si no, cae al stock total del producto repartido entre todos los colores (comportamiento anterior).
+        function obtenerStockRestantePorColor(color) {
+            if (!productoActual) return stockActual;
+            const mapa = productoActual.stockColores || {};
+            const key = (color || '').toLowerCase();
+            if (key && Object.prototype.hasOwnProperty.call(mapa, key)) {
+                const enCarritoColor = obtenerCantidadColorEnCarrito(productoActual.nombre, color);
+                return Math.max(0, mapa[key] - enCarritoColor);
+            }
+            return Math.max(0, stockActual - obtenerCantidadTotalEnCarrito(productoActual.nombre));
+        }
+
         function obtenerStockRestanteActual() {
             if (!productoActual) return stockActual;
-            return Math.max(0, stockActual - obtenerCantidadTotalEnCarrito(productoActual.nombre));
+            return obtenerStockRestantePorColor(productoActual.color || '');
         }
 
         // Actualiza en vivo el texto de stock disponible y bloquea los botones de compra si ya no queda stock.
         function actualizarEstadoCompra() {
             if (!productoActual) return;
-            const restante = obtenerStockRestanteActual();
+            const colorActivo = productoActual.color || '';
+            const tieneStockPorColor = productoActual.stockColores && Object.keys(productoActual.stockColores).length > 0;
+            const restante = obtenerStockRestantePorColor(colorActivo);
             const sinStock = restante <= 0;
 
             if (cantidadActual > restante) {
@@ -297,8 +326,14 @@
             }
 
             const spanStock = document.getElementById('detalleStock');
-            if (spanStock && stockActual <= 99) {
-                spanStock.textContent = sinStock ? 'Sin stock disponible' : 'Quedan ' + restante + ' disponibles';
+            if (spanStock) {
+                if (tieneStockPorColor) {
+                    spanStock.textContent = sinStock ? 'Sin stock disponible en ' + colorActivo : 'Quedan ' + restante + ' disponibles en ' + colorActivo;
+                } else if (stockActual <= 99) {
+                    spanStock.textContent = sinStock ? 'Sin stock disponible' : 'Quedan ' + restante + ' disponibles';
+                } else {
+                    spanStock.textContent = '';
+                }
                 spanStock.classList.toggle('text-red-500', sinStock);
                 spanStock.classList.toggle('font-semibold', sinStock);
                 spanStock.classList.toggle('text-gray-400', !sinStock);
@@ -319,15 +354,19 @@
                 btnCantidadMas.classList.toggle('cursor-not-allowed', alTope);
             }
 
-            document.querySelectorAll('#detalleColores .color-add-btn').forEach(btn => {
-                btn.classList.toggle('opacity-30', sinStock);
-                btn.classList.toggle('pointer-events-none', sinStock);
+            // Cada color se bloquea de forma independiente, según su propio stock restante.
+            document.querySelectorAll('#detalleColores .color-chip').forEach(chip => {
+                const btnMas = chip.querySelector('.color-add-btn');
+                if (!btnMas) return;
+                const sinStockChip = obtenerStockRestantePorColor(chip.dataset.color) <= 0;
+                btnMas.classList.toggle('opacity-30', sinStockChip);
+                btnMas.classList.toggle('pointer-events-none', sinStockChip);
             });
         }
 
         // Agrega 1 unidad de este color directamente, sin pasar por el selector de cantidad.
         function agregarColorRapido(color, indice, botonClickeado) {
-            if (!productoActual || obtenerStockRestanteActual() <= 0) return;
+            if (!productoActual || obtenerStockRestantePorColor(color) <= 0) return;
             const imagenColor = (typeof indice === 'number' && imagenesProductoActual[indice]) ? imagenesProductoActual[indice] : productoActual.imagen;
             agregarAlCarrito({
                 nombre: productoActual.nombre,
@@ -561,7 +600,8 @@
             let coloresTexto = p.colores || "";
             let stockDisponible = parseInt(p.stock, 10);
             if (isNaN(stockDisponible)) stockDisponible = 99;
-            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}, ${stockDisponible}`;
+            let stockColoresTexto = p.stock_colores || "";
+            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}, ${stockDisponible}, '${escapeJS(stockColoresTexto)}'`;
 
             return `
                 <div class="cursor-pointer group" onclick="abrirDetalle(${argsAbrirDetalle})">
@@ -596,14 +636,14 @@
             btnClickeado.classList.add('border-cyan-400');
         }
 
-        function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible, stock) {
+        function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible, stock, stockColoresTexto) {
             let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombre + " ($" + precioFormateado + ")");
             let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
             stockActual = (typeof stock === 'number' && stock > 0) ? stock : 99;
 
             const listaImagenes = obtenerListaImagenes(textoImagen);
             imagenesProductoActual = listaImagenes;
-            productoActual = { nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0], color: '' };
+            productoActual = { nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0], color: '', stockColores: parsearStockColores(stockColoresTexto) };
             precioUnitarioActual = parseFloat(precioFormateado) || 0;
             cantidadActual = 1;
             const spanCantidad = document.getElementById('detalleCantidad');
