@@ -173,17 +173,23 @@
 
         <!-- Aviso flotante fijo en pantalla: se ve siempre igual sin importar en qué
              parte del modal (que puede tener scroll) esté mirando el cliente. -->
-        <div id="detalleConfirmacion" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl shadow-xl px-4 py-3 text-sm">
-            <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-bag-shopping text-sm"></i>
+        <div id="detalleConfirmacion" class="hidden fixed top-20 right-4 z-[70] w-[calc(100%-2rem)] max-w-sm bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between gap-2 px-4 py-3 bg-emerald-50 border-b border-emerald-100">
+                <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-bag-shopping text-xs"></i>
+                    </div>
+                    <span id="detalleConfirmacionCantidad" class="text-sm font-semibold text-emerald-700 truncate"></span>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <p class="font-semibold">¡Agregado al carrito!</p>
-                    <p id="detalleConfirmacionCantidad" class="text-xs text-emerald-600/80 mt-0.5"></p>
-                    <a href="carrito.html" class="inline-block mt-2 text-xs font-bold underline">Ir a pagar →</a>
+                <button type="button" onclick="ocultarConfirmacion()" class="text-gray-400 hover:text-gray-700 text-sm shrink-0" title="Cerrar">✕</button>
+            </div>
+            <div id="miniCarritoLista" class="max-h-64 overflow-y-auto divide-y divide-gray-100"></div>
+            <div class="p-4 bg-gray-50 border-t border-gray-100">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs text-gray-500">Total</span>
+                    <span id="miniCarritoTotal" class="text-lg font-black text-gray-900">$0.00</span>
                 </div>
-                <button type="button" onclick="ocultarConfirmacion()" class="text-emerald-400 hover:text-emerald-700 text-xs shrink-0" title="Cerrar">✕</button>
+                <a href="carrito.html" class="block text-center w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-full text-sm transition">Ir al carrito →</a>
             </div>
         </div>
     </div>
@@ -248,6 +254,85 @@
             guardarCarrito(carrito);
         }
 
+        // A partir de 3 piezas en el carrito (sin importar el modelo), cada
+        // prenda tiene $1 de descuento -- misma regla que en carrito.html.
+        const UMBRAL_MAYOR = 3;
+        const DESCUENTO_MAYOR_UNITARIO = 1;
+
+        function obtenerCantidadTotalCarritoGlobal() {
+            return obtenerCarrito().reduce((sum, it) => sum + (it.cantidad || 0), 0);
+        }
+
+        function obtenerDescuentoUnitarioGlobal() {
+            return obtenerCantidadTotalCarritoGlobal() >= UMBRAL_MAYOR ? DESCUENTO_MAYOR_UNITARIO : 0;
+        }
+
+        function renderizarMiniCarrito() {
+            const carrito = obtenerCarrito();
+            const lista = document.getElementById('miniCarritoLista');
+            if (!lista) return;
+
+            if (!carrito.length) { ocultarConfirmacion(); return; }
+
+            const descuento = obtenerDescuentoUnitarioGlobal();
+            let total = 0;
+
+            lista.innerHTML = carrito.map(it => {
+                const precioFinal = Math.max(0, it.precio - descuento);
+                total += precioFinal * it.cantidad;
+                return `
+                    <div class="flex items-center gap-3 px-4 py-3">
+                        <img src="${escapeHTML(it.imagen || 'imagenes/logo.jpg')}" class="w-12 h-12 rounded-lg object-contain bg-gray-50 shrink-0" onerror="this.src='imagenes/logo.jpg'">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-semibold text-gray-900 truncate">${escapeHTML(it.nombre)}</p>
+                            <p class="text-[10px] text-gray-400 truncate">${it.color ? escapeHTML(it.color) : ''}${it.talla ? ' · Talla ' + escapeHTML(it.talla) : ''}</p>
+                            <div class="inline-flex items-center border border-gray-200 rounded-full mt-1">
+                                <button type="button" onclick="miniCambiarCantidad('${escapeJS(it.nombre)}', '${escapeJS(it.color || '')}', '${escapeJS(it.talla || '')}', -1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-900 text-xs">−</button>
+                                <span class="w-5 text-center text-[11px] font-semibold">${it.cantidad}</span>
+                                <button type="button" onclick="miniCambiarCantidad('${escapeJS(it.nombre)}', '${escapeJS(it.color || '')}', '${escapeJS(it.talla || '')}', 1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-900 text-xs">+</button>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="text-xs font-bold text-gray-900">$${(precioFinal * it.cantidad).toFixed(2)}</p>
+                            <button type="button" onclick="miniQuitar('${escapeJS(it.nombre)}', '${escapeJS(it.color || '')}', '${escapeJS(it.talla || '')}')" class="text-[10px] text-gray-400 hover:text-rose-500 mt-1">Quitar</button>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            const totalPiezas = obtenerCantidadTotalCarritoGlobal();
+            const cabecera = document.getElementById('detalleConfirmacionCantidad');
+            if (cabecera) cabecera.textContent = 'Tu carrito · ' + totalPiezas + (totalPiezas === 1 ? ' pieza' : ' piezas');
+            const totalEl = document.getElementById('miniCarritoTotal');
+            if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
+        }
+
+        function miniCambiarCantidad(nombre, color, talla, delta) {
+            const carrito = obtenerCarrito();
+            const item = carrito.find(it => it.nombre === nombre && (it.color || '') === (color || '') && (it.talla || '') === (talla || ''));
+            if (!item) return;
+            item.cantidad = Math.max(1, item.cantidad + delta);
+            guardarCarrito(carrito);
+            renderizarMiniCarrito();
+            if (confirmacionTimeoutId) clearTimeout(confirmacionTimeoutId);
+            confirmacionTimeoutId = setTimeout(ocultarConfirmacion, 6000);
+            if (productoActual && productoActual.nombre === nombre) {
+                actualizarBadgeColor(color);
+                actualizarEstadoCompra();
+            }
+        }
+
+        function miniQuitar(nombre, color, talla) {
+            const carrito = obtenerCarrito().filter(it => !(it.nombre === nombre && (it.color || '') === (color || '') && (it.talla || '') === (talla || '')));
+            guardarCarrito(carrito);
+            renderizarMiniCarrito();
+            if (confirmacionTimeoutId) clearTimeout(confirmacionTimeoutId);
+            confirmacionTimeoutId = setTimeout(ocultarConfirmacion, 6000);
+            if (productoActual && productoActual.nombre === nombre) {
+                actualizarBadgeColor(color);
+                actualizarEstadoCompra();
+            }
+        }
+
         function cambiarCantidad(delta) {
             const restante = obtenerStockRestanteActual();
             cantidadActual = restante <= 0 ? 0 : Math.max(1, Math.min(restante, cantidadActual + delta));
@@ -268,14 +353,10 @@
         function mostrarConfirmacion() {
             const confirmacion = document.getElementById('detalleConfirmacion');
             if (!confirmacion) return;
-            const totalPiezas = obtenerCarrito().reduce((sum, it) => sum + (it.cantidad || 0), 0);
-            const textoCantidad = document.getElementById('detalleConfirmacionCantidad');
-            if (textoCantidad) {
-                textoCantidad.textContent = 'Ya llevas ' + totalPiezas + (totalPiezas === 1 ? ' pieza' : ' piezas') + ' en tu carrito.';
-            }
+            renderizarMiniCarrito();
             confirmacion.classList.remove('hidden');
             if (confirmacionTimeoutId) clearTimeout(confirmacionTimeoutId);
-            confirmacionTimeoutId = setTimeout(ocultarConfirmacion, 4000);
+            confirmacionTimeoutId = setTimeout(ocultarConfirmacion, 6000);
         }
 
         function seleccionarColor(color, chipClickeado, indice) {
@@ -506,6 +587,7 @@
             });
             actualizarBadgeColor(color);
             actualizarEstadoCompra();
+            mostrarConfirmacion();
 
             const icono = botonClickeado.querySelector('.color-add-icon');
             botonClickeado.classList.add('bg-emerald-500', 'text-white');
