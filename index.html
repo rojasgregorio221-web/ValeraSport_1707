@@ -195,6 +195,11 @@
                     <div class="flex flex-wrap gap-2" id="detalleColores"></div>
                 </div>
 
+                <div class="mb-5 hidden" id="detalleTallasContenedor">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Talla</label>
+                    <div class="flex flex-wrap gap-2" id="detalleTallas"></div>
+                </div>
+
                 <div class="mb-6">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Cantidad</label>
                     <div class="inline-flex items-center border border-gray-200 rounded-full">
@@ -325,7 +330,7 @@
         }
         function agregarAlCarrito(item) {
             const carrito = obtenerCarrito();
-            const idx = carrito.findIndex(it => it.nombre === item.nombre && (it.color || '') === (item.color || ''));
+            const idx = carrito.findIndex(it => it.nombre === item.nombre && (it.color || '') === (item.color || '') && (it.talla || '') === (item.talla || ''));
             if (idx >= 0) carrito[idx].cantidad += item.cantidad;
             else carrito.push(item);
             guardarCarrito(carrito);
@@ -348,7 +353,7 @@
         function seleccionarColor(color, chipClickeado, indice) {
             ocultarConfirmacion();
             if (productoActual) productoActual.color = color;
-            document.querySelectorAll('.color-chip').forEach(chip => {
+            document.querySelectorAll('#detalleColores .color-chip').forEach(chip => {
                 chip.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
                 chip.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-700');
             });
@@ -366,11 +371,29 @@
                 });
             }
 
-            // Cada color puede tener su propio stock restante, así que al
-            // cambiar de color hay que recalcular la cantidad y el mensaje
-            // de stock -- si no, se quedan pegados con los del color anterior.
-            const restanteNuevoColor = obtenerStockRestantePorColor(color);
-            cantidadActual = restanteNuevoColor <= 0 ? 0 : 1;
+            actualizarTrasCambiarSeleccion();
+        }
+
+        function seleccionarTalla(talla, chipClickeado) {
+            ocultarConfirmacion();
+            if (productoActual) productoActual.talla = talla;
+            document.querySelectorAll('#detalleTallas .talla-chip').forEach(chip => {
+                chip.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
+                chip.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-700');
+            });
+            chipClickeado.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-700');
+            chipClickeado.classList.add('bg-gray-900', 'border-gray-900', 'text-white');
+
+            actualizarTrasCambiarSeleccion();
+        }
+
+        // Cada combinación de color (y talla, si aplica) puede tener su propio
+        // stock restante, así que al cambiar cualquiera de las dos hay que
+        // recalcular la cantidad y el mensaje de stock -- si no, se quedan
+        // pegados con los de la selección anterior.
+        function actualizarTrasCambiarSeleccion() {
+            const restante = obtenerStockRestanteActual();
+            cantidadActual = restante <= 0 ? 0 : 1;
             const spanCantidad = document.getElementById('detalleCantidad');
             if (spanCantidad) spanCantidad.textContent = cantidadActual;
             document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
@@ -379,6 +402,11 @@
 
         function obtenerCantidadColorEnCarrito(nombre, color) {
             const item = obtenerCarrito().find(it => it.nombre === nombre && (it.color || '') === (color || ''));
+            return item ? item.cantidad : 0;
+        }
+
+        function obtenerCantidadVarianteEnCarrito(nombre, color, talla) {
+            const item = obtenerCarrito().find(it => it.nombre === nombre && (it.color || '') === (color || '') && (it.talla || '') === (talla || ''));
             return item ? item.cantidad : 0;
         }
 
@@ -401,16 +429,35 @@
             return obtenerCarrito().filter(it => it.nombre === nombre).reduce((sum, it) => sum + (it.cantidad || 0), 0);
         }
 
-        // Convierte "Rojo:5, Azul Cielo:40" en { rojo: 5, 'azul cielo': 40 }.
+        // Convierte "Rojo:5, Azul Cielo:40" en { rojo: {nombreOriginal, cantidad}, ... }.
         function parsearStockColores(texto) {
             const mapa = {};
             if (!texto || !texto.trim()) return mapa;
             texto.split(',').forEach(par => {
                 const partes = par.split(':');
                 if (partes.length !== 2) return;
-                const nombre = partes[0].trim().toLowerCase();
+                const nombre = partes[0].trim();
                 const cantidad = parseInt(partes[1].trim(), 10);
-                if (nombre && !isNaN(cantidad)) mapa[nombre] = cantidad;
+                if (nombre && !isNaN(cantidad)) mapa[nombre.toLowerCase()] = { nombreOriginal: nombre, cantidad: cantidad };
+            });
+            return mapa;
+        }
+
+        // Convierte "Rojo|M:5, Rojo|L:3, Azul|M:10" en { 'rojo|m': {colorOriginal, tallaOriginal, cantidad}, ... }.
+        function parsearStockVariantes(texto) {
+            const mapa = {};
+            if (!texto || !texto.trim()) return mapa;
+            texto.split(',').forEach(par => {
+                const partes = par.split(':');
+                if (partes.length !== 2) return;
+                const cantidad = parseInt(partes[1].trim(), 10);
+                if (isNaN(cantidad)) return;
+                const mitades = partes[0].split('|');
+                if (mitades.length !== 2) return;
+                const color = mitades[0].trim();
+                const talla = mitades[1].trim();
+                if (!color || !talla) return;
+                mapa[color.toLowerCase() + '|' + talla.toLowerCase()] = { colorOriginal: color, tallaOriginal: talla, cantidad: cantidad };
             });
             return mapa;
         }
@@ -423,13 +470,28 @@
             const key = (color || '').toLowerCase();
             if (key && Object.prototype.hasOwnProperty.call(mapa, key)) {
                 const enCarritoColor = obtenerCantidadColorEnCarrito(productoActual.nombre, color);
-                return Math.max(0, mapa[key] - enCarritoColor);
+                return Math.max(0, mapa[key].cantidad - enCarritoColor);
             }
             return Math.max(0, stockActual - obtenerCantidadTotalEnCarrito(productoActual.nombre));
         }
 
+        // Si el producto tiene stock cargado por combinación color+talla, usa ese
+        // número. Si esa combinación en particular no está cargada, cae al stock
+        // del color solo (o al total, según lo que haya disponible).
+        function obtenerStockRestanteVariante(color, talla) {
+            if (!productoActual) return stockActual;
+            const mapa = productoActual.stockVariantes || {};
+            const key = (color || '').toLowerCase() + '|' + (talla || '').toLowerCase();
+            if (talla && Object.prototype.hasOwnProperty.call(mapa, key)) {
+                const enCarrito = obtenerCantidadVarianteEnCarrito(productoActual.nombre, color, talla);
+                return Math.max(0, mapa[key].cantidad - enCarrito);
+            }
+            return obtenerStockRestantePorColor(color);
+        }
+
         function obtenerStockRestanteActual() {
             if (!productoActual) return stockActual;
+            if (productoActual.tieneTallas) return obtenerStockRestanteVariante(productoActual.color || '', productoActual.talla || '');
             return obtenerStockRestantePorColor(productoActual.color || '');
         }
 
@@ -437,8 +499,10 @@
         function actualizarEstadoCompra() {
             if (!productoActual) return;
             const colorActivo = productoActual.color || '';
+            const tallaActiva = productoActual.talla || '';
+            const tieneTallas = !!productoActual.tieneTallas;
             const tieneStockPorColor = productoActual.stockColores && Object.keys(productoActual.stockColores).length > 0;
-            const restante = obtenerStockRestantePorColor(colorActivo);
+            const restante = obtenerStockRestanteActual();
             const sinStock = restante <= 0;
 
             if (cantidadActual > restante) {
@@ -450,7 +514,10 @@
 
             const spanStock = document.getElementById('detalleStock');
             if (spanStock) {
-                if (tieneStockPorColor) {
+                if (tieneTallas) {
+                    const etiqueta = colorActivo && tallaActiva ? (colorActivo + ' / Talla ' + tallaActiva) : (tallaActiva ? 'Talla ' + tallaActiva : colorActivo);
+                    spanStock.textContent = sinStock ? 'Sin stock disponible en ' + etiqueta : 'Quedan ' + restante + ' disponibles en ' + etiqueta;
+                } else if (tieneStockPorColor) {
                     spanStock.textContent = sinStock ? 'Sin stock disponible en ' + colorActivo : 'Quedan ' + restante + ' disponibles en ' + colorActivo;
                 } else if (stockActual <= 99) {
                     spanStock.textContent = sinStock ? 'Sin stock disponible' : 'Quedan ' + restante + ' disponibles';
@@ -477,14 +544,28 @@
                 btnCantidadMas.classList.toggle('cursor-not-allowed', alTope);
             }
 
-            // Cada color se bloquea de forma independiente, según su propio stock restante.
-            document.querySelectorAll('#detalleColores .color-chip').forEach(chip => {
-                const btnMas = chip.querySelector('.color-add-btn');
-                if (!btnMas) return;
-                const sinStockChip = obtenerStockRestantePorColor(chip.dataset.color) <= 0;
-                btnMas.classList.toggle('opacity-30', sinStockChip);
-                btnMas.classList.toggle('pointer-events-none', sinStockChip);
-            });
+            if (tieneTallas) {
+                // Con tallas, cada chip de color/talla solo se marca como agotado
+                // (atenuado) según la combinación con la otra selección activa --
+                // no hay botones de agregar rápido, así que no hace falta más.
+                document.querySelectorAll('#detalleColores .color-chip').forEach(chip => {
+                    const sinStockCombo = tallaActiva && obtenerStockRestanteVariante(chip.dataset.color, tallaActiva) <= 0;
+                    chip.classList.toggle('opacity-40', !!sinStockCombo);
+                });
+                document.querySelectorAll('#detalleTallas .talla-chip').forEach(chip => {
+                    const sinStockCombo = colorActivo && obtenerStockRestanteVariante(colorActivo, chip.dataset.talla) <= 0;
+                    chip.classList.toggle('opacity-40', !!sinStockCombo);
+                });
+            } else {
+                // Sin tallas: cada color se bloquea de forma independiente, según su propio stock restante.
+                document.querySelectorAll('#detalleColores .color-chip').forEach(chip => {
+                    const btnMas = chip.querySelector('.color-add-btn');
+                    if (!btnMas) return;
+                    const sinStockChip = obtenerStockRestantePorColor(chip.dataset.color) <= 0;
+                    btnMas.classList.toggle('opacity-30', sinStockChip);
+                    btnMas.classList.toggle('pointer-events-none', sinStockChip);
+                });
+            }
         }
 
         // Agrega 1 unidad de este color directamente, sin pasar por el selector de cantidad.
@@ -535,6 +616,7 @@
                 categoria: productoActual.categoria,
                 imagen: productoActual.imagen,
                 color: productoActual.color || '',
+                talla: productoActual.talla || '',
                 cantidad: cantidadAAgregar
             });
             const confirmacion = document.getElementById('detalleConfirmacion');
@@ -661,7 +743,9 @@
             let stockDisponible = parseInt(p.stock, 10);
             if (isNaN(stockDisponible)) stockDisponible = 99;
             let stockColoresTexto = p.stock_colores || "";
-            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}, ${stockDisponible}, '${escapeJS(stockColoresTexto)}'`;
+            let tallasTexto = p.tallas || "";
+            let stockVariantesTexto = p.stock_variantes || "";
+            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}, ${stockDisponible}, '${escapeJS(stockColoresTexto)}', '${escapeJS(tallasTexto)}', '${escapeJS(stockVariantesTexto)}'`;
 
             return `
                 <div class="carrusel-item flex-shrink-0 w-44 md:w-64 cursor-pointer group" onclick="abrirDetalle(${argsAbrirDetalle})">
@@ -696,14 +780,20 @@
             btnClickeado.classList.add('border-cyan-400');
         }
 
-        function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible, stock, stockColoresTexto) {
+        function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible, stock, stockColoresTexto, tallasTexto, stockVariantesTexto) {
             let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombre + " ($" + precioFormateado + ")");
             let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
             stockActual = (typeof stock === 'number' && stock > 0) ? stock : 99;
 
             const listaImagenes = obtenerListaImagenes(textoImagen);
             imagenesProductoActual = listaImagenes;
-            productoActual = { nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0], color: '', stockColores: parsearStockColores(stockColoresTexto) };
+            const listaTallas = (tallasTexto || '').split(',').map(t => t.trim()).filter(Boolean);
+            productoActual = {
+                nombre: nombre, categoria: categoriaLabel, imagen: listaImagenes[0],
+                color: '', talla: '', tieneTallas: listaTallas.length > 0,
+                stockColores: parsearStockColores(stockColoresTexto),
+                stockVariantes: parsearStockVariantes(stockVariantesTexto)
+            };
             precioUnitarioActual = parseFloat(precioFormateado) || 0;
             cantidadActual = 1;
             const spanCantidad = document.getElementById('detalleCantidad');
@@ -731,19 +821,41 @@
                 listaColores.forEach((color, i) => {
                     const activo = i === 0;
                     if (activo) productoActual.color = color;
-                    const cantidadPrevia = obtenerCantidadColorEnCarrito(nombre, color);
-                    coloresContainer.innerHTML += `
-                        <div class="color-chip inline-flex items-center rounded-full border text-xs font-medium transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}" data-color="${escapeHTML(color)}">
-                            <button type="button" onclick="seleccionarColor('${escapeJS(color)}', this.closest('.color-chip'), ${i})" class="rounded-l-full pl-3 pr-2 py-1.5">${escapeHTML(color)}</button>
-                            <button type="button" onclick="quitarColorRapido('${escapeJS(color)}')" class="color-remove-btn w-6 h-6 flex items-center justify-center shrink-0 hover:bg-black/10 transition-colors font-bold text-sm leading-none ${cantidadPrevia > 0 ? '' : 'hidden'}" title="Quitar uno de ${escapeHTML(color)}">−</button>
-                            <button type="button" onclick="agregarColorRapido('${escapeJS(color)}', ${i}, this)" class="color-add-btn relative rounded-r-full w-6 h-6 mr-0.5 flex items-center justify-center shrink-0 hover:bg-black/10 transition-colors" title="Agregar ${escapeHTML(color)} al carrito">
-                                <span class="color-add-icon font-bold text-sm leading-none">+</span>
-                                <span class="color-add-count ${cantidadPrevia > 0 ? '' : 'hidden'} absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">${cantidadPrevia}</span>
-                            </button>
-                        </div>`;
+                    if (productoActual.tieneTallas) {
+                        // Con tallas, el color es solo selección: no tiene sentido un "+"
+                        // rápido de un color sin saber a qué talla corresponde.
+                        coloresContainer.innerHTML += `
+                            <button type="button" onclick="seleccionarColor('${escapeJS(color)}', this, ${i})" data-color="${escapeHTML(color)}" class="color-chip px-3 py-1.5 rounded-full text-xs font-medium border transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}">${escapeHTML(color)}</button>`;
+                    } else {
+                        const cantidadPrevia = obtenerCantidadColorEnCarrito(nombre, color);
+                        coloresContainer.innerHTML += `
+                            <div class="color-chip inline-flex items-center rounded-full border text-xs font-medium transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}" data-color="${escapeHTML(color)}">
+                                <button type="button" onclick="seleccionarColor('${escapeJS(color)}', this.closest('.color-chip'), ${i})" class="rounded-l-full pl-3 pr-2 py-1.5">${escapeHTML(color)}</button>
+                                <button type="button" onclick="quitarColorRapido('${escapeJS(color)}')" class="color-remove-btn w-6 h-6 flex items-center justify-center shrink-0 hover:bg-black/10 transition-colors font-bold text-sm leading-none ${cantidadPrevia > 0 ? '' : 'hidden'}" title="Quitar uno de ${escapeHTML(color)}">−</button>
+                                <button type="button" onclick="agregarColorRapido('${escapeJS(color)}', ${i}, this)" class="color-add-btn relative rounded-r-full w-6 h-6 mr-0.5 flex items-center justify-center shrink-0 hover:bg-black/10 transition-colors" title="Agregar ${escapeHTML(color)} al carrito">
+                                    <span class="color-add-icon font-bold text-sm leading-none">+</span>
+                                    <span class="color-add-count ${cantidadPrevia > 0 ? '' : 'hidden'} absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">${cantidadPrevia}</span>
+                                </button>
+                            </div>`;
+                    }
                 });
             } else {
                 coloresContainer.innerHTML = '<span class="text-xs text-gray-400">Colores variados, consulta disponibilidad</span>';
+            }
+
+            const tallasContenedor = document.getElementById('detalleTallasContenedor');
+            const tallasContainer = document.getElementById('detalleTallas');
+            tallasContainer.innerHTML = '';
+            if (listaTallas.length) {
+                tallasContenedor.classList.remove('hidden');
+                listaTallas.forEach((talla, i) => {
+                    const activo = i === 0;
+                    if (activo) productoActual.talla = talla;
+                    tallasContainer.innerHTML += `
+                        <button type="button" onclick="seleccionarTalla('${escapeJS(talla)}', this)" data-talla="${escapeHTML(talla)}" class="talla-chip px-3 py-1.5 rounded-full text-xs font-medium border transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}">${escapeHTML(talla)}</button>`;
+                });
+            } else {
+                tallasContenedor.classList.add('hidden');
             }
 
             const btnWA = document.getElementById('detalleBotonWA');
@@ -828,7 +940,7 @@
                 let estaDisponible = (coincidencia.disponible && coincidencia.disponible.toLowerCase().trim() === 'si');
                 let stockCoincidencia = parseInt(coincidencia.stock, 10);
                 if (isNaN(stockCoincidencia)) stockCoincidencia = 99;
-                abrirDetalle(nombreProducto, textoImagen, precioFormateado, normalizarCategoria(coincidencia.categoria) || 'Variados', coincidencia.colores || '', estaDisponible, stockCoincidencia, coincidencia.stock_colores || '');
+                abrirDetalle(nombreProducto, textoImagen, precioFormateado, normalizarCategoria(coincidencia.categoria) || 'Variados', coincidencia.colores || '', estaDisponible, stockCoincidencia, coincidencia.stock_colores || '', coincidencia.tallas || '', coincidencia.stock_variantes || '');
             } else {
                 window.location.href = 'catalogo.html?buscar=' + encodeURIComponent(valorBusqueda);
             }

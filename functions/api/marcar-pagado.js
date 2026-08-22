@@ -86,6 +86,8 @@ export async function onRequestPost(context) {
     precio: recortar(it.precio, 20),
     categoria: recortar(it.categoria, 100),
     cantidad: Math.max(1, Math.min(99, parseInt(it.cantidad, 10) || 1)),
+    color: recortar(it.color, 100),
+    talla: recortar(it.talla, 50),
   }));
 
   const cuerpoParaSheet = {
