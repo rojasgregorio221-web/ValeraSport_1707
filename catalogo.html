@@ -345,7 +345,7 @@
             cantidadActual = restante <= 0 ? 0 : Math.max(1, Math.min(restante, cantidadActual + delta));
             document.getElementById('detalleCantidad').textContent = cantidadActual;
             document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
-            ocultarConfirmacion();
+            ocultarPanelSiAbierto();
             actualizarEstadoCompra();
         }
 
@@ -382,6 +382,20 @@
             actualizarBurbujaCarrito();
         }
 
+        // Se usa cuando el cliente cambia de color/talla/cantidad -- solo cierra el
+        // panel grande si estaba abierto (porque ya no aplica a lo que va a agregar
+        // ahora), pero NUNCA toca la burbuja minimizada ni borra su estado.
+        function ocultarPanelSiAbierto() {
+            const confirmacion = document.getElementById('detalleConfirmacion');
+            if (!confirmacion || confirmacion.classList.contains('hidden')) return;
+            confirmacion.classList.add('hidden');
+            if (confirmacionTimeoutId) { clearTimeout(confirmacionTimeoutId); confirmacionTimeoutId = null; }
+            if (obtenerCantidadTotalCarritoGlobal() > 0) {
+                miniCarritoMinimizado = true;
+                actualizarBurbujaCarrito();
+            }
+        }
+
         function expandirConfirmacion() {
             miniCarritoMinimizado = false;
             const burbuja = document.getElementById('miniCarritoBurbuja');
@@ -406,7 +420,7 @@
         }
 
         function seleccionarColor(color, chipClickeado, indice) {
-            ocultarConfirmacion();
+            ocultarPanelSiAbierto();
             if (productoActual) productoActual.color = color;
             document.querySelectorAll('#detalleColores .color-chip').forEach(chip => {
                 chip.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
@@ -429,7 +443,7 @@
         }
 
         function seleccionarTalla(talla, chipClickeado) {
-            ocultarConfirmacion();
+            ocultarPanelSiAbierto();
             if (productoActual) productoActual.talla = talla;
             document.querySelectorAll('#detalleTallas .talla-chip').forEach(chip => {
                 chip.classList.remove('bg-gray-900', 'border-gray-900', 'text-white');
