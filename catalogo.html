@@ -174,11 +174,13 @@
         <!-- Aviso flotante fijo en pantalla: se ve siempre igual sin importar en qué
              parte del modal (que puede tener scroll) esté mirando el cliente. -->
         <div id="detalleConfirmacion" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl shadow-xl px-4 py-3 text-sm">
-            <div class="flex items-start gap-2">
-                <span class="text-base leading-none">✅</span>
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-bag-shopping text-sm"></i>
+                </div>
                 <div class="flex-1 min-w-0">
                     <p class="font-semibold">¡Agregado al carrito!</p>
-                    <p class="text-xs text-emerald-600/80 mt-0.5">Puedes seguir eligiendo colores y tallas, o pagar cuando quieras.</p>
+                    <p id="detalleConfirmacionCantidad" class="text-xs text-emerald-600/80 mt-0.5"></p>
                     <a href="carrito.html" class="inline-block mt-2 text-xs font-bold underline">Ir a pagar →</a>
                 </div>
                 <button type="button" onclick="ocultarConfirmacion()" class="text-emerald-400 hover:text-emerald-700 text-xs shrink-0" title="Cerrar">✕</button>
@@ -266,6 +268,11 @@
         function mostrarConfirmacion() {
             const confirmacion = document.getElementById('detalleConfirmacion');
             if (!confirmacion) return;
+            const totalPiezas = obtenerCarrito().reduce((sum, it) => sum + (it.cantidad || 0), 0);
+            const textoCantidad = document.getElementById('detalleConfirmacionCantidad');
+            if (textoCantidad) {
+                textoCantidad.textContent = 'Ya llevas ' + totalPiezas + (totalPiezas === 1 ? ' pieza' : ' piezas') + ' en tu carrito.';
+            }
             confirmacion.classList.remove('hidden');
             if (confirmacionTimeoutId) clearTimeout(confirmacionTimeoutId);
             confirmacionTimeoutId = setTimeout(ocultarConfirmacion, 4000);
