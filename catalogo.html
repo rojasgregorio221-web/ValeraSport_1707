@@ -255,6 +255,16 @@
                     btn.classList.toggle('border-gray-200', i !== indice);
                 });
             }
+
+            // Cada color puede tener su propio stock restante, así que al
+            // cambiar de color hay que recalcular la cantidad y el mensaje
+            // de stock -- si no, se quedan pegados con los del color anterior.
+            const restanteNuevoColor = obtenerStockRestantePorColor(color);
+            cantidadActual = restanteNuevoColor <= 0 ? 0 : 1;
+            const spanCantidad = document.getElementById('detalleCantidad');
+            if (spanCantidad) spanCantidad.textContent = cantidadActual;
+            document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
+            actualizarEstadoCompra();
         }
 
         function obtenerCantidadColorEnCarrito(nombre, color) {
@@ -268,9 +278,12 @@
             document.querySelectorAll('#detalleColores .color-chip').forEach(chip => {
                 if (chip.dataset.color !== color) return;
                 const contador = chip.querySelector('.color-add-count');
-                if (!contador) return;
-                contador.textContent = cantidad;
-                contador.classList.toggle('hidden', cantidad <= 0);
+                if (contador) {
+                    contador.textContent = cantidad;
+                    contador.classList.toggle('hidden', cantidad <= 0);
+                }
+                const botonQuitar = chip.querySelector('.color-remove-btn');
+                if (botonQuitar) botonQuitar.classList.toggle('hidden', cantidad <= 0);
             });
         }
 
@@ -387,6 +400,19 @@
                 botonClickeado.classList.remove('bg-emerald-500', 'text-white');
                 if (icono) icono.textContent = '+';
             }, 700);
+        }
+
+        // Quita 1 unidad de este color del carrito, sin salir del modal.
+        function quitarColorRapido(color) {
+            if (!productoActual) return;
+            const carrito = obtenerCarrito();
+            const idx = carrito.findIndex(it => it.nombre === productoActual.nombre && (it.color || '') === (color || ''));
+            if (idx === -1) return;
+            carrito[idx].cantidad -= 1;
+            if (carrito[idx].cantidad <= 0) carrito.splice(idx, 1);
+            guardarCarrito(carrito);
+            actualizarBadgeColor(color);
+            actualizarEstadoCompra();
         }
 
         function agregarAlCarritoDesdeModal() {
@@ -675,6 +701,7 @@
                     coloresContainer.innerHTML += `
                         <div class="color-chip inline-flex items-center rounded-full border text-xs font-medium transition ${activo ? 'bg-gray-900 border-gray-900 text-white' : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-400'}" data-color="${escapeHTML(color)}">
                             <button type="button" onclick="seleccionarColor('${escapeJS(color)}', this.closest('.color-chip'), ${i})" class="rounded-l-full pl-3 pr-2 py-1.5">${escapeHTML(color)}</button>
+                            <button type="button" onclick="quitarColorRapido('${escapeJS(color)}')" class="color-remove-btn w-6 h-6 flex items-center justify-center shrink-0 hover:bg-black/10 transition-colors font-bold text-sm leading-none ${cantidadPrevia > 0 ? '' : 'hidden'}" title="Quitar uno de ${escapeHTML(color)}">−</button>
                             <button type="button" onclick="agregarColorRapido('${escapeJS(color)}', ${i}, this)" class="color-add-btn relative rounded-r-full w-6 h-6 mr-0.5 flex items-center justify-center shrink-0 hover:bg-black/10 transition-colors" title="Agregar ${escapeHTML(color)} al carrito">
                                 <span class="color-add-icon font-bold text-sm leading-none">+</span>
                                 <span class="color-add-count ${cantidadPrevia > 0 ? '' : 'hidden'} absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">${cantidadPrevia}</span>
