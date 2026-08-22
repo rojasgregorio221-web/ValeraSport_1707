@@ -153,7 +153,7 @@
                 <div class="inline-flex items-center border border-gray-200 rounded-full">
                     <button type="button" onclick="cambiarCantidad(-1)" class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-900">−</button>
                     <span id="detalleCantidad" class="w-8 text-center text-sm font-semibold text-gray-900">1</span>
-                    <button type="button" onclick="cambiarCantidad(1)" class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-900">+</button>
+                    <button type="button" id="btnCantidadMas" onclick="cambiarCantidad(1)" class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-900">+</button>
                 </div>
                 <p id="detalleStock" class="text-xs text-gray-400 mt-2"></p>
             </div>
@@ -223,10 +223,12 @@
         }
 
         function cambiarCantidad(delta) {
-            cantidadActual = Math.max(1, Math.min(stockActual, cantidadActual + delta));
+            const restante = obtenerStockRestanteActual();
+            cantidadActual = restante <= 0 ? 0 : Math.max(1, Math.min(restante, cantidadActual + delta));
             document.getElementById('detalleCantidad').textContent = cantidadActual;
             document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
             ocultarConfirmacion();
+            actualizarEstadoCompra();
         }
 
         function ocultarConfirmacion() {
@@ -272,9 +274,60 @@
             });
         }
 
+        function obtenerCantidadTotalEnCarrito(nombre) {
+            return obtenerCarrito().filter(it => it.nombre === nombre).reduce((sum, it) => sum + (it.cantidad || 0), 0);
+        }
+
+        function obtenerStockRestanteActual() {
+            if (!productoActual) return stockActual;
+            return Math.max(0, stockActual - obtenerCantidadTotalEnCarrito(productoActual.nombre));
+        }
+
+        // Actualiza en vivo el texto de stock disponible y bloquea los botones de compra si ya no queda stock.
+        function actualizarEstadoCompra() {
+            if (!productoActual) return;
+            const restante = obtenerStockRestanteActual();
+            const sinStock = restante <= 0;
+
+            if (cantidadActual > restante) {
+                cantidadActual = restante;
+                const spanCantidad = document.getElementById('detalleCantidad');
+                if (spanCantidad) spanCantidad.textContent = cantidadActual;
+                document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
+            }
+
+            const spanStock = document.getElementById('detalleStock');
+            if (spanStock && stockActual <= 99) {
+                spanStock.textContent = sinStock ? 'Sin stock disponible' : 'Quedan ' + restante + ' disponibles';
+                spanStock.classList.toggle('text-red-500', sinStock);
+                spanStock.classList.toggle('font-semibold', sinStock);
+                spanStock.classList.toggle('text-gray-400', !sinStock);
+            }
+
+            const btnCarrito = document.getElementById('detalleBotonCarrito');
+            if (btnCarrito && !btnCarrito.classList.contains('hidden')) {
+                btnCarrito.disabled = sinStock;
+                btnCarrito.classList.toggle('opacity-40', sinStock);
+                btnCarrito.classList.toggle('cursor-not-allowed', sinStock);
+            }
+
+            const btnCantidadMas = document.getElementById('btnCantidadMas');
+            if (btnCantidadMas) {
+                const alTope = sinStock || cantidadActual >= restante;
+                btnCantidadMas.disabled = alTope;
+                btnCantidadMas.classList.toggle('opacity-30', alTope);
+                btnCantidadMas.classList.toggle('cursor-not-allowed', alTope);
+            }
+
+            document.querySelectorAll('#detalleColores .color-add-btn').forEach(btn => {
+                btn.classList.toggle('opacity-30', sinStock);
+                btn.classList.toggle('pointer-events-none', sinStock);
+            });
+        }
+
         // Agrega 1 unidad de este color directamente, sin pasar por el selector de cantidad.
         function agregarColorRapido(color, indice, botonClickeado) {
-            if (!productoActual) return;
+            if (!productoActual || obtenerStockRestanteActual() <= 0) return;
             const imagenColor = (typeof indice === 'number' && imagenesProductoActual[indice]) ? imagenesProductoActual[indice] : productoActual.imagen;
             agregarAlCarrito({
                 nombre: productoActual.nombre,
@@ -284,6 +337,8 @@
                 color: color,
                 cantidad: 1
             });
+            actualizarBadgeColor(color);
+            actualizarEstadoCompra();
 
             const icono = botonClickeado.querySelector('.color-add-icon');
             botonClickeado.classList.add('bg-emerald-500', 'text-white');
@@ -292,27 +347,29 @@
             setTimeout(() => {
                 botonClickeado.classList.remove('bg-emerald-500', 'text-white');
                 if (icono) icono.textContent = '+';
-                actualizarBadgeColor(color);
             }, 700);
         }
 
         function agregarAlCarritoDesdeModal() {
             if (!productoActual) return;
+            const cantidadAAgregar = Math.min(cantidadActual, obtenerStockRestanteActual());
+            if (cantidadAAgregar <= 0) return;
             agregarAlCarrito({
                 nombre: productoActual.nombre,
                 precio: precioUnitarioActual,
                 categoria: productoActual.categoria,
                 imagen: productoActual.imagen,
                 color: productoActual.color || '',
-                cantidad: cantidadActual
+                cantidad: cantidadAAgregar
             });
             const confirmacion = document.getElementById('detalleConfirmacion');
             if (confirmacion) confirmacion.classList.remove('hidden');
             actualizarBadgeColor(productoActual.color || '');
-            cantidadActual = 1;
+            cantidadActual = obtenerStockRestanteActual() <= 0 ? 0 : 1;
             const spanCantidad = document.getElementById('detalleCantidad');
-            if (spanCantidad) spanCantidad.textContent = '1';
-            document.getElementById('detallePrecio').textContent = '$' + precioUnitarioActual.toFixed(2);
+            if (spanCantidad) spanCantidad.textContent = cantidadActual;
+            document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
+            actualizarEstadoCompra();
         }
 
         async function cargarProductosDesdeSheet() {
@@ -551,8 +608,6 @@
             cantidadActual = 1;
             const spanCantidad = document.getElementById('detalleCantidad');
             if (spanCantidad) spanCantidad.textContent = '1';
-            const spanStock = document.getElementById('detalleStock');
-            if (spanStock) spanStock.textContent = stockActual <= 99 ? 'Quedan ' + stockActual + ' disponibles' : '';
 
             const btnCarrito = document.getElementById('detalleBotonCarrito');
             const confirmacion = document.getElementById('detalleConfirmacion');
@@ -594,6 +649,10 @@
             const noDisp = document.getElementById('detalleNoDisponible');
             btnWA.href = enlaceWhatsApp;
             noDisp.classList.toggle('hidden', disponible);
+
+            if (obtenerStockRestanteActual() <= 0) cantidadActual = 0;
+            if (spanCantidad) spanCantidad.textContent = cantidadActual;
+            actualizarEstadoCompra();
 
             const modal = document.getElementById('detalleModal');
             const container = document.getElementById('detalleModalContainer');
