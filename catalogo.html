@@ -181,7 +181,7 @@
                     </div>
                     <span id="detalleConfirmacionCantidad" class="text-sm font-semibold text-emerald-700 truncate"></span>
                 </div>
-                <button type="button" onclick="ocultarConfirmacion()" class="text-gray-400 hover:text-gray-700 text-sm shrink-0" title="Cerrar">✕</button>
+                <button type="button" onclick="minimizarConfirmacion()" class="text-gray-400 hover:text-gray-700 text-sm shrink-0" title="Minimizar">➖</button>
             </div>
             <div id="miniCarritoLista" class="max-h-64 overflow-y-auto divide-y divide-gray-100"></div>
             <div class="p-4 bg-gray-50 border-t border-gray-100">
@@ -192,6 +192,13 @@
                 <a href="carrito.html" class="block text-center w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-full text-sm transition">Ir al carrito →</a>
             </div>
         </div>
+
+        <!-- Burbuja minimizada: aparece cuando el mini-carrito se achica, para no
+             perderlo de vista ni taparle el producto al cliente. -->
+        <button type="button" id="miniCarritoBurbuja" onclick="expandirConfirmacion()" class="hidden fixed top-20 right-4 z-[70] w-12 h-12 rounded-full bg-gray-900 hover:bg-gray-700 text-white shadow-xl relative flex items-center justify-center transition" title="Ver carrito">
+            <i class="fa-solid fa-bag-shopping text-sm"></i>
+            <span id="miniCarritoBurbujaContador" class="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">0</span>
+        </button>
     </div>
 
     <!-- Aviso de bienvenida: solo se muestra una vez, la primera vez que alguien entra al sitio. -->
@@ -314,7 +321,7 @@
             guardarCarrito(carrito);
             renderizarMiniCarrito();
             if (confirmacionTimeoutId) clearTimeout(confirmacionTimeoutId);
-            confirmacionTimeoutId = setTimeout(ocultarConfirmacion, 6000);
+            confirmacionTimeoutId = setTimeout(minimizarConfirmacion, 6000);
             if (productoActual && productoActual.nombre === nombre) {
                 actualizarBadgeColor(color);
                 actualizarEstadoCompra();
@@ -326,7 +333,7 @@
             guardarCarrito(carrito);
             renderizarMiniCarrito();
             if (confirmacionTimeoutId) clearTimeout(confirmacionTimeoutId);
-            confirmacionTimeoutId = setTimeout(ocultarConfirmacion, 6000);
+            confirmacionTimeoutId = setTimeout(minimizarConfirmacion, 6000);
             if (productoActual && productoActual.nombre === nombre) {
                 actualizarBadgeColor(color);
                 actualizarEstadoCompra();
@@ -343,20 +350,59 @@
         }
 
         let confirmacionTimeoutId = null;
+        let miniCarritoMinimizado = false;
 
+        // Oculta todo (panel Y burbuja) -- solo se usa cuando el carrito queda vacío.
         function ocultarConfirmacion() {
+            const confirmacion = document.getElementById('detalleConfirmacion');
+            const burbuja = document.getElementById('miniCarritoBurbuja');
+            if (confirmacion) confirmacion.classList.add('hidden');
+            if (burbuja) burbuja.classList.add('hidden');
+            if (confirmacionTimeoutId) { clearTimeout(confirmacionTimeoutId); confirmacionTimeoutId = null; }
+            miniCarritoMinimizado = false;
+        }
+
+        function actualizarBurbujaCarrito() {
+            const burbuja = document.getElementById('miniCarritoBurbuja');
+            if (!burbuja) return;
+            const totalPiezas = obtenerCantidadTotalCarritoGlobal();
+            if (totalPiezas <= 0) { burbuja.classList.add('hidden'); return; }
+            const contador = document.getElementById('miniCarritoBurbujaContador');
+            if (contador) contador.textContent = totalPiezas > 99 ? '99+' : totalPiezas;
+            burbuja.classList.remove('hidden');
+        }
+
+        // Achica el panel a una burbuja pequeña, para no taparle la vista al
+        // cliente ni perder el acceso al carrito.
+        function minimizarConfirmacion() {
             const confirmacion = document.getElementById('detalleConfirmacion');
             if (confirmacion) confirmacion.classList.add('hidden');
             if (confirmacionTimeoutId) { clearTimeout(confirmacionTimeoutId); confirmacionTimeoutId = null; }
+            miniCarritoMinimizado = true;
+            actualizarBurbujaCarrito();
         }
 
+        function expandirConfirmacion() {
+            miniCarritoMinimizado = false;
+            const burbuja = document.getElementById('miniCarritoBurbuja');
+            if (burbuja) burbuja.classList.add('hidden');
+            mostrarConfirmacion();
+        }
+
+        // Se llama cada vez que se agrega algo. Si el cliente ya lo había
+        // minimizado a propósito, no se le vuelve a abrir encima -- solo se
+        // actualiza el numerito de la burbuja.
         function mostrarConfirmacion() {
+            renderizarMiniCarrito();
+            if (miniCarritoMinimizado) { actualizarBurbujaCarrito(); return; }
+
             const confirmacion = document.getElementById('detalleConfirmacion');
             if (!confirmacion) return;
-            renderizarMiniCarrito();
+            const burbuja = document.getElementById('miniCarritoBurbuja');
+            if (burbuja) burbuja.classList.add('hidden');
             confirmacion.classList.remove('hidden');
             if (confirmacionTimeoutId) clearTimeout(confirmacionTimeoutId);
-            confirmacionTimeoutId = setTimeout(ocultarConfirmacion, 6000);
+            confirmacionTimeoutId = setTimeout(minimizarConfirmacion, 6000);
         }
 
         function seleccionarColor(color, chipClickeado, indice) {
