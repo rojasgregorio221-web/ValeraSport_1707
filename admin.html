@@ -187,15 +187,22 @@
             if (!clave) return;
 
             errorLogin.classList.add('hidden');
-            const valida = await probarPassword(clave);
-            if (valida) {
+            const resultado = await probarPassword(clave);
+            if (resultado.valida) {
                 sessionStorage.setItem(PASSWORD_KEY, clave);
                 mostrarPanel();
             } else {
+                errorLogin.textContent = resultado.mensaje || 'Contraseña incorrecta';
                 errorLogin.classList.remove('hidden');
             }
         });
 
+        // Antes esto era "return resp.status !== 401", lo que trataba CUALQUIER
+        // respuesta que no fuera 401 como contraseña válida -- incluyendo el 429
+        // del freno anti fuerza-bruta (que se dispara ANTES de revisar la
+        // contraseña). Resultado: tras varios intentos fallidos, el siguiente
+        // intento (correcto o no) abría igual el panel. Ahora se distingue cada
+        // caso explícitamente.
         async function probarPassword(clave) {
             try {
                 const resp = await fetch('/api/admin-pedidos', {
@@ -203,9 +210,14 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password: clave, tipo: 'pedidos' })
                 });
-                return resp.status !== 401;
+                if (resp.status === 401) return { valida: false };
+                if (resp.status === 429) {
+                    const datos = await resp.json().catch(() => ({}));
+                    return { valida: false, mensaje: datos.error || 'Demasiados intentos fallidos. Intenta más tarde.' };
+                }
+                return { valida: true };
             } catch (e) {
-                return false;
+                return { valida: false, mensaje: 'No se pudo conectar con el servidor.' };
             }
         }
 
