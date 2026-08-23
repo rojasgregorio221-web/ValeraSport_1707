@@ -148,12 +148,6 @@
         </div>
 
         <p id="sinResultados" class="text-center text-gray-400 text-sm py-10">No hay productos en esta categoría todavía.</p>
-
-        <div class="text-center mt-12">
-            <a href="catalogo.html" class="inline-block bg-cyan-500 hover:bg-cyan-400 text-white font-semibold px-8 py-3.5 rounded-full text-sm tracking-wide transition">
-                Ver todo
-            </a>
-        </div>
     </section>
 
     <!-- MODAL ESCÁNER QR -->
@@ -174,7 +168,9 @@
     <!-- MODAL DETALLE / AGREGAR AL CARRITO -->
     <div id="detalleModal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-3xl relative shadow-xl scale-95 opacity-0 max-h-[90vh] overflow-y-auto transition-all duration-200 grid grid-cols-1 md:grid-cols-2" id="detalleModalContainer">
-            <button onclick="cerrarDetalle()" class="icon-btn absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 text-gray-400 hover:text-gray-900 text-sm z-10"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="cerrarDetalle()" class="icon-btn absolute top-3 right-3 flex items-center gap-1.5 pl-3 pr-2.5 py-2 rounded-full bg-white/90 shadow-sm text-gray-600 hover:text-gray-900 text-xs font-semibold z-10">
+                Cerrar <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
 
             <!-- IZQUIERDA: imagen -->
             <div class="p-6 md:p-8 bg-gray-50 md:rounded-l-2xl">
@@ -219,36 +215,37 @@
                 <p id="detalleNoDisponible" class="hidden text-center text-sm text-gray-400 py-3">Actualmente no disponible</p>
             </div>
         </div>
-
-        <!-- Aviso flotante fijo en pantalla: se ve siempre igual sin importar en qué
-             parte del modal (que puede tener scroll) esté mirando el cliente. -->
-        <div id="detalleConfirmacion" class="hidden fixed top-20 right-4 z-[70] w-[calc(100%-2rem)] max-w-sm bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden">
-            <div class="flex items-center justify-between gap-2 px-4 py-3 bg-emerald-50 border-b border-emerald-100">
-                <div class="flex items-center gap-2 min-w-0">
-                    <div class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-bag-shopping text-xs"></i>
-                    </div>
-                    <span id="detalleConfirmacionCantidad" class="text-sm font-semibold text-emerald-700 truncate"></span>
-                </div>
-                <button type="button" onclick="minimizarConfirmacion()" class="text-gray-400 hover:text-gray-700 text-sm shrink-0" title="Minimizar">➖</button>
-            </div>
-            <div id="miniCarritoLista" class="max-h-64 overflow-y-auto divide-y divide-gray-100"></div>
-            <div class="p-4 bg-gray-50 border-t border-gray-100">
-                <div class="flex justify-between items-center mb-3">
-                    <span class="text-xs text-gray-500">Total</span>
-                    <span id="miniCarritoTotal" class="text-lg font-black text-gray-900">$0.00</span>
-                </div>
-                <a href="carrito.html" class="block text-center w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-full text-sm transition">Ir al carrito →</a>
-            </div>
-        </div>
-
-        <!-- Burbuja minimizada: aparece cuando el mini-carrito se achica, para no
-             perderlo de vista ni taparle el producto al cliente. -->
-        <button type="button" id="miniCarritoBurbuja" onclick="expandirConfirmacion()" class="hidden fixed top-20 right-4 z-[70] w-12 h-12 rounded-full bg-gray-900 hover:bg-gray-700 text-white shadow-xl relative flex items-center justify-center transition" title="Ver carrito">
-            <i class="fa-solid fa-bag-shopping text-sm"></i>
-            <span id="miniCarritoBurbujaContador" class="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">0</span>
-        </button>
     </div>
+
+    <!-- Aviso flotante fijo en pantalla: vive FUERA del modal (no como hijo suyo)
+         para que cerrar el modal no lo esconda a la fuerza -- así el cliente
+         puede cerrar la ficha del producto y seguir viendo su carrito. -->
+    <div id="detalleConfirmacion" class="hidden fixed top-20 right-4 z-[70] w-[calc(100%-2rem)] max-w-sm bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between gap-2 px-4 py-3 bg-emerald-50 border-b border-emerald-100">
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-bag-shopping text-xs"></i>
+                </div>
+                <span id="detalleConfirmacionCantidad" class="text-sm font-semibold text-emerald-700 truncate"></span>
+            </div>
+            <button type="button" onclick="minimizarConfirmacion()" class="text-gray-400 hover:text-gray-700 text-sm shrink-0" title="Minimizar">➖</button>
+        </div>
+        <div id="miniCarritoLista" class="max-h-64 overflow-y-auto divide-y divide-gray-100"></div>
+        <div class="p-4 bg-gray-50 border-t border-gray-100">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-xs text-gray-500">Total</span>
+                <span id="miniCarritoTotal" class="text-lg font-black text-gray-900">$0.00</span>
+            </div>
+            <a href="carrito.html" class="block text-center w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-full text-sm transition">Ir al carrito →</a>
+        </div>
+    </div>
+
+    <!-- Burbuja minimizada: aparece cuando el mini-carrito se achica, para no
+         perderlo de vista ni taparle el producto al cliente. -->
+    <button type="button" id="miniCarritoBurbuja" onclick="expandirConfirmacion()" class="hidden fixed top-20 right-4 z-[70] w-12 h-12 rounded-full bg-gray-900 hover:bg-gray-700 text-white shadow-xl relative flex items-center justify-center transition" title="Ver carrito">
+        <i class="fa-solid fa-bag-shopping text-sm"></i>
+        <span id="miniCarritoBurbujaContador" class="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">0</span>
+    </button>
 
     <!-- Aviso de bienvenida: solo se muestra una vez, la primera vez que alguien entra al sitio. -->
     <div id="bienvenidaToast" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm bg-cyan-50 border border-cyan-200 text-cyan-800 rounded-xl shadow-xl px-4 py-3 text-sm">
@@ -385,6 +382,9 @@
             cont.scrollBy({ left: direccion * 320, behavior: 'smooth' });
         }
 
+        // Los productos de "Destacados" son solo una vitrina: al tocar uno se
+        // manda al catalogo completo (filtrado por su categoria), en vez de
+        // abrir aqui mismo el modal de compra -- ese vive solo en catalogo.html.
         function crearTarjetaCarrusel(p) {
             let nombreProducto = p.producto || p.nombre || "Producto sin nombre";
             let textoImagen = p.imagen || "";
@@ -392,23 +392,17 @@
             let precioFormateado = p.precio ? parseFloat(p.precio).toFixed(2) : "0.00";
             let estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
             let categoriaLabel = normalizarCategoria(p.categoria) || "Variados";
-            let coloresTexto = p.colores || "";
-            let stockDisponible = parseInt(p.stock, 10);
-            if (isNaN(stockDisponible)) stockDisponible = 99;
-            let stockColoresTexto = p.stock_colores || "";
-            let tallasTexto = p.tallas || "";
-            let stockVariantesTexto = p.stock_variantes || "";
-            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}, ${stockDisponible}, '${escapeJS(stockColoresTexto)}', '${escapeJS(tallasTexto)}', '${escapeJS(stockVariantesTexto)}'`;
+            let enlaceCatalogo = 'catalogo.html?categoria=' + encodeURIComponent(categoriaLabel);
 
             return `
-                <div class="carrusel-item flex-shrink-0 w-44 md:w-64 cursor-pointer group" onclick="abrirDetalle(${argsAbrirDetalle})">
+                <a href="${enlaceCatalogo}" class="carrusel-item flex-shrink-0 w-44 md:w-64 cursor-pointer group block">
                     <div class="w-full h-48 md:h-72 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center mb-3">
                         <img src="${escapeHTML(imagenUrl)}" alt="${escapeHTML(nombreProducto)}" class="max-w-[85%] max-h-[85%] object-contain group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
                     </div>
                     <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5">${escapeHTML(categoriaLabel)}</span>
                     <h3 class="text-sm text-gray-900 font-medium leading-snug line-clamp-1">${escapeHTML(nombreProducto)}</h3>
                     <p class="text-sm font-bold text-gray-900 mt-1">$${precioFormateado}${!estaDisponible ? ' <span class="text-gray-400 font-normal">· Agotado</span>' : ''}</p>
-                </div>
+                </a>
             `;
         }
 
