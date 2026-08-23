@@ -167,14 +167,14 @@
 
     <!-- MODAL DETALLE / AGREGAR AL CARRITO -->
     <div id="detalleModal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-3xl relative shadow-xl scale-95 opacity-0 max-h-[90vh] overflow-y-auto transition-all duration-200 grid grid-cols-1 md:grid-cols-2" id="detalleModalContainer">
+        <div class="bg-white rounded-[2rem] w-full max-w-3xl relative shadow-xl scale-95 opacity-0 max-h-[90vh] overflow-y-auto transition-all duration-200 grid grid-cols-1 md:grid-cols-2" id="detalleModalContainer">
             <button onclick="cerrarDetalle()" class="icon-btn absolute top-3 right-3 flex items-center gap-1.5 pl-3 pr-2.5 py-2 rounded-full bg-white/90 shadow-sm text-gray-600 hover:text-gray-900 text-xs font-semibold z-10">
                 Cerrar <i class="fa-solid fa-xmark text-sm"></i>
             </button>
 
             <!-- IZQUIERDA: imagen -->
             <div class="p-6 md:p-8 bg-gray-50 md:rounded-l-2xl">
-                <div class="w-full aspect-square rounded-xl overflow-hidden bg-white flex items-center justify-center mb-3">
+                <div class="w-full aspect-square rounded-3xl overflow-hidden bg-white flex items-center justify-center mb-3">
                     <img id="detalleImagen" src="" alt="" class="max-w-full max-h-full object-contain">
                 </div>
                 <div id="detalleGaleria" class="hidden flex gap-2 overflow-x-auto pb-1"></div>
@@ -220,7 +220,7 @@
     <!-- Aviso flotante fijo en pantalla: vive FUERA del modal (no como hijo suyo)
          para que cerrar el modal no lo esconda a la fuerza -- así el cliente
          puede cerrar la ficha del producto y seguir viendo su carrito. -->
-    <div id="detalleConfirmacion" class="hidden fixed top-20 right-4 z-[70] w-[calc(100%-2rem)] max-w-sm bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden">
+    <div id="detalleConfirmacion" class="hidden fixed top-20 right-4 z-[70] w-[calc(100%-2rem)] max-w-sm bg-white border border-gray-200 rounded-[1.75rem] shadow-2xl overflow-hidden">
         <div class="flex items-center justify-between gap-2 px-4 py-3 bg-emerald-50 border-b border-emerald-100">
             <div class="flex items-center gap-2 min-w-0">
                 <div class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
@@ -242,7 +242,7 @@
 
     <!-- Burbuja minimizada: aparece cuando el mini-carrito se achica, para no
          perderlo de vista ni taparle el producto al cliente. -->
-    <button type="button" id="miniCarritoBurbuja" onclick="expandirConfirmacion()" class="hidden fixed top-20 right-4 z-[70] w-12 h-12 rounded-full bg-gray-900 hover:bg-gray-700 text-white shadow-xl relative flex items-center justify-center transition" title="Ver carrito">
+    <button type="button" id="miniCarritoBurbuja" class="hidden fixed top-20 right-4 z-[70] w-14 h-14 rounded-full bg-gray-900 hover:bg-gray-700 text-white shadow-xl flex items-center justify-center transition cursor-grab active:cursor-grabbing touch-none" title="Ver carrito · mantén presionado para moverlo">
         <i class="fa-solid fa-bag-shopping text-sm"></i>
         <span id="miniCarritoBurbujaContador" class="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">0</span>
     </button>
@@ -396,7 +396,7 @@
 
             return `
                 <a href="${enlaceCatalogo}" class="carrusel-item flex-shrink-0 w-44 md:w-64 cursor-pointer group block">
-                    <div class="w-full h-48 md:h-72 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center mb-3">
+                    <div class="w-full h-48 md:h-72 bg-gray-50 rounded-2xl overflow-hidden flex items-center justify-center mb-3">
                         <img src="${escapeHTML(imagenUrl)}" alt="${escapeHTML(nombreProducto)}" class="max-w-[85%] max-h-[85%] object-contain group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
                     </div>
                     <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5">${escapeHTML(categoriaLabel)}</span>

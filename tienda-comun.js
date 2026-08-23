@@ -208,6 +208,59 @@ function expandirConfirmacion() {
     mostrarConfirmacion();
 }
 
+// ---------- ARRASTRAR LA BURBUJA DEL MINI-CARRITO ----------
+// El cliente puede arrastrarla a cualquier parte de la pantalla (por si le
+// tapa algo que quiere ver). Un simple toque/clic (sin arrastrar) sigue
+// abriendo el carrito como antes.
+(function habilitarArrastreBurbuja() {
+    const burbuja = document.getElementById('miniCarritoBurbuja');
+    if (!burbuja || !window.PointerEvent) return;
+
+    let arrastrando = false;
+    let seMovio = false;
+    let offsetX = 0, offsetY = 0;
+    let inicioX = 0, inicioY = 0;
+    const UMBRAL_ARRASTRE = 6; // px de distancia total desde el toque inicial para contar como arrastre
+
+    burbuja.addEventListener('pointerdown', (e) => {
+        arrastrando = true;
+        seMovio = false;
+        inicioX = e.clientX;
+        inicioY = e.clientY;
+        burbuja.setPointerCapture(e.pointerId);
+        const rect = burbuja.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        // A partir de aquí se posiciona por left/top; se abandona right/top-20 (Tailwind).
+        burbuja.style.right = 'auto';
+        burbuja.style.left = rect.left + 'px';
+        burbuja.style.top = rect.top + 'px';
+    });
+
+    burbuja.addEventListener('pointermove', (e) => {
+        if (!arrastrando) return;
+        if (Math.abs(e.clientX - inicioX) > UMBRAL_ARRASTRE || Math.abs(e.clientY - inicioY) > UMBRAL_ARRASTRE) seMovio = true;
+
+        const nuevoX = Math.max(4, Math.min(window.innerWidth - burbuja.offsetWidth - 4, e.clientX - offsetX));
+        const nuevoY = Math.max(4, Math.min(window.innerHeight - burbuja.offsetHeight - 4, e.clientY - offsetY));
+        burbuja.style.left = nuevoX + 'px';
+        burbuja.style.top = nuevoY + 'px';
+    });
+
+    function soltar(e) {
+        if (!arrastrando) return;
+        arrastrando = false;
+        try { burbuja.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+    burbuja.addEventListener('pointerup', soltar);
+    burbuja.addEventListener('pointercancel', soltar);
+
+    burbuja.addEventListener('click', (e) => {
+        if (seMovio) { e.preventDefault(); e.stopPropagation(); seMovio = false; return; }
+        expandirConfirmacion();
+    });
+})();
+
 // Se llama cada vez que se agrega algo. Si el cliente ya lo había
 // minimizado a propósito, no se le vuelve a abrir encima -- solo se
 // actualiza el numerito de la burbuja.
