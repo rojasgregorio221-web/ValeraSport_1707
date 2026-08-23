@@ -212,6 +212,14 @@ function expandirConfirmacion() {
 // El cliente puede arrastrarla a cualquier parte de la pantalla (por si le
 // tapa algo que quiere ver). Un simple toque/clic (sin arrastrar) sigue
 // abriendo el carrito como antes.
+//
+// A propósito NO se usa setPointerCapture aquí: si un arrastre se interrumpe
+// de forma rara (se suelta fuera de la ventana, cambio de pestaña, etc.) sin
+// que dispare pointerup/pointercancel sobre el elemento capturado, el
+// navegador puede quedar "enviándole" todos los eventos de puntero futuros a
+// la burbuja -- y entonces el resto de la página deja de responder a clics.
+// Escuchando en `window` en vez de en la burbuja se evita ese riesgo por
+// completo: nunca hay nada que "soltar".
 (function habilitarArrastreBurbuja() {
     const burbuja = document.getElementById('miniCarritoBurbuja');
     if (!burbuja || !window.PointerEvent) return;
@@ -227,7 +235,6 @@ function expandirConfirmacion() {
         seMovio = false;
         inicioX = e.clientX;
         inicioY = e.clientY;
-        burbuja.setPointerCapture(e.pointerId);
         const rect = burbuja.getBoundingClientRect();
         offsetX = e.clientX - rect.left;
         offsetY = e.clientY - rect.top;
@@ -237,7 +244,7 @@ function expandirConfirmacion() {
         burbuja.style.top = rect.top + 'px';
     });
 
-    burbuja.addEventListener('pointermove', (e) => {
+    window.addEventListener('pointermove', (e) => {
         if (!arrastrando) return;
         if (Math.abs(e.clientX - inicioX) > UMBRAL_ARRASTRE || Math.abs(e.clientY - inicioY) > UMBRAL_ARRASTRE) seMovio = true;
 
@@ -247,13 +254,12 @@ function expandirConfirmacion() {
         burbuja.style.top = nuevoY + 'px';
     });
 
-    function soltar(e) {
-        if (!arrastrando) return;
-        arrastrando = false;
-        try { burbuja.releasePointerCapture(e.pointerId); } catch (err) {}
-    }
-    burbuja.addEventListener('pointerup', soltar);
-    burbuja.addEventListener('pointercancel', soltar);
+    function soltar() { arrastrando = false; }
+    window.addEventListener('pointerup', soltar);
+    window.addEventListener('pointercancel', soltar);
+    // Salvavidas: si la pestaña pierde el foco a mitad de un arrastre (cambio
+    // de app, alt-tab), nos aseguramos de no quedar "pegados" arrastrando.
+    window.addEventListener('blur', soltar);
 
     burbuja.addEventListener('click', (e) => {
         if (seMovio) { e.preventDefault(); e.stopPropagation(); seMovio = false; return; }
