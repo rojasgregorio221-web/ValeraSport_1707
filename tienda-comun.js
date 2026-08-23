@@ -25,6 +25,23 @@ function guardarCarrito(carrito) {
     localStorage.setItem(CARRITO_KEY, JSON.stringify(carrito));
     actualizarContadorCarrito();
 }
+
+// Si el cliente tiene el sitio abierto en varias pestañas (ej. compró en una y
+// sigue viendo el catálogo en otra), el carrito de esa otra pestaña queda
+// "congelado" con datos viejos hasta que algo lo refresque -- y si en ese
+// momento resulta que el carrito real ya quedó vacío, se veía como si el
+// carrito completo desapareciera sin avisar. Este listener mantiene el
+// contador y el mini-carrito de cada pestaña sincronizados con lo que pase en
+// las demás.
+window.addEventListener('storage', (evento) => {
+    if (evento.key !== CARRITO_KEY) return;
+    actualizarContadorCarrito();
+    const confirmacion = document.getElementById('detalleConfirmacion');
+    if (confirmacion && !confirmacion.classList.contains('hidden')) renderizarMiniCarrito();
+    const burbuja = document.getElementById('miniCarritoBurbuja');
+    if (burbuja && !burbuja.classList.contains('hidden')) actualizarBurbujaCarrito();
+});
+
 const ULTIMO_PEDIDO_KEY = 'vs_ultimo_pedido';
 
 function actualizarIndicadorPedido() {
@@ -595,12 +612,16 @@ function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, col
     if (spanCantidad) spanCantidad.textContent = '1';
 
     const btnCarrito = document.getElementById('detalleBotonCarrito');
-    const confirmacion = document.getElementById('detalleConfirmacion');
     if (btnCarrito) {
         btnCarrito.classList.toggle('hidden', !disponible);
         btnCarrito.disabled = false;
     }
-    if (confirmacion) confirmacion.classList.add('hidden');
+    // Antes esto escondia el mini-carrito a la fuerza (classList.add('hidden'))
+    // sin pasar a la burbuja minimizada -- si el cliente tenia el panel abierto
+    // y tocaba otro producto, el carrito "desaparecia" sin dejar ni el icono
+    // flotante. ocultarPanelSiAbierto() sí lo minimiza a la burbuja si aún hay
+    // algo en el carrito.
+    ocultarPanelSiAbierto();
 
     document.getElementById('detalleImagen').src = listaImagenes[0];
     document.getElementById('detalleImagen').alt = nombre;
