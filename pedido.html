@@ -192,6 +192,14 @@
                         </a>
                     </div>` : ''}
 
+                    ${orden.estado === 'aceptado' ? `
+                    <div class="mt-5 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 text-xs text-emerald-800 leading-relaxed">
+                        Escríbenos por WhatsApp si necesitas que te hagamos un envío a cualquier parte de Venezuela, o si estás en Barquisimeto puedes pasar en nuestro horario de atención por la tienda para buscar tu pedido.
+                    </div>
+                    <a href="https://wa.me/584245939407" target="_blank" class="block text-center mt-3 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3 rounded-full text-sm transition">
+                        <i class="fa-brands fa-whatsapp mr-1"></i> Escríbenos por WhatsApp
+                    </a>` : ''}
+
                     ${orden.estado === 'rechazado' ? `
                     <a href="https://wa.me/584245939407" target="_blank" class="block text-center mt-5 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3 rounded-full text-sm transition">
                         <i class="fa-brands fa-whatsapp mr-1"></i> Escríbenos por WhatsApp
