@@ -60,6 +60,10 @@
 
         #sinResultados { display: none; }
         #estadoCarga { text-align: center; color: #9ca3af; font-size: 13px; margin-bottom: 24px; }
+
+        .acordeon-contenido { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+        .acordeon-icono { transition: transform 0.3s ease; }
+        .acordeon.abierto .acordeon-icono { transform: rotate(45deg); }
     </style>
 </head>
 <body class="antialiased min-h-screen">
@@ -317,9 +321,67 @@
         </div>
     </section>
 
-    <footer class="border-t border-gray-100 py-10 text-center space-y-1">
-        <p class="text-xs tracking-wide text-gray-400">© 2026 Valera Sport. Todos los derechos reservados.</p>
-        <p class="text-xs text-gray-300">Sitio Web diseñado e integrado por <span class="text-cyan-500 font-semibold">Gregorio Yepez</span></p>
+    <!-- ACERCA DE VALERA SPORT -->
+    <section id="acerca" class="border-t border-gray-100 py-16 md:py-24 bg-gray-50">
+        <div class="max-w-3xl mx-auto px-6">
+            <h2 class="font-brand font-bold text-3xl text-center text-gray-900 mb-3">Acerca de Valera Sport</h2>
+            <p class="text-center text-gray-500 text-sm mb-10">Toca cada pregunta para ver más.</p>
+
+            <div class="space-y-3">
+                <div class="acordeon bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                    <button type="button" class="acordeon-boton w-full flex items-center justify-between gap-4 px-6 py-5 text-left" onclick="toggleAcordeon(this)">
+                        <span class="font-brand font-bold text-gray-900">Sobre nosotros</span>
+                        <i class="fa-solid fa-plus text-cyan-500 text-sm acordeon-icono"></i>
+                    </button>
+                    <div class="acordeon-contenido">
+                        <div class="px-6 pb-6 text-sm text-gray-600 leading-relaxed space-y-3">
+                            <p>Más de 3 años ofreciendo la mejor calidad en ropa y calzado deportivo en Barquisimeto. Somos una tienda física consolidada, comprometida con brindarte atención personalizada, confianza y los mejores precios del mercado.</p>
+                            <p class="text-gray-500 italic">El nombre "Valera Sport" lleva el apellido de nuestra familia -- un negocio familiar que llevamos con orgullo en cada prenda que vendemos.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="acordeon bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                    <button type="button" class="acordeon-boton w-full flex items-center justify-between gap-4 px-6 py-5 text-left" onclick="toggleAcordeon(this)">
+                        <span class="font-brand font-bold text-gray-900">Horario, envíos y garantía</span>
+                        <i class="fa-solid fa-plus text-cyan-500 text-sm acordeon-icono"></i>
+                    </button>
+                    <div class="acordeon-contenido">
+                        <div class="px-6 pb-6 text-sm text-gray-600 leading-relaxed space-y-2">
+                            <p><strong class="text-gray-900">Atención al cliente:</strong> Lunes a sábado, 9:00 a.m. – 5:00 p.m.</p>
+                            <p><strong class="text-gray-900">Envíos:</strong> nacionales y entregas personales.</p>
+                            <p><strong class="text-gray-900">Garantía:</strong> cambio en tienda física dentro de los primeros 7 días.</p>
+                            <p><strong class="text-gray-900">Métodos de pago:</strong> Pago Móvil, Zelle, Efectivo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="acordeon bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                    <button type="button" class="acordeon-boton w-full flex items-center justify-between gap-4 px-6 py-5 text-left" onclick="toggleAcordeon(this)">
+                        <span class="font-brand font-bold text-gray-900">Información fiscal (RIF)</span>
+                        <i class="fa-solid fa-plus text-cyan-500 text-sm acordeon-icono"></i>
+                    </button>
+                    <div class="acordeon-contenido">
+                        <div class="px-6 pb-6 text-sm text-gray-600">
+                            <p>RIF: <span class="font-mono text-gray-900">V221943100</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="border-t border-gray-100 py-10 text-center space-y-3">
+        <nav class="flex items-center justify-center gap-5 text-xs font-semibold text-gray-500">
+            <a href="/catalogo" class="hover:text-gray-900 transition">Catálogo</a>
+            <a href="/catalogo?categoria=Damas" class="hover:text-gray-900 transition">Damas</a>
+            <a href="/catalogo?categoria=Caballeros" class="hover:text-gray-900 transition">Caballeros</a>
+            <a href="/catalogo?categoria=Niños" class="hover:text-gray-900 transition">Niños</a>
+        </nav>
+        <div class="space-y-1">
+            <p class="text-xs tracking-wide text-gray-400">© 2026 Valera Sport. Todos los derechos reservados. RIF: V221943100</p>
+            <p class="text-xs text-gray-300">Sitio Web desarrollado por <span class="text-cyan-500 font-semibold">Gregorio Yépez</span> | Ingeniería en Sistemas</p>
+        </div>
     </footer>
 
     <script src="tienda-comun.js"></script>
@@ -477,6 +539,15 @@
             const params = new URLSearchParams(window.location.search);
             const productoParam = params.get('producto') || params.get('buscar') || params.get('codigo');
             if (productoParam) procesarCodigoQR(productoParam);
+        }
+
+        // ---------- ACERCA DE VALERA SPORT (acordeon con "+") ----------
+
+        function toggleAcordeon(boton) {
+            const contenedor = boton.closest('.acordeon');
+            const contenido = contenedor.querySelector('.acordeon-contenido');
+            const abierto = contenedor.classList.toggle('abierto');
+            contenido.style.maxHeight = abierto ? contenido.scrollHeight + 'px' : '0px';
         }
 
         // ---------- MAPA (desplegar solo al hacer clic) ----------
