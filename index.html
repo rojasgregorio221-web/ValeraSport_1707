@@ -67,25 +67,25 @@
     <!-- HEADER -->
     <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <a href="index.html" class="font-brand font-extrabold text-xl tracking-tight text-gray-900">
+            <a href="/" class="font-brand font-extrabold text-xl tracking-tight text-gray-900">
                 VALERA<span class="text-cyan-500">SPORT</span>
             </a>
             <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-800">
-                <a href="catalogo.html" class="nav-link">Catálogo</a>
-                <a href="catalogo.html?categoria=Damas" class="nav-link">Damas</a>
-                <a href="catalogo.html?categoria=Caballeros" class="nav-link">Caballeros</a>
-                <a href="catalogo.html?categoria=Niños" class="nav-link">Niños</a>
+                <a href="/catalogo" class="nav-link">Catálogo</a>
+                <a href="/catalogo?categoria=Damas" class="nav-link">Damas</a>
+                <a href="/catalogo?categoria=Caballeros" class="nav-link">Caballeros</a>
+                <a href="/catalogo?categoria=Niños" class="nav-link">Niños</a>
                 <a href="#contacto" class="nav-link">Ubicación</a>
             </nav>
             <div class="flex items-center gap-1">
                 <button id="btnEscanear" onclick="abrirScanner()" title="Escanear código QR" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
                     <i class="fa-solid fa-qrcode text-sm"></i>
                 </button>
-                <button onclick="location.href='carrito.html'" title="Carrito" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
+                <button onclick="location.href='/carrito'" title="Carrito" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
                     <i class="fa-solid fa-bag-shopping text-sm"></i>
                     <span id="contadorCarrito" class="hidden absolute top-1 right-1.5 bg-cyan-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">0</span>
                 </button>
-                <button id="btnMiPedido" onclick="location.href='pedido.html'" title="Estado de mi pedido" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
+                <button id="btnMiPedido" onclick="location.href='/pedido'" title="Estado de mi pedido" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
                     <i class="fa-solid fa-receipt text-sm"></i>
                     <span id="puntoMiPedido" class="hidden absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full"></span>
                 </button>
@@ -119,7 +119,7 @@
             <p class="mt-5 text-gray-600 max-w-md mx-auto">
                 Ropa deportiva para toda la familia, directo desde Barquisimeto.
             </p>
-            <a href="catalogo.html" class="inline-block mt-8 bg-gray-900 hover:bg-gray-700 text-white font-semibold px-8 py-3.5 rounded-full text-sm tracking-wide transition">
+            <a href="/catalogo" class="inline-block mt-8 bg-gray-900 hover:bg-gray-700 text-white font-semibold px-8 py-3.5 rounded-full text-sm tracking-wide transition">
                 Explora
             </a>
         </div>
@@ -236,7 +236,7 @@
                 <span class="text-xs text-gray-500">Total</span>
                 <span id="miniCarritoTotal" class="text-lg font-black text-gray-900">$0.00</span>
             </div>
-            <a href="carrito.html" class="block text-center w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-full text-sm transition">Ir al carrito →</a>
+            <a href="/carrito" class="block text-center w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-full text-sm transition">Ir al carrito →</a>
         </div>
     </div>
 
@@ -392,7 +392,7 @@
             let precioFormateado = p.precio ? parseFloat(p.precio).toFixed(2) : "0.00";
             let estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
             let categoriaLabel = normalizarCategoria(p.categoria) || "Variados";
-            let enlaceCatalogo = 'catalogo.html?categoria=' + encodeURIComponent(categoriaLabel);
+            let enlaceCatalogo = '/catalogo?categoria=' + encodeURIComponent(categoriaLabel);
 
             return `
                 <a href="${enlaceCatalogo}" class="carrusel-item flex-shrink-0 w-44 md:w-64 cursor-pointer group block">
@@ -469,7 +469,7 @@
                 if (isNaN(stockCoincidencia)) stockCoincidencia = 99;
                 abrirDetalle(nombreProducto, textoImagen, precioFormateado, normalizarCategoria(coincidencia.categoria) || 'Variados', coincidencia.colores || '', estaDisponible, stockCoincidencia, coincidencia.stock_colores || '', coincidencia.tallas || '', coincidencia.stock_variantes || '');
             } else {
-                window.location.href = 'catalogo.html?buscar=' + encodeURIComponent(valorBusqueda);
+                window.location.href = '/catalogo?buscar=' + encodeURIComponent(valorBusqueda);
             }
         }
 

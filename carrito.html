@@ -36,22 +36,22 @@
     <!-- HEADER -->
     <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <a href="index.html" class="font-brand font-extrabold text-xl tracking-tight text-gray-900">
+            <a href="/" class="font-brand font-extrabold text-xl tracking-tight text-gray-900">
                 VALERA<span class="text-cyan-500">SPORT</span>
             </a>
             <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-800">
-                <a href="catalogo.html" class="nav-link">Catálogo</a>
-                <a href="catalogo.html?categoria=Damas" class="nav-link">Damas</a>
-                <a href="catalogo.html?categoria=Caballeros" class="nav-link">Caballeros</a>
-                <a href="catalogo.html?categoria=Niños" class="nav-link">Niños</a>
-                <a href="index.html#contacto" class="nav-link">Ubicación</a>
+                <a href="/catalogo" class="nav-link">Catálogo</a>
+                <a href="/catalogo?categoria=Damas" class="nav-link">Damas</a>
+                <a href="/catalogo?categoria=Caballeros" class="nav-link">Caballeros</a>
+                <a href="/catalogo?categoria=Niños" class="nav-link">Niños</a>
+                <a href="/#contacto" class="nav-link">Ubicación</a>
             </nav>
             <div class="flex items-center gap-1">
-                <button onclick="location.href='carrito.html'" title="Carrito" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-cyan-500">
+                <button onclick="location.href='/carrito'" title="Carrito" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-cyan-500">
                     <i class="fa-solid fa-bag-shopping text-sm"></i>
                     <span id="contadorCarrito" class="hidden absolute top-1 right-1.5 bg-cyan-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">0</span>
                 </button>
-                <button id="btnMiPedido" onclick="location.href='pedido.html'" title="Estado de mi pedido" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
+                <button id="btnMiPedido" onclick="location.href='/pedido'" title="Estado de mi pedido" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
                     <i class="fa-solid fa-receipt text-sm"></i>
                     <span id="puntoMiPedido" class="hidden absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full"></span>
                 </button>
@@ -94,7 +94,7 @@
             <div id="carritoVacio" class="hidden text-center py-24">
                 <i class="fa-solid fa-bag-shopping text-3xl text-gray-200 mb-4"></i>
                 <p class="text-gray-400 text-sm mb-6">Tu carrito está vacío.</p>
-                <a href="catalogo.html" class="inline-block bg-gray-900 hover:bg-gray-700 text-white font-semibold px-8 py-3 rounded-full text-sm transition">
+                <a href="/catalogo" class="inline-block bg-gray-900 hover:bg-gray-700 text-white font-semibold px-8 py-3 rounded-full text-sm transition">
                     Ir al catálogo
                 </a>
             </div>
@@ -105,7 +105,7 @@
                 <div>
                     <div class="flex items-center justify-between mb-6">
                         <h1 class="font-brand font-bold text-2xl text-gray-900">Tu carrito</h1>
-                        <a href="catalogo.html" class="text-sm font-semibold text-cyan-600 hover:text-cyan-500 flex items-center gap-1.5">
+                        <a href="/catalogo" class="text-sm font-semibold text-cyan-600 hover:text-cyan-500 flex items-center gap-1.5">
                             <i class="fa-solid fa-plus text-xs"></i> Agregar más productos
                         </a>
                     </div>
@@ -200,7 +200,7 @@
             <div id="estadoConfirmacion" class="text-center bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold py-6 rounded-2xl text-sm">
                 ⏳ ¡Pedido enviado! Por favor no cierres esta ventana hasta que se confirme tu compra.
             </div>
-            <a href="catalogo.html" class="inline-block mt-6 text-sm font-semibold text-cyan-600 hover:text-cyan-500">
+            <a href="/catalogo" class="inline-block mt-6 text-sm font-semibold text-cyan-600 hover:text-cyan-500">
                 Seguir comprando →
             </a>
         </div>
@@ -711,7 +711,7 @@
         // ---------- CUENTA DE CLIENTE ----------
 
         function clicBotonCuenta() {
-            if (usuarioActual) { window.location.href = 'cuenta.html'; return; }
+            if (usuarioActual) { window.location.href = '/cuenta'; return; }
             if (typeof window.firebaseSignIn !== 'function') { alert('El sistema de cuentas está cargando, intenta de nuevo en un segundo.'); return; }
             window.firebaseSignIn().catch((error) => { console.error(error); alert('No se pudo iniciar sesión: ' + error.message); });
         }

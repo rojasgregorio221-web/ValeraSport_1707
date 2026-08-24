@@ -759,10 +759,10 @@ function cerrarDetalle() {
 let usuarioActual = null;
 
 function clicBotonCuenta() {
-    if (usuarioActual) { window.location.href = 'cuenta.html'; return; }
+    if (usuarioActual) { window.location.href = '/cuenta'; return; }
     if (typeof window.firebaseSignIn !== 'function') { alert('El sistema de cuentas está cargando, intenta de nuevo en un segundo.'); return; }
     window.firebaseSignIn()
-        .then(() => { window.location.href = 'cuenta.html'; })
+        .then(() => { window.location.href = '/cuenta'; })
         .catch((error) => { console.error(error); alert('No se pudo iniciar sesión: ' + error.message); });
 }
 
