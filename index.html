@@ -329,25 +329,19 @@
 
     <!-- CONTACTO -->
     <section id="contacto" class="border-t border-gray-100 py-16 md:py-24">
-        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div class="space-y-5">
-                <h2 class="font-brand font-bold text-3xl text-gray-900">Visítanos en tienda</h2>
-                <p class="text-gray-600">Calle 28 entre Carreras 19 y 20, C.C. (Antiguo Beco), Local 121-122. Barquisimeto, Lara.</p>
-                <a href="https://wa.me/584245939407" target="_blank" class="inline-block text-sm font-semibold text-cyan-600 hover:text-cyan-500 nav-link">
-                    Escríbenos por WhatsApp →
-                </a>
+        <div class="max-w-2xl mx-auto px-6 text-center">
+            <h2 class="font-brand font-bold text-3xl text-gray-900 mb-8">Visítanos en tienda</h2>
+            <div id="mapa-contenedor" class="relative h-64 md:h-80 rounded-2xl overflow-hidden border border-gray-100 bg-gray-50">
+                <button id="mapa-toggle" type="button" class="w-full h-full flex flex-col items-center justify-center gap-3 group">
+                    <div class="w-14 h-14 rounded-full bg-cyan-50 flex items-center justify-center group-hover:bg-cyan-100 transition-colors">
+                        <i class="fa-solid fa-location-dot text-cyan-600 text-xl"></i>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-semibold text-gray-900">Ver ubicación en el mapa</p>
+                        <p class="text-sm text-gray-500">Toca para desplegar Google Maps</p>
+                    </div>
+                </button>
             </div>
-           <div id="mapa-contenedor" class="relative h-64 md:h-80 rounded-2xl overflow-hidden border border-gray-100 bg-gray-50">
-    <button id="mapa-toggle" type="button" class="w-full h-full flex flex-col items-center justify-center gap-3 group">
-        <div class="w-14 h-14 rounded-full bg-cyan-50 flex items-center justify-center group-hover:bg-cyan-100 transition-colors">
-            <i class="fa-solid fa-location-dot text-cyan-600 text-xl"></i>
-        </div>
-        <div class="text-center">
-            <p class="font-semibold text-gray-900">Ver ubicación en el mapa</p>
-            <p class="text-sm text-gray-500">Toca para desplegar Google Maps</p>
-        </div>
-    </button>
-</div>
         </div>
     </section>
 
