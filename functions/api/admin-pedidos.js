@@ -98,10 +98,15 @@ export async function onRequestPost(context) {
       return jsonResponse({ ok: false, error: "Falta el id de la orden" }, 400);
     }
 
+    const cuerpo = { accion: datos.accion, idOrden: datos.idOrden, clave: CLAVE_ADMIN };
+    if (datos.accion === "rechazarOrden" && datos.motivo) {
+      cuerpo.motivo = String(datos.motivo).slice(0, 300);
+    }
+
     const respuesta = await fetch(SHEET_WRITE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accion: datos.accion, idOrden: datos.idOrden, clave: CLAVE_ADMIN }),
+      body: JSON.stringify(cuerpo),
     });
 
     const resultado = await parsearRespuesta(respuesta);

@@ -480,10 +480,20 @@
             if (!boton) return;
             const tarjeta = boton.closest('[data-idorden]');
             if (!tarjeta) return;
+
+            if (boton.dataset.accion === 'rechazarOrden') {
+                // El cliente va a ver este texto en su pedido -- por eso se pide aparte,
+                // en vez de rechazar directo sin explicación.
+                const motivo = prompt('Motivo del rechazo (el cliente lo va a ver en su pedido). Déjalo en blanco si no quieres poner ninguno:', '');
+                if (motivo === null) return; // canceló el cuadro de dialogo
+                responderOrden(tarjeta.dataset.idorden, 'rechazarOrden', motivo.trim());
+                return;
+            }
+
             responderOrden(tarjeta.dataset.idorden, boton.dataset.accion);
         });
 
-        async function responderOrden(idOrden, accion) {
+        async function responderOrden(idOrden, accion, motivo) {
             const tarjeta = document.querySelector(`#listaPedidos [data-idorden="${CSS.escape(idOrden)}"]`);
             if (tarjeta) tarjeta.style.opacity = '0.4';
 
@@ -491,7 +501,7 @@
                 const resp = await fetch('/api/admin-pedidos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: obtenerPassword(), accion, idOrden })
+                    body: JSON.stringify({ password: obtenerPassword(), accion, idOrden, motivo: motivo || '' })
                 });
                 const datos = await resp.json();
 

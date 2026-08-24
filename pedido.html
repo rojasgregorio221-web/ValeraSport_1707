@@ -204,6 +204,10 @@
                     </a>` : ''}
 
                     ${orden.estado === 'rechazado' ? `
+                    ${orden.motivo ? `
+                    <div class="mt-5 bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 text-xs text-rose-800 leading-relaxed">
+                        <span class="font-bold uppercase tracking-wide block mb-1">Motivo:</span> ${escapeHTML(orden.motivo)}
+                    </div>` : ''}
                     <button type="button" onclick="reintentarPedido()" class="block w-full text-center mt-5 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm transition">
                         <i class="fa-solid fa-rotate-right mr-1"></i> Volver a pedir estos productos
                     </button>
