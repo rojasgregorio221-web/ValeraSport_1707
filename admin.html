@@ -56,6 +56,7 @@
             <p class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Vendido hoy</p>
             <p class="text-4xl font-black text-gray-900" id="totalHoy">$0.00</p>
             <p class="text-sm text-gray-500 mt-1" id="cantidadHoy">0 ítems aceptados</p>
+            <p class="text-xs text-gray-400 mt-0.5" id="totalHoyBs"></p>
         </div>
 
         <!-- REGISTRAR VENTA FÍSICA -->
@@ -338,8 +339,10 @@
                 });
                 const datos = await resp.json();
                 if (datos.ok) {
-                    document.getElementById('totalHoy').textContent = '$' + Number(datos.resumen.totalHoy).toFixed(2);
+                    ultimoTotalHoy = Number(datos.resumen.totalHoy) || 0;
+                    document.getElementById('totalHoy').textContent = '$' + ultimoTotalHoy.toFixed(2);
                     document.getElementById('cantidadHoy').textContent = datos.resumen.cantidadHoy + ' ítems aceptados';
+                    actualizarTotalHoyBs();
                 }
             } catch (e) {
                 console.error('Error cargando resumen:', e);
@@ -793,6 +796,7 @@
         // bolívares en el catálogo -- no depende del Apps Script ni de que ya
         // hayas pegado la actualización pendiente.
         let tasaBcvAdmin = null;
+        let ultimoTotalHoy = 0;
         async function cargarTasaBcvAdmin() {
             try {
                 const resp = await fetch('/api/tasa-bcv');
@@ -802,6 +806,7 @@
                 tasaBcvAdmin = null;
             }
             actualizarPrecioBsFisica();
+            actualizarTotalHoyBs();
         }
         function actualizarPrecioBsFisica() {
             const el = document.getElementById('fisicaPrecioBs');
@@ -809,6 +814,11 @@
             const precio = parseFloat(document.getElementById('fisicaPrecio').value);
             if (!tasaBcvAdmin || !precio) { el.textContent = ''; return; }
             el.textContent = '≈ Bs ' + (precio * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        function actualizarTotalHoyBs() {
+            const el = document.getElementById('totalHoyBs');
+            if (!el) return;
+            el.textContent = tasaBcvAdmin ? '≈ Bs ' + (ultimoTotalHoy * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
         }
 
         function parseCSV(texto) {
