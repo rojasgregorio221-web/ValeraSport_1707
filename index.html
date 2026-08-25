@@ -404,7 +404,10 @@
         }
 
         function renderizarDestacados() {
-            const filtrados = productos.filter(p => (p.categoria || '').toLowerCase().includes(tabActiva.toLowerCase()));
+            const filtrados = productos.filter(p =>
+                (p.producto || p.nombre || '').trim() && // fila vacía o a medio llenar en el Sheet -- nunca se muestra
+                (p.categoria || '').toLowerCase().includes(tabActiva.toLowerCase())
+            );
             const cont = document.getElementById('carruselDestacados');
             const vacio = document.getElementById('sinResultados');
 

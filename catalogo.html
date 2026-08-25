@@ -313,6 +313,7 @@
 
             const filtrados = productos.filter(p => {
                 const nombre = (p.producto || p.nombre || '').toLowerCase();
+                if (!nombre.trim()) return false; // fila vacía o a medio llenar en el Sheet -- nunca se muestra
                 const categoriaNormalizada = normalizarCategoria(p.categoria);
                 const categoria = categoriaNormalizada ? categoriaNormalizada.toLowerCase() : '';
                 const precio = parseFloat(p.precio) || 0;
