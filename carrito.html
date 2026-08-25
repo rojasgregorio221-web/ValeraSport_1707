@@ -198,8 +198,14 @@
                 <span class="paso-activo">3. Confirmación</span>
             </div>
             <div id="estadoConfirmacion" class="text-center bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold py-6 rounded-2xl text-sm">
-                ⏳ ¡Pedido enviado! Por favor no cierres esta ventana hasta que se confirme tu compra.
+                ⏳ ¡Pedido enviado! Un miembro de nuestro equipo va a revisar tu pago en unos minutos.
             </div>
+            <p class="mt-4 text-xs text-gray-400 leading-relaxed">
+                Puedes cerrar esta ventana tranquilo, no se pierde nada. Te avisaremos por correo apenas se revise tu pago, y puedes entrar a "Estado de mi pedido" cuando quieras para ver si ya fue aceptado.
+            </p>
+            <a id="enlaceEstadoPedido" href="/pedido" class="inline-flex items-center justify-center gap-2 mt-5 w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3 rounded-full text-sm transition">
+                <i class="fa-solid fa-receipt"></i> Ver estado de mi pedido
+            </a>
             <div id="avisoEnvioWhatsApp" class="hidden mt-4 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs text-gray-600 leading-relaxed text-left">
                 Escríbenos por <a href="https://wa.me/584245939407" target="_blank" class="text-cyan-600 font-semibold hover:text-cyan-500">WhatsApp</a> si necesitas que te hagamos un envío a cualquier parte de Venezuela, o si estás en Barquisimeto puedes pasar en nuestro horario de atención por la tienda para buscar tu pedido.
             </div>
@@ -541,6 +547,8 @@
                     // y ver si su pedido fue aceptado o rechazado.
                     localStorage.setItem(ULTIMO_PEDIDO_KEY, JSON.stringify({ idOrden: idOrden, fecha: Date.now() }));
                     actualizarIndicadorPedido();
+                    const enlaceEstado = document.getElementById('enlaceEstadoPedido');
+                    if (enlaceEstado) enlaceEstado.href = '/pedido?idOrden=' + encodeURIComponent(idOrden);
                     iniciarConsultaEstado(idOrden);
                 }
             } catch (error) {
