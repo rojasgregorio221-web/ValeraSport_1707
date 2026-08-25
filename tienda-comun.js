@@ -726,7 +726,7 @@ function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, col
     renderizarGaleria(listaImagenes);
     document.getElementById('detalleCategoria').textContent = categoriaLabel;
     document.getElementById('detalleNombre').textContent = nombre;
-    document.getElementById('detallePrecio').textContent = '$' + precioFormateado;
+    actualizarPrecioDetalle();
 
     const coloresContainer = document.getElementById('detalleColores');
     coloresContainer.innerHTML = "";
