@@ -94,10 +94,17 @@
                 <div>
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Método de pago</label>
                     <select id="fisicaMetodoPago" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400">
-                        <option value="Efectivo en tienda">Efectivo en tienda</option>
+                        <option value="Efectivo Bs">Efectivo Bs</option>
+                        <option value="Efectivo USD">Efectivo USD</option>
                         <option value="Pago Móvil">Pago Móvil</option>
                         <option value="Transferencia">Transferencia</option>
+                        <option value="Binance">Binance</option>
+                        <option value="Zelle">Zelle</option>
                     </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Nota (opcional)</label>
+                    <input type="text" id="fisicaNota" placeholder="Ej: cliente frecuente, pagó parte en Bs..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                 </div>
                 <button onclick="registrarVentaFisica()" class="icon-btn w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition mt-2">
                     <i class="fa-solid fa-plus mr-1"></i> Registrar venta
@@ -130,6 +137,9 @@
                 <button data-tab="aceptadas" onclick="cambiarTabPedidos('aceptadas')" class="tab-pedidos font-bold text-sm pb-3">
                     Aceptadas
                 </button>
+                <button data-tab="rechazadas" onclick="cambiarTabPedidos('rechazadas')" class="tab-pedidos font-bold text-sm pb-3">
+                    Rechazadas
+                </button>
             </div>
             <div class="flex items-center gap-1 pb-2">
                 <button onclick="refrescarManual()" title="Actualizar" class="icon-btn text-gray-400 hover:text-cyan-500 w-8 h-8 flex items-center justify-center rounded-full">
@@ -155,6 +165,14 @@
             <div id="listaAceptadas" class="space-y-4"></div>
             <p id="sinAceptadas" class="hidden text-sm text-gray-400 text-center py-10">Todavía no hay órdenes aceptadas.</p>
         </div>
+
+        <!-- VISTA: RECHAZADAS -->
+        <div id="vistaRechazadas" class="hidden">
+            <p class="text-[11px] text-gray-300 -mt-2 mb-4">Solo se muestran las rechazadas de hoy. Después de medianoche desaparecen de aquí (pero el registro sigue guardado en el Sheet).</p>
+            <p id="cargandoRechazadas" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
+            <div id="listaRechazadas" class="space-y-4"></div>
+            <p id="sinRechazadas" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes rechazadas hoy.</p>
+        </div>
     </div>
 
     <script>
@@ -174,8 +192,10 @@
         // haga que un pedido recién llegado "desaparezca" de la pantalla).
         let idSolicitudPedidos = 0;
         let idSolicitudAceptadas = 0;
+        let idSolicitudRechazadas = 0;
         let peticionPedidosEnCurso = false;
         let peticionAceptadasEnCurso = false;
+        let peticionRechazadasEnCurso = false;
 
         let productosCatalogo = [];
         let scannerVentaStream = null;
@@ -269,8 +289,10 @@
             document.querySelectorAll('.tab-pedidos').forEach(btn => btn.classList.toggle('activa', btn.dataset.tab === tab));
             document.getElementById('vistaPendientes').classList.toggle('hidden', tab !== 'pendientes');
             document.getElementById('vistaAceptadas').classList.toggle('hidden', tab !== 'aceptadas');
+            document.getElementById('vistaRechazadas').classList.toggle('hidden', tab !== 'rechazadas');
             document.getElementById('btnRechazarTodos').classList.toggle('hidden', tab !== 'pendientes');
             if (tab === 'aceptadas') cargarAceptadas();
+            if (tab === 'rechazadas') cargarRechazadas();
         }
 
         function refrescarManual() {
@@ -282,6 +304,7 @@
         async function cargarTodo() {
             const tareas = [cargarResumen(), cargarPedidos()];
             if (tabActiva === 'aceptadas') tareas.push(cargarAceptadas());
+            if (tabActiva === 'rechazadas') tareas.push(cargarRechazadas());
             await Promise.all(tareas);
             marcarActualizado();
         }
@@ -403,8 +426,58 @@
             }
         }
 
-        // `conBotones` = true para pendientes (aceptar/rechazar), false para aceptadas (solo lectura)
-        function tarjetaOrden(orden, conBotones) {
+        // ---------- ÓRDENES RECHAZADAS (solo las de hoy) ----------
+
+        async function cargarRechazadas() {
+            if (peticionRechazadasEnCurso) return;
+            peticionRechazadasEnCurso = true;
+            const miId = ++idSolicitudRechazadas;
+
+            const cargando = document.getElementById('cargandoRechazadas');
+            const lista = document.getElementById('listaRechazadas');
+            const sinRechazadas = document.getElementById('sinRechazadas');
+
+            if (!lista.children.length) cargando.classList.remove('hidden');
+
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), tipo: 'rechazadas' })
+                });
+                const datos = await resp.json();
+
+                if (miId !== idSolicitudRechazadas) return;
+
+                cargando.classList.add('hidden');
+                sinRechazadas.classList.add('hidden');
+
+                if (!datos.ok) {
+                    lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar órdenes') + '</p>';
+                    return;
+                }
+
+                const ordenes = datos.ordenes || [];
+
+                if (!ordenes.length) {
+                    lista.innerHTML = '';
+                    sinRechazadas.classList.remove('hidden');
+                    return;
+                }
+
+                lista.innerHTML = ordenes.map(o => tarjetaOrden(o, false, true)).join('');
+            } catch (e) {
+                if (miId !== idSolicitudRechazadas) return;
+                cargando.classList.add('hidden');
+                lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
+            } finally {
+                peticionRechazadasEnCurso = false;
+            }
+        }
+
+        // `conBotones` = true para pendientes (aceptar/rechazar), false para aceptadas/rechazadas (solo lectura)
+        // `rechazada` = true para pintar la tarjeta en rojo y mostrar el motivo del rechazo, si hay uno
+        function tarjetaOrden(orden, conBotones, rechazada) {
             const fecha = orden.fecha ? new Date(orden.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
             const total = Number(orden.total || 0).toFixed(2);
             const idAttr = escapeHTML(orden.idOrden);
@@ -412,6 +485,10 @@
             const referencia = orden.referencia && String(orden.referencia).trim() ? escapeHTML(orden.referencia) : null;
             const comprobanteUrl = sanitizarURLImagen(orden.comprobanteUrl);
             const items = orden.items || [];
+            const motivo = orden.motivo && String(orden.motivo).trim() ? escapeHTML(orden.motivo) : null;
+
+            const colorEtiqueta = rechazada ? 'text-rose-500' : (conBotones ? 'text-cyan-600' : 'text-emerald-600');
+            const iconoEtiqueta = rechazada ? '<i class="fa-solid fa-xmark mr-1"></i> ' : (conBotones ? '' : '<i class="fa-solid fa-check mr-1"></i> ');
 
             const listaItems = items.map(it => `
                 <div class="flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
@@ -427,8 +504,8 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5" id="orden-${idAttr}" data-idorden="${idAttr}">
                     <div class="flex justify-between items-start mb-3">
                         <div>
-                            <span class="text-[10px] font-bold ${conBotones ? 'text-cyan-600' : 'text-emerald-600'} uppercase tracking-widest block mb-1">
-                                ${conBotones ? '' : '<i class="fa-solid fa-check mr-1"></i> '}${items.length} ${items.length === 1 ? 'producto' : 'productos'}
+                            <span class="text-[10px] font-bold ${colorEtiqueta} uppercase tracking-widest block mb-1">
+                                ${iconoEtiqueta}${items.length} ${items.length === 1 ? 'producto' : 'productos'}
                             </span>
                             <p class="text-xs text-gray-400">${escapeHTML(fecha)}</p>
                         </div>
@@ -461,6 +538,12 @@
                             <span class="text-gray-400">No adjuntado</span>
                         </div>`}
                     </div>
+
+                    ${motivo ? `
+                    <div class="mt-3 bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 text-xs text-rose-600">
+                        <span class="font-bold uppercase tracking-wide block mb-1">Motivo del rechazo:</span>
+                        ${motivo}
+                    </div>` : ''}
 
                     ${conBotones ? `
                     <div class="grid grid-cols-2 gap-3">
@@ -695,6 +778,7 @@
             const precio = document.getElementById('fisicaPrecio').value.trim();
             const categoria = document.getElementById('fisicaCategoria').value.trim();
             const metodoPago = document.getElementById('fisicaMetodoPago').value;
+            const nota = document.getElementById('fisicaNota').value.trim();
 
             const mensaje = document.getElementById('mensajeFisica');
             mensaje.classList.add('hidden');
@@ -716,7 +800,8 @@
                         precio: precio,
                         categoria: categoria,
                         metodoPago: metodoPago,
-                        correoCliente: correo
+                        correoCliente: correo,
+                        nota: nota
                     })
                 });
                 const datos = await resp.json();
@@ -727,13 +812,16 @@
                     return;
                 }
 
-                mensaje.textContent = '✅ Venta registrada correctamente.';
+                mensaje.textContent = datos.precioBs
+                    ? '✅ Venta registrada: $' + Number(precio).toFixed(2) + ' (Bs ' + Number(datos.precioBs).toFixed(2) + ')'
+                    : '✅ Venta registrada correctamente.';
                 mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-600';
 
                 document.getElementById('fisicaCorreo').value = '';
                 document.getElementById('fisicaProducto').value = '';
                 document.getElementById('fisicaPrecio').value = '';
                 document.getElementById('fisicaCategoria').value = '';
+                document.getElementById('fisicaNota').value = '';
 
                 cargarResumen();
             } catch (e) {
