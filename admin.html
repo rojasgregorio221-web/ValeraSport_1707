@@ -858,7 +858,13 @@
         function normalizarCategoria(cat) {
             const limpio = (cat || '').trim();
             if (!limpio) return '';
-            if (limpio.toLowerCase() === 'revisar' || limpio.toLowerCase() === 'combos' || limpio.toLowerCase() === 'combo') return '';
+            const minuscula = limpio.toLowerCase();
+            if (minuscula === 'revisar' || minuscula === 'combos' || minuscula === 'combo') return '';
+            // Unifica variantes en singular que a veces quedan así en el Sheet.
+            if (minuscula === 'caballero') return 'Caballeros';
+            if (minuscula === 'dama') return 'Damas';
+            if (minuscula === 'niño' || minuscula === 'nino') return 'Niños';
+            if (minuscula === 'niña' || minuscula === 'nina') return 'Niñas';
             return limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase();
         }
 

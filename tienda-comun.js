@@ -665,7 +665,15 @@ function obtenerListaImagenes(textoImagen) {
 function normalizarCategoria(cat) {
     const limpio = (cat || '').trim();
     if (!limpio) return null;
-    if (limpio.toLowerCase() === 'revisar' || limpio.toLowerCase() === 'combos' || limpio.toLowerCase() === 'combo') return null;
+    const minuscula = limpio.toLowerCase();
+    if (minuscula === 'revisar' || minuscula === 'combos' || minuscula === 'combo') return null;
+    // Unifica variantes en singular que a veces quedan así en el Sheet (ej.
+    // "Caballero" en vez de "Caballeros"), para que no aparezcan como
+    // categorías separadas en el filtro del catálogo.
+    if (minuscula === 'caballero') return 'Caballeros';
+    if (minuscula === 'dama') return 'Damas';
+    if (minuscula === 'niño' || minuscula === 'nino') return 'Niños';
+    if (minuscula === 'niña' || minuscula === 'nina') return 'Niñas';
     return limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase();
 }
 
