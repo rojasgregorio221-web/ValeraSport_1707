@@ -124,14 +124,17 @@
                             <span class="text-sm text-gray-500">Subtotal</span>
                             <span id="subtotalCarrito" class="text-sm text-gray-500">$0.00</span>
                         </div>
+                        <p id="subtotalCarritoBs" class="text-right text-[11px] text-gray-400 -mt-0.5 mb-1"></p>
                         <div class="hidden flex justify-between items-center pb-1 border-b border-gray-200" id="filaDescuentoMayor">
                             <span class="text-sm text-emerald-600">Descuento por mayor</span>
                             <span id="descuentoMayorMonto" class="text-sm text-emerald-600">-$0.00</span>
                         </div>
+                        <p id="descuentoMayorMontoBs" class="hidden text-right text-[11px] text-gray-400 -mt-0.5 mb-1"></p>
                         <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-200 pt-2">
                             <span class="text-sm text-gray-500">Total</span>
                             <span id="totalCarrito" class="text-2xl font-black text-gray-900">$0.00</span>
                         </div>
+                        <p id="totalCarritoBs" class="text-right text-xs text-gray-400 -mt-3 mb-4"></p>
 
                         <!-- Antes de iniciar sesión: solo botón de login -->
                         <div id="bloqueLogin">
@@ -225,6 +228,24 @@
         const ULTIMO_PEDIDO_KEY = 'vs_ultimo_pedido';
         let usuarioActual = null;
         let comprobanteBase64 = null;
+
+        // Tasa oficial del día (BCV), solo para mostrar el equivalente en
+        // bolívares junto al subtotal/descuento/total. Si falla (sin internet,
+        // servicio caído), tasaBcvCarrito queda en null y esas líneas en Bs
+        // simplemente no se muestran -- nunca bloquea el checkout.
+        let tasaBcvCarrito = null;
+        function formatearBsCarrito(monto) {
+            return monto.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        async function cargarTasaBcvCarrito() {
+            try {
+                const resp = await fetch('/api/tasa-bcv');
+                const datos = await resp.json();
+                tasaBcvCarrito = (datos.ok && datos.tasa) ? Number(datos.tasa) : null;
+            } catch (e) {
+                tasaBcvCarrito = null;
+            }
+        }
 
         // Datos de la cuenta a la que debe pagar el cliente.
         // *** REEMPLAZA los "[COMPLETAR]" por tus datos reales antes de publicar ***
@@ -347,18 +368,29 @@
             const total = calcularTotal();
             const aviso = document.getElementById('avisoMayor');
             const filaDescuento = document.getElementById('filaDescuentoMayor');
+            const descuentoBsEl = document.getElementById('descuentoMayorMontoBs');
 
             document.getElementById('subtotalCarrito').textContent = '$' + subtotal.toFixed(2);
             document.getElementById('totalCarrito').textContent = '$' + total.toFixed(2);
 
+            const subtotalBsEl = document.getElementById('subtotalCarritoBs');
+            const totalBsEl = document.getElementById('totalCarritoBs');
+            if (subtotalBsEl) subtotalBsEl.textContent = tasaBcvCarrito ? '≈ Bs ' + formatearBsCarrito(subtotal * tasaBcvCarrito) : '';
+            if (totalBsEl) totalBsEl.textContent = tasaBcvCarrito ? '≈ Bs ' + formatearBsCarrito(total * tasaBcvCarrito) : '';
+
             if (descuento > 0) {
                 filaDescuento.classList.remove('hidden');
                 document.getElementById('descuentoMayorMonto').textContent = '-$' + (subtotal - total).toFixed(2);
+                if (descuentoBsEl) {
+                    descuentoBsEl.classList.remove('hidden');
+                    descuentoBsEl.textContent = tasaBcvCarrito ? '-Bs ' + formatearBsCarrito((subtotal - total) * tasaBcvCarrito) : '';
+                }
                 aviso.className = 'mb-4 rounded-xl border p-3 text-xs font-semibold bg-emerald-50 border-emerald-200 text-emerald-700';
                 aviso.innerHTML = '🎉 ¡Descuento por mayor aplicado! Llevas ' + cantidadTotal + ' piezas: a partir de 3, cada una tiene $' + DESCUENTO_MAYOR_UNITARIO.toFixed(2) + ' de descuento.';
                 aviso.classList.remove('hidden');
             } else {
                 filaDescuento.classList.add('hidden');
+                if (descuentoBsEl) descuentoBsEl.classList.add('hidden');
                 const faltan = UMBRAL_MAYOR - cantidadTotal;
                 aviso.className = 'mb-4 rounded-xl border p-3 text-xs font-semibold bg-cyan-50 border-cyan-100 text-cyan-700';
                 aviso.innerHTML = '💡 Agrega ' + faltan + ' pieza' + (faltan === 1 ? '' : 's') + ' más (de cualquier modelo) y cada prenda baja $' + DESCUENTO_MAYOR_UNITARIO.toFixed(2) + '.';
@@ -735,6 +767,9 @@
             actualizarIndicadorPedido();
             renderizarCarrito();
             revisarUltimoPedido();
+            // El resumen ya se mostró en dólares; en cuanto llegue la tasa del
+            // día se vuelve a pintar, ahora con el equivalente en bolívares.
+            cargarTasaBcvCarrito().then(() => renderizarCarrito());
         });
 
         window.addEventListener('firebase-auth-changed', (e) => {
