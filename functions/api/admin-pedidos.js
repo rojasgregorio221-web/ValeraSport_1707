@@ -84,8 +84,15 @@ export async function onRequestPost(context) {
 
   intentosFallidosPorIP.delete(ip);
 
-  // Lectura: listar órdenes pendientes/aceptadas/rechazadas o el resumen de ventas del día
-  if (datos.tipo === "pedidos" || datos.tipo === "aceptados" || datos.tipo === "resumen" || datos.tipo === "rechazadas") {
+  // Lectura: listar órdenes pendientes/aceptadas/rechazadas, el registro de
+  // ventas (caja registradora) o el resumen de ventas del día
+  if (
+    datos.tipo === "pedidos" ||
+    datos.tipo === "aceptados" ||
+    datos.tipo === "resumen" ||
+    datos.tipo === "rechazadas" ||
+    datos.tipo === "ventas"
+  ) {
     const url = SHEET_WRITE_URL + "?accion=" + datos.tipo + "&clave=" + encodeURIComponent(CLAVE_ADMIN);
     const respuesta = await fetch(url, { method: "GET" });
     const resultado = await parsearRespuesta(respuesta);

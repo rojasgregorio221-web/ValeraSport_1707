@@ -151,7 +151,10 @@
             </div>
             <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex justify-between items-center mb-5">
                 <span class="text-xs text-gray-500 uppercase font-bold">Precio</span>
-                <span class="text-2xl font-black text-gray-900" id="detallePrecio"></span>
+                <div class="text-right">
+                    <span class="text-2xl font-black text-gray-900 block" id="detallePrecio"></span>
+                    <span id="detallePrecioBs" class="block text-xs text-gray-400 font-normal"></span>
+                </div>
             </div>
 
             <div class="mb-6">
@@ -237,6 +240,10 @@
                 construirFiltroCategorias();
                 aplicarParametrosURL();
                 aplicarFiltros();
+                // Los precios ya se mostraron en dólares; en cuanto llegue la tasa
+                // del día se vuelve a pintar la grilla, ahora con el equivalente en
+                // bolívares junto a cada precio.
+                obtenerTasaBcv().then(() => aplicarFiltros());
             } catch (error) {
                 console.error("Error al cargar el catálogo:", error);
                 if (estado) estado.textContent = "No se pudo cargar el catálogo.";
@@ -378,7 +385,7 @@
                     </div>
                     <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5">${escapeHTML(categoriaLabel)}</span>
                     <h3 class="text-sm text-gray-900 font-medium leading-snug line-clamp-1">${escapeHTML(nombreProducto)}</h3>
-                    <p class="text-sm font-bold text-gray-900 mt-1">$${precioFormateado}${!estaDisponible ? ' <span class="text-gray-400 font-normal">· Agotado</span>' : ''}</p>
+                    <p class="text-sm font-bold text-gray-900 mt-1">$${precioFormateado}${textoPrecioBs(parseFloat(precioFormateado))}${!estaDisponible ? ' <span class="text-gray-400 font-normal">· Agotado</span>' : ''}</p>
                 </div>
             `;
         }

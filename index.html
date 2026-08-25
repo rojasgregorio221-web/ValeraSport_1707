@@ -189,6 +189,7 @@
                 <span id="detalleCategoria" class="text-[11px] font-semibold text-cyan-600 uppercase tracking-widest mb-1 block"></span>
                 <h3 id="detalleNombre" class="text-2xl font-bold text-gray-900 mb-2"></h3>
                 <span class="text-2xl font-black text-gray-900" id="detallePrecio"></span>
+                <span id="detallePrecioBs" class="block text-xs text-gray-400 font-normal mt-0.5"></span>
 
                 <div class="mt-6 mb-5">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Color</label>
@@ -374,6 +375,10 @@
                 productos = parseCSV(texto);
                 if (estado) estado.textContent = "";
                 renderizarDestacados();
+                // Los precios ya se mostraron en dólares; en cuanto llegue la tasa
+                // del día se vuelve a pintar el mismo carrusel, ahora con el
+                // equivalente en bolívares junto a cada precio.
+                obtenerTasaBcv().then(() => renderizarDestacados());
                 revisarParametroURL();
             } catch (error) {
                 console.error("Error al cargar el catálogo:", error);
@@ -437,7 +442,7 @@
                     </div>
                     <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5">${escapeHTML(categoriaLabel)}</span>
                     <h3 class="text-sm text-gray-900 font-medium leading-snug line-clamp-1">${escapeHTML(nombreProducto)}</h3>
-                    <p class="text-sm font-bold text-gray-900 mt-1">$${precioFormateado}${!estaDisponible ? ' <span class="text-gray-400 font-normal">· Agotado</span>' : ''}</p>
+                    <p class="text-sm font-bold text-gray-900 mt-1">$${precioFormateado}${textoPrecioBs(parseFloat(precioFormateado))}${!estaDisponible ? ' <span class="text-gray-400 font-normal">· Agotado</span>' : ''}</p>
                 </a>
             `;
         }

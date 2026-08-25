@@ -15,6 +15,45 @@ let precioUnitarioActual = 0;
 let cantidadActual = 1;
 let stockActual = 99;
 
+// ---------- Precio en Bs (tasa oficial del día) ----------
+// Se consulta una sola vez por carga de página, a un endpoint propio
+// (/api/tasa-bcv) que a su vez usa la tasa oficial del Banco Central de
+// Venezuela. Si falla por cualquier razón (sin internet, servicio caído),
+// tasaBcv se queda en null y el catálogo simplemente no muestra el
+// equivalente en bolívares -- nunca bloquea nada.
+let tasaBcv = null;
+let tasaBcvPromesa = null;
+
+function obtenerTasaBcv() {
+    if (tasaBcvPromesa) return tasaBcvPromesa;
+    tasaBcvPromesa = fetch('/api/tasa-bcv')
+        .then(r => r.json())
+        .then(datos => { tasaBcv = (datos.ok && datos.tasa) ? Number(datos.tasa) : null; return tasaBcv; })
+        .catch(() => { tasaBcv = null; return null; });
+    return tasaBcvPromesa;
+}
+obtenerTasaBcv();
+
+function formatearBs(monto) {
+    return monto.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Texto corto para meter junto al precio en USD dentro de una tarjeta de producto.
+function textoPrecioBs(precioUsd) {
+    if (!tasaBcv) return '';
+    return ' <span class="text-gray-400 font-normal text-[11px]">· Bs ' + formatearBs(precioUsd * tasaBcv) + '</span>';
+}
+
+// Actualiza el precio del modal de detalle (en USD y, si hay tasa, en Bs).
+// Se llama cada vez que cambia la cantidad, el color o la talla elegida.
+function actualizarPrecioDetalle() {
+    const total = precioUnitarioActual * cantidadActual;
+    const elPrecio = document.getElementById('detallePrecio');
+    if (elPrecio) elPrecio.textContent = '$' + total.toFixed(2);
+    const elPrecioBs = document.getElementById('detallePrecioBs');
+    if (elPrecioBs) elPrecioBs.textContent = tasaBcv ? '≈ Bs ' + formatearBs(total * tasaBcv) : '';
+}
+
 // ---------- CARRITO (localStorage, compartido entre páginas) ----------
 const CARRITO_KEY = 'vs_carrito';
 
@@ -149,7 +188,7 @@ function cambiarCantidad(delta) {
     const restante = obtenerStockRestanteActual();
     cantidadActual = restante <= 0 ? 0 : Math.max(1, Math.min(restante, cantidadActual + delta));
     document.getElementById('detalleCantidad').textContent = cantidadActual;
-    document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
+    actualizarPrecioDetalle();
     ocultarPanelSiAbierto();
     actualizarEstadoCompra();
 }
@@ -329,7 +368,7 @@ function actualizarTrasCambiarSeleccion() {
     cantidadActual = restante <= 0 ? 0 : 1;
     const spanCantidad = document.getElementById('detalleCantidad');
     if (spanCantidad) spanCantidad.textContent = cantidadActual;
-    document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
+    actualizarPrecioDetalle();
     actualizarEstadoCompra();
 }
 
@@ -442,7 +481,7 @@ function actualizarEstadoCompra() {
         cantidadActual = restante;
         const spanCantidad = document.getElementById('detalleCantidad');
         if (spanCantidad) spanCantidad.textContent = cantidadActual;
-        document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
+        actualizarPrecioDetalle();
     }
 
     const spanStock = document.getElementById('detalleStock');
@@ -558,7 +597,7 @@ function agregarAlCarritoDesdeModal() {
     cantidadActual = obtenerStockRestanteActual() <= 0 ? 0 : 1;
     const spanCantidad = document.getElementById('detalleCantidad');
     if (spanCantidad) spanCantidad.textContent = cantidadActual;
-    document.getElementById('detallePrecio').textContent = '$' + (precioUnitarioActual * cantidadActual).toFixed(2);
+    actualizarPrecioDetalle();
     actualizarEstadoCompra();
 }
 

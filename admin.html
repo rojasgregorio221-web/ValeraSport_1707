@@ -140,6 +140,9 @@
                 <button data-tab="rechazadas" onclick="cambiarTabPedidos('rechazadas')" class="tab-pedidos font-bold text-sm pb-3">
                     Rechazadas
                 </button>
+                <button data-tab="ventas" onclick="cambiarTabPedidos('ventas')" class="tab-pedidos font-bold text-sm pb-3">
+                    Ventas
+                </button>
             </div>
             <div class="flex items-center gap-1 pb-2">
                 <button onclick="refrescarManual()" title="Actualizar" class="icon-btn text-gray-400 hover:text-cyan-500 w-8 h-8 flex items-center justify-center rounded-full">
@@ -173,6 +176,14 @@
             <div id="listaRechazadas" class="space-y-4"></div>
             <p id="sinRechazadas" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes rechazadas hoy.</p>
         </div>
+
+        <!-- VISTA: VENTAS (caja registradora: físicas + virtuales) -->
+        <div id="vistaVentas" class="hidden">
+            <p class="text-[11px] text-gray-300 -mt-2 mb-4">Últimas ventas registradas, de tienda física y en línea, con precio, método de pago y nota (si hay).</p>
+            <p id="cargandoVentas" class="text-sm text-gray-400 text-center py-10">Cargando ventas...</p>
+            <div id="listaVentas" class="space-y-3"></div>
+            <p id="sinVentas" class="hidden text-sm text-gray-400 text-center py-10">Todavía no hay ventas registradas.</p>
+        </div>
     </div>
 
     <script>
@@ -193,9 +204,11 @@
         let idSolicitudPedidos = 0;
         let idSolicitudAceptadas = 0;
         let idSolicitudRechazadas = 0;
+        let idSolicitudVentas = 0;
         let peticionPedidosEnCurso = false;
         let peticionAceptadasEnCurso = false;
         let peticionRechazadasEnCurso = false;
+        let peticionVentasEnCurso = false;
 
         let productosCatalogo = [];
         let scannerVentaStream = null;
@@ -290,9 +303,11 @@
             document.getElementById('vistaPendientes').classList.toggle('hidden', tab !== 'pendientes');
             document.getElementById('vistaAceptadas').classList.toggle('hidden', tab !== 'aceptadas');
             document.getElementById('vistaRechazadas').classList.toggle('hidden', tab !== 'rechazadas');
+            document.getElementById('vistaVentas').classList.toggle('hidden', tab !== 'ventas');
             document.getElementById('btnRechazarTodos').classList.toggle('hidden', tab !== 'pendientes');
             if (tab === 'aceptadas') cargarAceptadas();
             if (tab === 'rechazadas') cargarRechazadas();
+            if (tab === 'ventas') cargarVentas();
         }
 
         function refrescarManual() {
@@ -305,6 +320,7 @@
             const tareas = [cargarResumen(), cargarPedidos()];
             if (tabActiva === 'aceptadas') tareas.push(cargarAceptadas());
             if (tabActiva === 'rechazadas') tareas.push(cargarRechazadas());
+            if (tabActiva === 'ventas') tareas.push(cargarVentas());
             await Promise.all(tareas);
             marcarActualizado();
         }
@@ -473,6 +489,92 @@
             } finally {
                 peticionRechazadasEnCurso = false;
             }
+        }
+
+        // ---------- VENTAS (caja registradora: físicas + virtuales) ----------
+
+        async function cargarVentas() {
+            if (peticionVentasEnCurso) return;
+            peticionVentasEnCurso = true;
+            const miId = ++idSolicitudVentas;
+
+            const cargando = document.getElementById('cargandoVentas');
+            const lista = document.getElementById('listaVentas');
+            const sinVentas = document.getElementById('sinVentas');
+
+            if (!lista.children.length) cargando.classList.remove('hidden');
+
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), tipo: 'ventas' })
+                });
+                const datos = await resp.json();
+
+                if (miId !== idSolicitudVentas) return;
+
+                cargando.classList.add('hidden');
+                sinVentas.classList.add('hidden');
+
+                if (!datos.ok) {
+                    lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar ventas') + '</p>';
+                    return;
+                }
+
+                const ventas = datos.ventas || [];
+
+                if (!ventas.length) {
+                    lista.innerHTML = '';
+                    sinVentas.classList.remove('hidden');
+                    return;
+                }
+
+                lista.innerHTML = ventas.map(tarjetaVenta).join('');
+            } catch (e) {
+                if (miId !== idSolicitudVentas) return;
+                cargando.classList.add('hidden');
+                lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
+            } finally {
+                peticionVentasEnCurso = false;
+            }
+        }
+
+        function tarjetaVenta(venta) {
+            const fecha = venta.fecha ? new Date(venta.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
+            const precio = Number(venta.precio || 0).toFixed(2);
+            const precioBs = venta.precioBs ? Number(venta.precioBs).toFixed(2) : null;
+            const canalTexto = venta.canal || 'Venta';
+            const esFisica = canalTexto.toLowerCase().indexOf('f') === 0; // "Física"
+            const colorCanal = esFisica ? 'text-cyan-600' : 'text-emerald-600';
+            const iconoCanal = esFisica ? 'fa-store' : 'fa-globe';
+
+            return `
+                <div class="bg-white border border-gray-100 rounded-2xl p-4">
+                    <div class="flex justify-between items-start mb-1.5">
+                        <div>
+                            <span class="text-[10px] font-bold ${colorCanal} uppercase tracking-widest block mb-0.5">
+                                <i class="fa-solid ${iconoCanal} mr-1"></i>${escapeHTML(canalTexto)}
+                            </span>
+                            <p class="text-sm text-gray-900 font-medium">${escapeHTML(venta.producto || 'Producto')}</p>
+                            <p class="text-[11px] text-gray-400">${escapeHTML(fecha)}${venta.categoria ? ' · ' + escapeHTML(venta.categoria) : ''}</p>
+                        </div>
+                        <div class="text-right flex-shrink-0 ml-3">
+                            <span class="text-lg font-black text-gray-900 block">$${precio}</span>
+                            ${precioBs ? `<span class="text-[11px] text-gray-400 block">Bs ${precioBs}</span>` : ''}
+                        </div>
+                    </div>
+                    ${(venta.metodoPago || venta.correo) ? `
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-500 mt-2 pt-2 border-t border-gray-50">
+                        ${venta.metodoPago ? `<span><i class="fa-solid fa-credit-card mr-1 text-gray-300"></i>${escapeHTML(venta.metodoPago)}</span>` : ''}
+                        ${venta.correo ? `<span><i class="fa-solid fa-envelope mr-1 text-gray-300"></i>${escapeHTML(venta.correo)}</span>` : ''}
+                    </div>` : ''}
+                    ${venta.nota ? `
+                    <div class="mt-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-[11px] text-amber-700">
+                        <i class="fa-solid fa-note-sticky mr-1"></i>${escapeHTML(venta.nota)}
+                    </div>` : ''}
+                </div>
+            `;
         }
 
         // `conBotones` = true para pendientes (aceptar/rechazar), false para aceptadas/rechazadas (solo lectura)
