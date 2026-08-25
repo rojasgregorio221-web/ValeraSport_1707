@@ -79,12 +79,15 @@
                             <i class="fa-solid fa-qrcode"></i> Escanear
                         </button>
                     </div>
-                    <input type="text" id="fisicaProducto" placeholder="Nombre del producto" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                    <input type="text" id="fisicaProducto" list="listaProductosFisica" oninput="buscarProductoEscrito()" placeholder="Escribe o elige del catálogo..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                    <datalist id="listaProductosFisica"></datalist>
+                    <p class="text-[11px] text-gray-400 mt-1">Empieza a escribir para ver sugerencias del catálogo (tal como están en el Sheet), o escribe uno nuevo si no está en la lista.</p>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Precio</label>
-                        <input type="number" step="0.01" id="fisicaPrecio" placeholder="0.00" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                        <input type="number" step="0.01" id="fisicaPrecio" oninput="actualizarPrecioBsFisica()" placeholder="0.00" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                        <p id="fisicaPrecioBs" class="text-[11px] text-gray-400 mt-1"></p>
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Categoría</label>
@@ -259,6 +262,7 @@
             panelPrincipal.classList.remove('hidden');
             cargarTodo();
             cargarProductosCatalogo();
+            cargarTasaBcvAdmin();
         }
 
         function cerrarSesion() {
@@ -741,9 +745,70 @@
                 if (!respuesta.ok) return;
                 const texto = await respuesta.text();
                 productosCatalogo = parseCSV(texto);
+                poblarDatalistProductos();
             } catch (e) {
                 console.error('No se pudo cargar el catálogo para el escáner:', e);
             }
+        }
+
+        // Llena las sugerencias del campo "Producto" con los nombres tal como
+        // están escritos en la hoja "Productos" del Sheet -- así el admin puede
+        // buscarlo ahí mismo en vez de escribirlo de memoria (y arriesgarse a
+        // que no calce exacto con el inventario).
+        function poblarDatalistProductos() {
+            const datalist = document.getElementById('listaProductosFisica');
+            if (!datalist) return;
+            datalist.innerHTML = productosCatalogo
+                .map(p => (p.producto || p.nombre || '').trim())
+                .filter(Boolean)
+                .map(nombre => `<option value="${escapeHTML(nombre)}"></option>`)
+                .join('');
+        }
+
+        // Si lo que se escribió/eligió en "Producto" calza exacto (sin importar
+        // mayúsculas) con algo del catálogo, autocompleta precio y categoría --
+        // igual que hace el escáner QR.
+        function buscarProductoEscrito() {
+            const valor = document.getElementById('fisicaProducto').value.trim().toLowerCase();
+            if (!valor) return;
+            const coincidencia = productosCatalogo.find(p => (p.producto || p.nombre || '').toLowerCase().trim() === valor);
+            if (coincidencia) aplicarCoincidenciaProducto(coincidencia, false);
+        }
+
+        function aplicarCoincidenciaProducto(coincidencia, avisar) {
+            document.getElementById('fisicaProducto').value = coincidencia.producto || coincidencia.nombre || '';
+            document.getElementById('fisicaPrecio').value = coincidencia.precio ? parseFloat(coincidencia.precio).toFixed(2) : '';
+            document.getElementById('fisicaCategoria').value = normalizarCategoria(coincidencia.categoria);
+            actualizarPrecioBsFisica();
+            if (avisar) {
+                const mensaje = document.getElementById('mensajeFisica');
+                mensaje.classList.remove('hidden');
+                mensaje.textContent = 'Producto encontrado. Revisa los datos antes de registrar.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-600';
+            }
+        }
+
+        // ---------- Precio en Bs (vista previa mientras se registra la venta) ----------
+        // Usa el mismo endpoint público /api/tasa-bcv que ya muestra el precio en
+        // bolívares en el catálogo -- no depende del Apps Script ni de que ya
+        // hayas pegado la actualización pendiente.
+        let tasaBcvAdmin = null;
+        async function cargarTasaBcvAdmin() {
+            try {
+                const resp = await fetch('/api/tasa-bcv');
+                const datos = await resp.json();
+                tasaBcvAdmin = (datos.ok && datos.tasa) ? Number(datos.tasa) : null;
+            } catch (e) {
+                tasaBcvAdmin = null;
+            }
+            actualizarPrecioBsFisica();
+        }
+        function actualizarPrecioBsFisica() {
+            const el = document.getElementById('fisicaPrecioBs');
+            if (!el) return;
+            const precio = parseFloat(document.getElementById('fisicaPrecio').value);
+            if (!tasaBcvAdmin || !precio) { el.textContent = ''; return; }
+            el.textContent = '≈ Bs ' + (precio * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         function parseCSV(texto) {
@@ -850,12 +915,7 @@
             const mensaje = document.getElementById('mensajeFisica');
 
             if (coincidencia) {
-                document.getElementById('fisicaProducto').value = coincidencia.producto || coincidencia.nombre || '';
-                document.getElementById('fisicaPrecio').value = coincidencia.precio ? parseFloat(coincidencia.precio).toFixed(2) : '';
-                document.getElementById('fisicaCategoria').value = normalizarCategoria(coincidencia.categoria);
-                mensaje.classList.remove('hidden');
-                mensaje.textContent = 'Producto encontrado. Revisa los datos antes de registrar.';
-                mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-600';
+                aplicarCoincidenciaProducto(coincidencia, true);
             } else {
                 document.getElementById('fisicaProducto').value = valorBusqueda;
                 mensaje.classList.remove('hidden');
@@ -924,6 +984,7 @@
                 document.getElementById('fisicaPrecio').value = '';
                 document.getElementById('fisicaCategoria').value = '';
                 document.getElementById('fisicaNota').value = '';
+                actualizarPrecioBsFisica();
 
                 cargarResumen();
             } catch (e) {
