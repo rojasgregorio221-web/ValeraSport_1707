@@ -614,7 +614,7 @@
                     <div class="flex justify-between items-start mb-3">
                         <div>
                             <span class="text-[10px] font-bold ${colorEtiqueta} uppercase tracking-widest block mb-1">
-                                ${iconoEtiqueta}${items.length} ${items.length === 1 ? 'producto' : 'productos'}
+                                ${iconoEtiqueta}${orden.numeroOrden ? 'Pedido #' + escapeHTML(String(orden.numeroOrden)) + ' · ' : ''}${items.length} ${items.length === 1 ? 'producto' : 'productos'}
                             </span>
                             <p class="text-xs text-gray-400">${escapeHTML(fecha)}</p>
                         </div>

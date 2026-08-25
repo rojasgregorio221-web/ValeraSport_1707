@@ -129,7 +129,7 @@
 
         function mostrarOrden(orden) {
             ordenActual = orden;
-            const codigo = String(orden.idOrden || '').slice(0, 8).toUpperCase();
+            const codigo = orden.numeroOrden ? ('#' + orden.numeroOrden) : String(orden.idOrden || '').slice(0, 8).toUpperCase();
             const fecha = orden.fecha ? new Date(orden.fecha).toLocaleString('es-VE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
             const total = Number(orden.total || 0).toFixed(2);
             const items = orden.items || [];

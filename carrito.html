@@ -581,6 +581,10 @@
                     actualizarIndicadorPedido();
                     const enlaceEstado = document.getElementById('enlaceEstadoPedido');
                     if (enlaceEstado) enlaceEstado.href = '/pedido?idOrden=' + encodeURIComponent(idOrden);
+                    if (datos.numeroOrden) {
+                        const estadoEl = document.getElementById('estadoConfirmacion');
+                        if (estadoEl) estadoEl.innerHTML += '<span class="block mt-1 text-xs font-normal text-emerald-600/80">Pedido #' + escapeHTML(String(datos.numeroOrden)) + '</span>';
+                    }
                     iniciarConsultaEstado(idOrden);
                 }
             } catch (error) {
@@ -602,7 +606,7 @@
                     const estadoEl = document.getElementById('estadoConfirmacion');
                     if (datos.estado === 'aceptado') {
                         clearInterval(intervalo);
-                        const codigo = String(idOrden).slice(0, 8).toUpperCase();
+                        const codigo = datos.numeroOrden || String(idOrden).slice(0, 8).toUpperCase();
                         if (estadoEl) {
                             estadoEl.innerHTML =
                                 '✅ ¡Aceptado! Gracias por tu compra.<br>' +
@@ -651,7 +655,7 @@
                 const resultado = await resp.json();
                 if (!resultado.ok) return;
 
-                const codigo = String(datosGuardados.idOrden).slice(0, 8).toUpperCase();
+                const codigo = resultado.numeroOrden || String(datosGuardados.idOrden).slice(0, 8).toUpperCase();
 
                 if (resultado.estado === 'aceptado') {
                     banner.className = 'mb-6 rounded-2xl border p-4 flex items-center justify-between gap-3 bg-emerald-50 border-emerald-200';
