@@ -492,10 +492,12 @@ function actualizarEstadoCompra() {
             spanStock.textContent = sinStock ? 'Sin stock disponible en ' + etiqueta : 'Quedan ' + restante + ' disponibles en ' + etiqueta;
         } else if (tieneStockPorColor) {
             spanStock.textContent = sinStock ? 'Sin stock disponible en ' + colorActivo : 'Quedan ' + restante + ' disponibles en ' + colorActivo;
-        } else if (stockActual <= 99) {
-            spanStock.textContent = sinStock ? 'Sin stock disponible' : 'Quedan ' + restante + ' disponibles';
         } else {
-            spanStock.textContent = '';
+            // Antes, si el stock real pasaba de 99, este texto se dejaba en
+            // blanco (pensado para cuando 99 era solo un valor de reserva
+            // por no tener stock configurado) -- pero eso también escondía
+            // el número en productos con stock real mayor a 99 en el Sheet.
+            spanStock.textContent = sinStock ? 'Sin stock disponible' : 'Quedan ' + restante + ' disponibles';
         }
         spanStock.classList.toggle('text-red-500', sinStock);
         spanStock.classList.toggle('font-semibold', sinStock);
