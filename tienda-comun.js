@@ -306,12 +306,13 @@ function expandirConfirmacion() {
     });
 })();
 
-// Se llama cada vez que se agrega algo. Si el cliente ya lo había
-// minimizado a propósito, no se le vuelve a abrir encima -- solo se
-// actualiza el numerito de la burbuja.
+// Se llama cada vez que se agrega algo -- siempre despliega el panel
+// completo (aunque el cliente lo hubiera minimizado antes), para que vea de
+// una vez qué llevaba y pueda tocar "Ir al carrito" si ya quiere pagar. Se
+// vuelve a minimizar solo si no lo toca en unos segundos.
 function mostrarConfirmacion() {
     renderizarMiniCarrito();
-    if (miniCarritoMinimizado) { actualizarBurbujaCarrito(); return; }
+    miniCarritoMinimizado = false;
 
     const confirmacion = document.getElementById('detalleConfirmacion');
     if (!confirmacion) return;
