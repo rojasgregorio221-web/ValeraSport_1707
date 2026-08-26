@@ -699,6 +699,12 @@ function cambiarImagenDetalle(url, btnClickeado) {
 }
 
 function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, coloresTexto, disponible, stock, stockColoresTexto, tallasTexto, stockVariantesTexto) {
+    // El aviso de bienvenida tiene un z-index más alto que el modal para que
+    // se vea por encima del catálogo -- pero si sigue abierto cuando el
+    // cliente toca un producto, tapaba el botón de cerrar del modal.
+    const toastBienvenida = document.getElementById('bienvenidaToast');
+    if (toastBienvenida) toastBienvenida.classList.add('hidden');
+
     let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombre + " ($" + precioFormateado + ")");
     let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
     stockActual = (typeof stock === 'number' && stock > 0) ? stock : 99;
