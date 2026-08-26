@@ -593,12 +593,39 @@ function agregarAlCarritoDesdeModal() {
         cantidad: cantidadAAgregar
     });
     mostrarConfirmacion();
+    mostrarFeedbackAgregado();
     actualizarBadgeColor(productoActual.color || '');
     cantidadActual = obtenerStockRestanteActual() <= 0 ? 0 : 1;
     const spanCantidad = document.getElementById('detalleCantidad');
     if (spanCantidad) spanCantidad.textContent = cantidadActual;
     actualizarPrecioDetalle();
     actualizarEstadoCompra();
+}
+
+// Cuando el mini-carrito ya está minimizado (burbuja pequeña), tocar "Agregar
+// al carrito" de nuevo no reabre el panel grande (para no interrumpir a cada
+// rato) -- pero eso dejaba al cliente sin ninguna señal de que sí se agregó
+// otra prenda, y algunos podían pensar que ese botón los iba a llevar a
+// pagar. Ahora el botón mismo confirma "¡Agregado!" un instante, pase lo que
+// pase con el panel/burbuja.
+let feedbackAgregadoTimeoutId = null;
+function mostrarFeedbackAgregado() {
+    const btn = document.getElementById('detalleBotonCarrito');
+    if (!btn || btn.classList.contains('hidden')) return;
+
+    if (feedbackAgregadoTimeoutId) clearTimeout(feedbackAgregadoTimeoutId);
+    if (!btn.dataset.textoOriginal) btn.dataset.textoOriginal = btn.innerHTML;
+
+    btn.innerHTML = '<i class="fa-solid fa-check text-base"></i> ¡Agregado!';
+    btn.classList.add('bg-emerald-500', 'hover:bg-emerald-500');
+    btn.classList.remove('bg-cyan-500', 'hover:bg-cyan-400');
+
+    feedbackAgregadoTimeoutId = setTimeout(() => {
+        btn.innerHTML = btn.dataset.textoOriginal;
+        btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-500');
+        btn.classList.add('bg-cyan-500', 'hover:bg-cyan-400');
+        feedbackAgregadoTimeoutId = null;
+    }, 1100);
 }
 
 // ---------- BIENVENIDA (solo la primera vez que alguien visita el sitio) ----------
@@ -704,6 +731,19 @@ function abrirDetalle(nombre, textoImagen, precioFormateado, categoriaLabel, col
     // cliente toca un producto, tapaba el botón de cerrar del modal.
     const toastBienvenida = document.getElementById('bienvenidaToast');
     if (toastBienvenida) toastBienvenida.classList.add('hidden');
+
+    // Si el aviso "¡Agregado!" del producto anterior seguía a medias, no
+    // debe arrastrarse al producto que se abre ahora.
+    if (feedbackAgregadoTimeoutId) {
+        clearTimeout(feedbackAgregadoTimeoutId);
+        feedbackAgregadoTimeoutId = null;
+        const btnPrevio = document.getElementById('detalleBotonCarrito');
+        if (btnPrevio && btnPrevio.dataset.textoOriginal) {
+            btnPrevio.innerHTML = btnPrevio.dataset.textoOriginal;
+            btnPrevio.classList.remove('bg-emerald-500', 'hover:bg-emerald-500');
+            btnPrevio.classList.add('bg-cyan-500', 'hover:bg-cyan-400');
+        }
+    }
 
     let mensajeWhatsApp = encodeURIComponent("¡Hola Valera Sport! Me interesa consultar por: " + nombre + " ($" + precioFormateado + ")");
     let enlaceWhatsApp = "https://wa.me/" + WHATSAPP_PEDIDOS + "?text=" + mensajeWhatsApp;
