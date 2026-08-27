@@ -1048,7 +1048,10 @@
             const imgSrc = canvas ? canvas.toDataURL() : (contenedor.querySelector('img') || {}).src;
             if (!imgSrc) { alert('No se pudo preparar el QR para imprimir.'); return; }
 
-            const etiqueta = document.getElementById('etiquetaQR').textContent;
+            // La etiqueta física solo lleva el código, nunca el nombre del
+            // producto -- ese código se va a reasignar a otras prendas con
+            // el tiempo, así que un nombre impreso quedaría desactualizado.
+            const etiqueta = document.getElementById('qrCodigo').value.trim();
             const ventana = window.open('', '_blank');
             ventana.document.write(`
                 <html><head><title>Imprimir QR</title></head>
