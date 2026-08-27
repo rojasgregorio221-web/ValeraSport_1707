@@ -1019,9 +1019,18 @@
             }
 
             try {
+                // El QR lleva un link al catálogo (no solo el código suelto),
+                // para que sirva para dos cosas con la misma pegatina:
+                //   - Un cliente lo escanea con la cámara normal del celular
+                //     -> lo manda directo a ver esa prenda en la página.
+                //   - El admin lo escanea desde este panel (venta física)
+                //     -> sigue autocompletando el producto igual que siempre,
+                //     porque el escáner del admin ya sabe leer el "?codigo="
+                //     de la URL.
                 const contenedor = document.getElementById('canvasQR');
                 contenedor.innerHTML = '';
-                new QRCode(contenedor, { text: codigo, width: 220, height: 220 });
+                const urlQR = 'https://www.valerasportvzla.com/catalogo?codigo=' + encodeURIComponent(codigo);
+                new QRCode(contenedor, { text: urlQR, width: 220, height: 220 });
                 document.getElementById('etiquetaQR').textContent = codigo + (nombreProducto ? ' — ' + nombreProducto : '');
                 resultado.classList.remove('hidden');
             } catch (error) {

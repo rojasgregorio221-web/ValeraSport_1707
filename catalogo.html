@@ -312,6 +312,34 @@
                 const buscadorPrincipal = document.getElementById('buscadorPrincipal');
                 if (buscadorPrincipal) buscadorPrincipal.value = buscar;
             }
+            const codigo = params.get('codigo');
+            if (codigo) abrirDetallePorCodigo(codigo);
+        }
+
+        // Abre directo la ficha de un producto a partir de su "codigo" (el QR
+        // físico pegado en el estante). Así, si un cliente escanea ese QR con
+        // la cámara normal del celular -- sin pasar por el panel admin -- lo
+        // manda directo a ver esa prenda en el catálogo, en vez de no hacer
+        // nada. El mismo QR, escaneado desde el admin, sigue funcionando
+        // igual que antes para registrar una venta física.
+        function abrirDetallePorCodigo(codigoBuscado) {
+            const buscado = codigoBuscado.toLowerCase().trim();
+            const p = productos.find(prod => (prod.codigo || '').toLowerCase().trim() === buscado);
+            if (!p) return;
+
+            const nombreProducto = p.producto || p.nombre || "Producto sin nombre";
+            const textoImagen = p.imagen || "";
+            const precioFormateado = p.precio ? parseFloat(p.precio).toFixed(2) : "0.00";
+            const estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
+            const categoriaLabel = normalizarCategoria(p.categoria) || "Variados";
+            const coloresTexto = p.colores || "";
+            let stockDisponible = parseInt(p.stock, 10);
+            if (isNaN(stockDisponible)) stockDisponible = 99;
+            const stockColoresTexto = p.stock_colores || "";
+            const tallasTexto = p.tallas || "";
+            const stockVariantesTexto = p.stock_variantes || "";
+
+            abrirDetalle(nombreProducto, textoImagen, precioFormateado, categoriaLabel, coloresTexto, estaDisponible, stockDisponible, stockColoresTexto, tallasTexto, stockVariantesTexto);
         }
 
         function aplicarFiltros() {
