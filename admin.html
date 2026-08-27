@@ -8,6 +8,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -114,6 +115,39 @@
                     <i class="fa-solid fa-plus mr-1"></i> Registrar venta
                 </button>
                 <p id="mensajeFisica" class="hidden text-center text-xs font-semibold py-2"></p>
+            </div>
+        </div>
+
+        <!-- GENERAR NUEVO CÓDIGO QR -->
+        <div class="mb-8">
+            <button onclick="toggleFormularioQR()" id="btnToggleQR" class="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-2xl p-4 flex items-center justify-between transition">
+                <span class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-qrcode text-cyan-500"></i> Generar código QR nuevo
+                </span>
+                <i class="fa-solid fa-chevron-down text-gray-400 text-xs" id="iconoToggleQR"></i>
+            </button>
+
+            <div id="formularioQR" class="hidden mt-3 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
+                <p class="text-xs text-gray-400">Escribe un código que no hayas usado todavía (ej: si tu último fue VS-031, usa VS-032). Este código es el que después escribes en la columna "codigo" de la hoja "Productos" para el producto que le corresponda.</p>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Código</label>
+                    <input type="text" id="qrCodigo" placeholder="Ej: VS-032" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Nombre del producto (opcional, solo para que se vea en la etiqueta)</label>
+                    <input type="text" id="qrNombreProducto" placeholder="Ej: Chaqueta nueva talla M" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                </div>
+                <button onclick="generarQRNuevo()" class="icon-btn w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition mt-2">
+                    <i class="fa-solid fa-qrcode mr-1"></i> Generar
+                </button>
+                <p id="mensajeQR" class="hidden text-center text-xs font-semibold py-2"></p>
+                <div id="resultadoQR" class="hidden flex flex-col items-center gap-2 pt-2 border-t border-gray-100">
+                    <div id="canvasQR" class="border border-gray-200 rounded-lg p-2 bg-white"></div>
+                    <p id="etiquetaQR" class="text-sm font-bold text-gray-900"></p>
+                    <button onclick="imprimirQR()" class="icon-btn text-xs font-bold text-cyan-600 hover:text-cyan-500">
+                        <i class="fa-solid fa-print mr-1"></i> Imprimir esta etiqueta
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -948,6 +982,74 @@
             form.classList.toggle('hidden');
             icono.classList.toggle('fa-chevron-down');
             icono.classList.toggle('fa-chevron-up');
+        }
+
+        // ---------- GENERAR NUEVO CÓDIGO QR ----------
+
+        function toggleFormularioQR() {
+            const form = document.getElementById('formularioQR');
+            const icono = document.getElementById('iconoToggleQR');
+            form.classList.toggle('hidden');
+            icono.classList.toggle('fa-chevron-down');
+            icono.classList.toggle('fa-chevron-up');
+        }
+
+        function generarQRNuevo() {
+            const codigo = document.getElementById('qrCodigo').value.trim();
+            const nombreProducto = document.getElementById('qrNombreProducto').value.trim();
+            const mensaje = document.getElementById('mensajeQR');
+            const resultado = document.getElementById('resultadoQR');
+            mensaje.classList.add('hidden');
+            resultado.classList.add('hidden');
+
+            if (!codigo) {
+                mensaje.textContent = 'Escribe un código primero.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
+                mensaje.classList.remove('hidden');
+                return;
+            }
+
+            // Ya en uso: avisa pero igual lo genera, por si el admin de verdad
+            // quiere reciclarlo a propósito (ej. el producto de ese código se agotó).
+            const yaExiste = productosCatalogo.some(p => (p.codigo || '').toLowerCase().trim() === codigo.toLowerCase());
+            if (yaExiste) {
+                mensaje.textContent = 'Ojo: ese código ya está asignado a otro producto en el Sheet. Si es a propósito (para reciclarlo), sigue adelante.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-amber-600';
+                mensaje.classList.remove('hidden');
+            }
+
+            try {
+                const contenedor = document.getElementById('canvasQR');
+                contenedor.innerHTML = '';
+                new QRCode(contenedor, { text: codigo, width: 220, height: 220 });
+                document.getElementById('etiquetaQR').textContent = codigo + (nombreProducto ? ' — ' + nombreProducto : '');
+                resultado.classList.remove('hidden');
+            } catch (error) {
+                mensaje.textContent = 'No se pudo generar el QR: ' + error.message;
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
+                mensaje.classList.remove('hidden');
+            }
+        }
+
+        function imprimirQR() {
+            const contenedor = document.getElementById('canvasQR');
+            // La librería dibuja un <canvas> (y a veces también una <img> de
+            // respaldo escondida) -- usamos lo que sea que haya generado.
+            const canvas = contenedor.querySelector('canvas');
+            const imgSrc = canvas ? canvas.toDataURL() : (contenedor.querySelector('img') || {}).src;
+            if (!imgSrc) { alert('No se pudo preparar el QR para imprimir.'); return; }
+
+            const etiqueta = document.getElementById('etiquetaQR').textContent;
+            const ventana = window.open('', '_blank');
+            ventana.document.write(`
+                <html><head><title>Imprimir QR</title></head>
+                <body style="text-align:center; font-family:Arial, sans-serif; padding-top:40px;">
+                    <img src="${imgSrc}" style="width:220px;">
+                    <p style="font-weight:bold; font-size:16px;">${etiqueta}</p>
+                    <script>window.onload = () => window.print();<\/script>
+                </body></html>
+            `);
+            ventana.document.close();
         }
 
         async function registrarVentaFisica() {
