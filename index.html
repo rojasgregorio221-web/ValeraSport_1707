@@ -71,6 +71,24 @@
         #detalleModalContainer::-webkit-scrollbar-track { background: transparent; }
         #detalleModalContainer::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 9999px; }
         #detalleModalContainer { scrollbar-width: thin; scrollbar-color: #e5e7eb transparent; }
+
+        .envios-pista { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+        .envios-carrito {
+            position: absolute;
+            bottom: 8px;
+            left: -40px;
+            font-size: 22px;
+            color: #67e8f9;
+            animation: envios-correr 5.5s linear infinite, envios-botar 0.25s ease-in-out infinite alternate;
+        }
+        @keyframes envios-correr {
+            0% { left: -40px; }
+            100% { left: 105%; }
+        }
+        @keyframes envios-botar {
+            from { transform: translateY(0); }
+            to { transform: translateY(-4px); }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen">
@@ -134,6 +152,16 @@
                 Explora
             </a>
         </div>
+    </section>
+
+    <!-- FRANJA: ENVÍOS NACIONALES (carrito animado) -->
+    <section class="relative overflow-hidden bg-gray-900 py-4">
+        <div class="envios-pista">
+            <i class="fa-solid fa-cart-shopping envios-carrito"></i>
+        </div>
+        <p class="relative text-center text-white font-brand font-bold text-sm md:text-base tracking-wide uppercase">
+            🚚 Hacemos envíos nacionales
+        </p>
     </section>
 
     <!-- DESTACADOS -->
