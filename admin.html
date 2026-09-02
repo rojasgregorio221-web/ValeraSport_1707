@@ -66,16 +66,16 @@
             </button>
         </header>
 
-        <!-- RESUMEN DEL DÍA -->
-        <div class="relative overflow-hidden bg-gray-900 rounded-3xl p-6 mb-6 text-white">
+        <!-- RESUMEN DEL DÍA (ZONA HORARIA VENEZUELA: EN $ Y BS) -->
+        <div class="relative overflow-hidden bg-gray-900 rounded-3xl p-6 mb-6 text-white shadow-xl shadow-gray-900/10">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-cyan-500/25 rounded-full blur-2xl pointer-events-none"></div>
             <div class="absolute -left-6 -bottom-10 w-28 h-28 bg-cyan-400/10 rounded-full blur-xl pointer-events-none"></div>
             <p class="relative text-xs text-gray-300 uppercase tracking-widest font-bold mb-1.5">Vendido hoy</p>
             <p class="relative text-4xl font-black" id="totalHoy">$0.00</p>
             <div class="relative flex items-center gap-2.5 mt-2">
-                <p class="text-sm text-gray-300" id="cantidadHoy">0 ítems aceptados</p>
+                <p class="text-sm text-gray-300" id="cantidadHoy">0 prendas hoy</p>
                 <span class="w-1 h-1 bg-gray-500 rounded-full"></span>
-                <p class="text-sm text-cyan-300" id="totalHoyBs"></p>
+                <p class="text-sm text-cyan-300 font-bold font-mono" id="totalHoyBs"></p>
             </div>
         </div>
 
@@ -103,92 +103,115 @@
             </button>
         </div>
 
-        <!-- PANEL: REGISTRAR VENTA FÍSICA -->
-        <div id="formularioFisica" class="hidden mb-6 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
-            <div>
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Correo del cliente (opcional)</label>
-                <input type="email" id="fisicaCorreo" placeholder="cliente@correo.com" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-            </div>
+        <!-- PANEL: REGISTRAR VENTA FÍSICA (AUTOMATIZADO / SCANNER-FIRST) -->
+        <div id="formularioFisica" class="hidden mb-6 bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-sm">
+            
+            <!-- Botón principal: Escanear con la cámara -->
+            <button type="button" onclick="abrirScannerVenta()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-3.5 px-4 rounded-2xl text-sm transition flex items-center justify-center gap-2 shadow-sm shadow-cyan-500/25">
+                <i class="fa-solid fa-camera text-base"></i> Abrir cámara para escanear prendas
+            </button>
 
-            <div class="border border-gray-100 rounded-xl p-3.5 bg-gray-50/60 space-y-3">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Prenda</label>
-                    <button type="button" onclick="abrirScannerVenta()" class="icon-btn text-xs font-bold text-cyan-600 hover:text-cyan-500 flex items-center gap-1">
-                        <i class="fa-solid fa-qrcode"></i> Escanear
+            <!-- Sección plegable para agregar a mano (solo si no hay QR) -->
+            <details class="group bg-gray-50/70 border border-gray-100 rounded-xl p-3">
+                <summary class="text-xs font-semibold text-gray-500 hover:text-cyan-600 cursor-pointer list-none flex items-center justify-between select-none">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-keyboard text-gray-400"></i> ¿No tienes el código QR? Escribir a mano</span>
+                    <i class="fa-solid fa-chevron-down text-[10px] group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="space-y-3 pt-3 mt-2 border-t border-gray-200/50">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Prenda</label>
+                        <input type="text" id="fisicaProducto" list="listaProductosFisica" oninput="buscarProductoEscrito()" placeholder="Escribe o elige del catálogo..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                        <datalist id="listaProductosFisica"></datalist>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Precio ($)</label>
+                            <input type="number" step="0.01" id="fisicaPrecio" oninput="actualizarPrecioBsFisica()" placeholder="0.00" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                            <p id="fisicaPrecioBs" class="text-[10px] text-gray-400 mt-1"></p>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Categoría</label>
+                            <input type="text" id="fisicaCategoria" placeholder="Damas / Caballeros..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                        </div>
+                    </div>
+                    <button type="button" onclick="agregarItemCarritoFisica()" class="w-full bg-white hover:bg-cyan-50 border border-cyan-200 text-cyan-700 font-bold py-2 rounded-lg text-xs uppercase tracking-wide transition">
+                        <i class="fa-solid fa-plus mr-1"></i> Agregar prenda manual a la venta
                     </button>
                 </div>
-                <div>
-                    <input type="text" id="fisicaProducto" list="listaProductosFisica" oninput="buscarProductoEscrito()" placeholder="Escribe o elige del catálogo..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-                    <datalist id="listaProductosFisica"></datalist>
-                    <p class="text-[11px] text-gray-400 mt-1">Escribe para autocompletar desde el inventario del Sheet.</p>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Precio unitario ($)</label>
-                        <input type="number" step="0.01" id="fisicaPrecio" oninput="actualizarPrecioBsFisica()" placeholder="0.00" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-                        <p id="fisicaPrecioBs" class="text-[11px] text-gray-400 mt-1"></p>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Categoría</label>
-                        <input type="text" id="fisicaCategoria" placeholder="Damas / Caballeros..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-                    </div>
-                </div>
-                <button type="button" onclick="agregarItemCarritoFisica()" class="icon-btn w-full bg-white hover:bg-cyan-50 border border-cyan-200 text-cyan-600 font-bold py-2.5 rounded-full text-xs uppercase tracking-wide transition">
-                    <i class="fa-solid fa-plus mr-1"></i> Agregar esta prenda a la venta
-                </button>
-            </div>
+            </details>
 
-            <!-- Carrito de prendas con SUMAR / RESTAR -->
-            <div id="carritoFisicaContenedor" class="hidden border border-gray-100 rounded-xl p-3.5 space-y-3">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                        Prendas en esta venta (<span id="carritoFisicaCantidad">0</span> piezas)
+            <!-- Carrito de prendas escaneadas con CONTROLES +/- Y TOTAL EN $ Y BS -->
+            <div id="carritoFisicaContenedor" class="hidden border border-gray-100 bg-white rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                    <label class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-bag-shopping text-cyan-500"></i>
+                        Prendas escaneadas (<span id="carritoFisicaCantidad">0</span> piezas)
                     </label>
                     <button type="button" onclick="vaciarCarritoFisica()" class="text-[11px] font-semibold text-gray-400 hover:text-rose-500">
                         Vaciar todo
                     </button>
                 </div>
+
                 <div id="carritoFisicaLista" class="space-y-2"></div>
-                <div class="space-y-1 text-xs text-gray-500 border-t border-gray-100 pt-2">
+
+                <div class="space-y-1.5 text-xs text-gray-500 border-t border-gray-100 pt-3">
                     <div class="flex justify-between">
                         <span>Subtotal (<span id="carritoFisicaCantidadSub">0</span> prendas)</span>
-                        <span id="carritoFisicaSubtotal">$0.00</span>
+                        <span id="carritoFisicaSubtotal" class="font-medium">$0.00</span>
                     </div>
                     <div id="carritoFisicaLineaDescuento" class="hidden flex justify-between font-semibold text-emerald-600">
                         <span><i class="fa-solid fa-tag mr-1"></i>Descuento 3+ piezas</span>
                         <span id="carritoFisicaDescuentoMonto">-$0.00</span>
                     </div>
                 </div>
-                <div class="flex justify-between items-center text-sm font-black text-gray-900 border-t border-gray-100 pt-2">
-                    <span>Total de la venta</span>
-                    <span id="carritoFisicaTotal">$0.00</span>
+
+                <!-- Total de la venta en Dólares ($) y Bolívares (Bs) -->
+                <div class="flex justify-between items-center text-sm font-black text-gray-900 border-t border-gray-100 pt-2.5">
+                    <div>
+                        <span class="block text-sm font-bold text-gray-800">Total a cobrar</span>
+                        <span id="carritoFisicaTasaInfo" class="block text-[10px] text-gray-400 font-normal"></span>
+                    </div>
+                    <div class="text-right">
+                        <span id="carritoFisicaTotal" class="block text-xl font-black text-gray-900">$0.00</span>
+                        <span id="carritoFisicaTotalBs" class="block text-xs font-bold text-cyan-600 font-mono"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Método de pago y nota de la venta -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Método de pago</label>
+                    <select id="fisicaMetodoPago" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400 font-medium">
+                        <option value="Pago Móvil">Pago Móvil</option>
+                        <option value="Efectivo Bs">Efectivo Bs</option>
+                        <option value="Efectivo USD">Efectivo USD</option>
+                        <option value="Transferencia">Transferencia</option>
+                        <option value="Binance">Binance</option>
+                        <option value="Zelle">Zelle</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Correo del cliente (opcional)</label>
+                    <input type="email" id="fisicaCorreo" placeholder="cliente@correo.com" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                 </div>
             </div>
 
             <div>
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Método de pago</label>
-                <select id="fisicaMetodoPago" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400">
-                    <option value="Efectivo Bs">Efectivo Bs</option>
-                    <option value="Efectivo USD">Efectivo USD</option>
-                    <option value="Pago Móvil">Pago Móvil</option>
-                    <option value="Transferencia">Transferencia</option>
-                    <option value="Binance">Binance</option>
-                    <option value="Zelle">Zelle</option>
-                </select>
-            </div>
-            <div>
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Nota (opcional)</label>
-                <input type="text" id="fisicaNota" placeholder="Ej: cliente frecuente, pagó parte en Bs..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                <input type="text" id="fisicaNota" placeholder="Ej: pagó parte en Bs, cliente frecuente..." class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
             </div>
-            <button id="btnRegistrarVentaFisica" onclick="registrarVentaFisica()" class="icon-btn w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition mt-2">
-                <i class="fa-solid fa-check mr-1"></i> <span id="textoRegistrarVentaFisica">Registrar venta</span>
+
+            <!-- Botón Registrar Venta (Sin doble palomita) -->
+            <button id="btnRegistrarVentaFisica" onclick="registrarVentaFisica()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-extrabold py-3.5 rounded-full text-sm uppercase tracking-wide transition shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 mt-2">
+                <span id="textoRegistrarVentaFisica">Registrar venta</span>
             </button>
             <p id="mensajeFisica" class="hidden text-center text-xs font-semibold py-2"></p>
         </div>
 
         <!-- PANEL: GENERAR CÓDIGO QR NUEVO -->
         <div id="formularioQR" class="hidden mb-6 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
-            <p class="text-xs text-gray-400">Escribe un código que no hayas usado todavía (ej: VS-032). Este código es el que escribes en la columna "codigo" de "Productos".</p>
+            <p class="text-xs text-gray-400">Escribe un código que no hayas usado todavía (ej: VS-032) para asignarlo a una prenda en la columna "codigo" de "Productos".</p>
             <div>
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Código</label>
                 <input type="text" id="qrCodigo" placeholder="Ej: VS-032" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
@@ -198,7 +221,7 @@
                 <input type="text" id="qrNombreProducto" placeholder="Ej: Chaqueta nueva talla M" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
             </div>
             <button onclick="generarQRNuevo()" class="icon-btn w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition mt-2">
-                <i class="fa-solid fa-qrcode mr-1"></i> Generar
+                Generar código QR
             </button>
             <p id="mensajeQR" class="hidden text-center text-xs font-semibold py-2"></p>
             <div id="resultadoQR" class="hidden flex flex-col items-center gap-2 pt-2 border-t border-gray-100">
@@ -220,7 +243,7 @@
                     <video id="scannerVideoVenta" class="w-full h-full object-cover" playsinline autoplay muted></video>
                     <div id="scannerMarcoVenta" class="absolute inset-0 pointer-events-none border-[3px] border-cyan-400/70 m-10 rounded-xl transition-colors duration-150"></div>
 
-                    <!-- MODAL DE CONFIRMACIÓN ANTI-DUPLICADO INVOLUNTARIO -->
+                    <!-- MODAL ANTI-DUPLICADO INVOLUNTARIO -->
                     <div id="scannerConfirmacionRepetido" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md z-30 flex flex-col items-center justify-center p-5 text-center">
                         <div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl mb-2">
                             <i class="fa-solid fa-triangle-exclamation"></i>
@@ -244,7 +267,7 @@
                 <canvas id="scannerCanvasVenta" class="hidden"></canvas>
                 <p id="scannerEstadoVenta" class="text-white/70 text-sm mt-3 text-center font-medium">Apunta la cámara al código QR de la prenda</p>
 
-                <!-- Mini control de la prenda recién escaneada (+/-) -->
+                <!-- Mini control de cantidad de la prenda recién escaneada (+/-) -->
                 <div id="scannerUltimoItem" class="hidden mt-2 bg-white/10 backdrop-blur-md rounded-xl p-2.5 flex items-center justify-between text-white text-xs border border-white/10">
                     <div class="truncate mr-2">
                         <span id="scannerUltimoNombre" class="font-bold block truncate"></span>
@@ -257,15 +280,16 @@
                     </div>
                 </div>
 
-                <p class="text-white/50 text-xs text-center mt-2">
-                    <span id="scannerVentaContador">0</span> prendas en total · <span id="scannerVentaTotalMini">$0.00</span>
+                <!-- Contador y totales en $ y Bs en el escáner -->
+                <p class="text-white/60 text-xs text-center mt-2 font-medium">
+                    <span id="scannerVentaContador">0</span> prendas · <span id="scannerVentaTotalMini" class="font-bold text-white">$0.00</span> <span id="scannerVentaTotalMiniBs" class="text-cyan-300 font-mono ml-1"></span>
                 </p>
                 <div class="grid grid-cols-2 gap-2 mt-3">
                     <button type="button" onclick="cerrarScannerVenta()" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 rounded-full text-sm">
-                        Seguir editando
+                        Ver carrito
                     </button>
-                    <button type="button" onclick="registrarVentaDesdeScanner()" class="bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-3 rounded-full text-sm">
-                        Registrar venta
+                    <button type="button" onclick="registrarVentaDesdeScanner()" class="bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-3 rounded-full text-sm shadow-lg shadow-cyan-500/30">
+                        Cobrar venta
                     </button>
                 </div>
             </div>
@@ -368,23 +392,23 @@
         let scannerVentaPausado = false;
         let scannerVentaTimeoutId = null;
 
-        let itemPendienteConfirmar = null; // Guarda temporalmente la prenda duplicada para confirmar
+        let itemPendienteConfirmar = null;
 
         let filtroVentas = 'hoy';
         let listaVentasMemoria = [];
+        let tasaBcvAdmin = null;
+        let ultimoTotalHoy = 0;
 
         // ===================================================================
         // VIBRACIÓN Y BEEP SONORO PROFESIONAL
         // ===================================================================
         function emitirFeedbackEscaneo() {
-            // 1. Vibración táctil (Android y navegadores compatibles)
             if ('vibrate' in navigator) {
                 try {
                     navigator.vibrate([120, 60, 120]);
                 } catch (e) {}
             }
 
-            // 2. Beep sonoro de caja registradora (funciona en TODOS, incluyendo iPhone / iOS)
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 if (AudioCtx) {
@@ -516,7 +540,7 @@
                 if (datos.ok) {
                     ultimoTotalHoy = Number(datos.resumen.totalHoy) || 0;
                     document.getElementById('totalHoy').textContent = '$' + ultimoTotalHoy.toFixed(2);
-                    document.getElementById('cantidadHoy').textContent = datos.resumen.cantidadHoy + ' ítems aceptados';
+                    document.getElementById('cantidadHoy').textContent = datos.resumen.cantidadHoy + ' prendas hoy';
                     actualizarTotalHoyBs();
                 }
             } catch (e) {
@@ -783,7 +807,7 @@
                         </div>
                         <div class="text-right flex-shrink-0 ml-3">
                             <span class="text-lg font-black text-gray-900 block">$${precio}</span>
-                            ${precioBs ? `<span class="text-[11px] text-gray-400 block">Bs ${precioBs}</span>` : ''}
+                            ${precioBs ? `<span class="text-[11px] text-gray-400 block font-mono">Bs ${precioBs}</span>` : ''}
                         </div>
                     </div>
                     ${(venta.metodoPago || venta.correo) ? `
@@ -983,13 +1007,11 @@
             if (avisar) {
                 const mensaje = document.getElementById('mensajeFisica');
                 mensaje.classList.remove('hidden');
-                mensaje.textContent = 'Producto encontrado. Puedes tocar "Agregar esta prenda".';
+                mensaje.textContent = 'Producto encontrado. Toca "Agregar prenda".';
                 mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-600';
             }
         }
 
-        let tasaBcvAdmin = null;
-        let ultimoTotalHoy = 0;
         async function cargarTasaBcvAdmin() {
             try {
                 const resp = await fetch('/api/tasa-bcv');
@@ -1000,6 +1022,7 @@
             }
             actualizarPrecioBsFisica();
             actualizarTotalHoyBs();
+            renderizarCarritoFisica();
         }
 
         function actualizarPrecioBsFisica() {
@@ -1114,7 +1137,6 @@
                 document.getElementById('fisicaCategoria').value = '';
                 actualizarPrecioBsFisica();
                 mensaje.classList.add('hidden');
-                document.getElementById('fisicaProducto').focus();
             }
 
             const indexExistente = carritoFisica.findIndex(p => p.producto.toLowerCase() === item.producto.toLowerCase());
@@ -1190,8 +1212,16 @@
             const resumen = calcularResumenCarritoFisica();
             const contador = document.getElementById('scannerVentaContador');
             const totalMini = document.getElementById('scannerVentaTotalMini');
+            const totalMiniBs = document.getElementById('scannerVentaTotalMiniBs');
             if (contador) contador.textContent = String(resumen.totalPiezas);
             if (totalMini) totalMini.textContent = '$' + resumen.total.toFixed(2);
+            if (totalMiniBs) {
+                if (tasaBcvAdmin && resumen.total > 0) {
+                    totalMiniBs.textContent = '(≈ Bs ' + (resumen.total * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')';
+                } else {
+                    totalMiniBs.textContent = '';
+                }
+            }
         }
 
         function renderizarCarritoFisica() {
@@ -1203,6 +1233,8 @@
             const subtotalEl = document.getElementById('carritoFisicaSubtotal');
             const descuentoMontoEl = document.getElementById('carritoFisicaDescuentoMonto');
             const totalEl = document.getElementById('carritoFisicaTotal');
+            const totalBsEl = document.getElementById('carritoFisicaTotalBs');
+            const tasaInfoEl = document.getElementById('carritoFisicaTasaInfo');
 
             const resumen = calcularResumenCarritoFisica();
 
@@ -1219,6 +1251,19 @@
             subtotalEl.textContent = '$' + resumen.subtotal.toFixed(2);
             totalEl.textContent = '$' + resumen.total.toFixed(2);
 
+            // Mostrar el total en Bolívares y la tasa oficial en vivo
+            if (totalBsEl) {
+                if (tasaBcvAdmin && resumen.total > 0) {
+                    const totalBs = resumen.total * tasaBcvAdmin;
+                    totalBsEl.textContent = '≈ Bs ' + totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                } else {
+                    totalBsEl.textContent = '';
+                }
+            }
+            if (tasaInfoEl) {
+                tasaInfoEl.textContent = tasaBcvAdmin ? 'Tasa BCV: Bs ' + tasaBcvAdmin.toLocaleString('es-VE', { minimumFractionDigits: 2 }) + ' / USD' : '';
+            }
+
             lineaDescuento.classList.toggle('hidden', !resumen.hayDescuento);
             if (resumen.hayDescuento) {
                 descuentoMontoEl.textContent = '-$' + resumen.descuentoTotal.toFixed(2) + ' (' + resumen.totalPiezas + ' x $1.00)';
@@ -1230,12 +1275,12 @@
                 const precioFinalLinea = precioFinalUnit * item.cantidad;
 
                 return `
-                    <div class="flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 rounded-xl p-3">
+                    <div class="flex items-center justify-between gap-2.5 bg-gray-50 border border-gray-100 rounded-xl p-3">
                         <div class="min-w-0 flex-1">
                             <p class="text-xs font-bold text-gray-900 truncate">${escapeHTML(item.producto)}</p>
                             <p class="text-[10px] text-gray-400">${escapeHTML(item.categoria || 'Variados')} · $${item.precio.toFixed(2)} c/u</p>
                         </div>
-                        <div class="flex items-center gap-3 flex-shrink-0">
+                        <div class="flex items-center gap-2.5 flex-shrink-0">
                             <!-- Stepper (-) Cantidad (+) -->
                             <div class="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm">
                                 <button type="button" onclick="modificarCantidadItem(${indice}, -1)" title="Restar" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-rose-600 hover:bg-rose-50 rounded-l-lg transition active:scale-95">
@@ -1349,7 +1394,7 @@
                 document.getElementById('fisicaProducto').value = valorBusqueda;
                 const mensaje = document.getElementById('mensajeFisica');
                 mensaje.classList.remove('hidden');
-                mensaje.textContent = 'No se encontró el producto en el catálogo. Completa precio y categoría a mano.';
+                mensaje.textContent = 'No se encontró el producto en el catálogo. Puedes agregarlo a mano si gustas.';
                 mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
                 return;
             }
@@ -1364,7 +1409,6 @@
             const indexExistente = carritoFisica.findIndex(p => p.producto.toLowerCase() === nombre.toLowerCase());
 
             if (indexExistente !== -1) {
-                // Pausa el escáner y abre el diálogo de confirmación
                 scannerVentaPausado = true;
                 itemPendienteConfirmar = {
                     indice: indexExistente,
@@ -1375,7 +1419,7 @@
                 return;
             }
 
-            // SI ES NUEVO: Agrega, vibra y emite sonido
+            // SI ES NUEVO: Agrega, emite vibración y sonido
             ultimoCodigoEscaneado = buscado;
             ultimoEscaneoTiempo = ahora;
 
@@ -1576,6 +1620,7 @@
 
             mensaje.classList.add('hidden');
 
+            // Si hay algo escrito a mano pendiente de agregar, se agrega al carrito
             const productoSuelto = document.getElementById('fisicaProducto').value.trim();
             const precioSuelto = parseFloat(document.getElementById('fisicaPrecio').value);
             if (productoSuelto && !isNaN(precioSuelto) && precioSuelto > 0) {
@@ -1583,7 +1628,7 @@
             }
 
             if (!carritoFisica.length) {
-                mensaje.textContent = 'Agrega al menos una prenda antes de registrar la venta.';
+                mensaje.textContent = 'Agrega o escanea al menos una prenda antes de registrar la venta.';
                 mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
                 mensaje.classList.remove('hidden');
                 return;
@@ -1605,13 +1650,17 @@
                 };
             });
 
+            // Bloquear botón y mostrar spinner (Sin palomitas duplicadas)
             boton.disabled = true;
-            boton.classList.add('opacity-60', 'cursor-not-allowed');
-            textoBoton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Registrando venta...';
+            boton.classList.add('opacity-75', 'cursor-not-allowed');
+            textoBoton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Registrando venta...';
 
             const notaFinal = resumen.hayDescuento
                 ? (nota ? nota + ' (incluye descuento 3+ piezas)' : 'Descuento por 3+ piezas')
                 : nota;
+
+            // Prepara resumen de nombres para compatibilidad total
+            const nombrePrincipal = itemsAEnviar.map(i => i.nombre + (i.cantidad > 1 ? ' (x' + i.cantidad + ')' : '')).join(', ');
 
             try {
                 const resp = await fetch('/api/admin-pedidos', {
@@ -1620,6 +1669,9 @@
                     body: JSON.stringify({
                         password: obtenerPassword(),
                         accion: 'ventaFisica',
+                        nombre: nombrePrincipal,
+                        precio: resumen.total.toFixed(2),
+                        categoria: itemsAEnviar[0]?.categoria || '',
                         items: itemsAEnviar,
                         metodoPago: metodoPago,
                         correoCliente: correo,
@@ -1629,8 +1681,9 @@
                 const datos = await resp.json();
 
                 if (datos.ok) {
-                    mensaje.textContent = `✅ Venta registrada con éxito: ${resumen.totalPiezas} ${resumen.totalPiezas === 1 ? 'prenda' : 'prendas'} por $${resumen.total.toFixed(2)}.`;
-                    mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-600';
+                    const totalBsTexto = tasaBcvAdmin ? ' (≈ Bs ' + (resumen.total * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')' : '';
+                    mensaje.textContent = `✅ Venta registrada con éxito: ${resumen.totalPiezas} ${resumen.totalPiezas === 1 ? 'prenda' : 'prendas'} por $${resumen.total.toFixed(2)}${totalBsTexto}.`;
+                    mensaje.className = 'block text-center text-xs font-semibold py-2.5 text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl';
                     mensaje.classList.remove('hidden');
 
                     carritoFisica = [];
@@ -1642,21 +1695,27 @@
                     document.getElementById('fisicaPrecio').value = '';
                     document.getElementById('fisicaCategoria').value = '';
 
+                    textoBoton.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i> ¡Venta registrada!';
+                    setTimeout(() => {
+                        textoBoton.textContent = 'Registrar venta';
+                    }, 2500);
+
                     cargarResumen();
                     if (tabActiva === 'ventas') cargarVentas();
                 } else {
                     mensaje.textContent = 'Error al registrar venta: ' + (datos.error || 'Intenta de nuevo.');
                     mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
                     mensaje.classList.remove('hidden');
+                    textoBoton.textContent = 'Registrar venta';
                 }
             } catch (e) {
                 mensaje.textContent = 'No se pudo conectar con el servidor. Revisa la conexión.';
                 mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
                 mensaje.classList.remove('hidden');
+                textoBoton.textContent = 'Registrar venta';
             } finally {
                 boton.disabled = false;
-                boton.classList.remove('opacity-60', 'cursor-not-allowed');
-                textoBoton.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Registrar venta';
+                boton.classList.remove('opacity-75', 'cursor-not-allowed');
             }
         }
 

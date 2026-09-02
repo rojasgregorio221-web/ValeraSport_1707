@@ -120,28 +120,52 @@ export async function onRequestPost(context) {
     return jsonResponse(resultado, resultado.ok ? 200 : 500);
   }
 
-  // Escritura: registrar una venta hecha en la tienda física
+  // Escritura: registrar una venta hecha en la tienda física (soporta lote o prenda individual)
   if (datos.accion === "ventaFisica") {
-    if (!datos.nombre || !datos.metodoPago) {
+    const tieneItems = Array.isArray(datos.items) && datos.items.length > 0;
+    if (!datos.metodoPago || (!datos.nombre && !tieneItems)) {
       return jsonResponse(
-        { ok: false, error: "Faltan datos: producto y método de pago son obligatorios" },
+        { ok: false, error: "Faltan datos: producto (o lista de prendas) y método de pago son obligatorios" },
         400
       );
     }
 
     const recortar = (valor, max) => String(valor || "").slice(0, max);
 
+    const cuerpo = {
+      accion: "ventaFisica",
+      metodoPago: recortar(datos.metodoPago, 50),
+      correoCliente: recortar(datos.correoCliente, 200),
+      nota: recortar(datos.nota, 300),
+      clave: CLAVE_ADMIN,
+    };
+
+    if (tieneItems) {
+      cuerpo.items = datos.items;
+      cuerpo.nombre = recortar(datos.items[0].nombre || datos.items[0].producto, 200);
+    } else {
+      cuerpo.nombre = recortar(datos.nombre, 200);
+      cuerpo.precio = recortar(datos.precio, 20);
+      cuerpo.categoria = recortar(datos.categoria, 100);
+    }
+
+    const respuesta = await fetch(SHEET_WRITE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cuerpo),
+    });
+
+    const resultado = await parsearRespuesta(respuesta);
+    return jsonResponse(resultado, resultado.ok ? 200 : 500);
+  }
+
+  // Escritura: vaciar todas las ventas (solo admin)
+  if (datos.accion === "vaciarVentas") {
     const respuesta = await fetch(SHEET_WRITE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        accion: "ventaFisica",
-        nombre: recortar(datos.nombre, 200),
-        precio: recortar(datos.precio, 20),
-        categoria: recortar(datos.categoria, 100),
-        metodoPago: recortar(datos.metodoPago, 50),
-        correoCliente: recortar(datos.correoCliente, 200),
-        nota: recortar(datos.nota, 300),
+        accion: "vaciarVentas",
         clave: CLAVE_ADMIN,
       }),
     });
