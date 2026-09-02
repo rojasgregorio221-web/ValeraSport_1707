@@ -210,20 +210,41 @@
             </div>
         </div>
 
-        <!-- MODAL ESCÁNER QR CON CONTROLES +/- DIRECTOS -->
+        <!-- MODAL ESCÁNER QR -->
         <div id="scannerModalVenta" class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
             <button onclick="cerrarScannerVenta()" class="icon-btn absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full text-white/80 hover:text-white text-base z-10">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <div class="w-full max-w-sm">
+            <div class="w-full max-w-sm relative">
                 <div class="relative rounded-2xl overflow-hidden border border-white/20 bg-black aspect-square">
                     <video id="scannerVideoVenta" class="w-full h-full object-cover" playsinline autoplay muted></video>
                     <div id="scannerMarcoVenta" class="absolute inset-0 pointer-events-none border-[3px] border-cyan-400/70 m-10 rounded-xl transition-colors duration-150"></div>
+
+                    <!-- MODAL DE CONFIRMACIÓN ANTI-DUPLICADO INVOLUNTARIO -->
+                    <div id="scannerConfirmacionRepetido" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md z-30 flex flex-col items-center justify-center p-5 text-center">
+                        <div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl mb-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <p class="text-[11px] text-amber-400 font-bold uppercase tracking-wider mb-1">Prenda ya escaneada</p>
+                        <p id="scannerRepetidoNombre" class="text-sm font-bold text-white mb-1.5 px-2 leading-tight"></p>
+                        <p class="text-xs text-gray-300 mb-4">
+                            Ya está en la lista (<span id="scannerRepetidoCant" class="text-cyan-400 font-bold">1</span> unidad).<br>
+                            ¿Deseas agregar otra unidad (+1)?
+                        </p>
+                        <div class="grid grid-cols-2 gap-2.5 w-full">
+                            <button type="button" onclick="cancelarRepetidoScanner()" class="bg-white/10 hover:bg-white/20 text-white font-semibold py-2.5 rounded-xl text-xs transition">
+                                No, ignorar
+                            </button>
+                            <button type="button" onclick="confirmarRepetidoScanner()" class="bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-lg shadow-cyan-500/30">
+                                Sí, agregar (+1)
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <canvas id="scannerCanvasVenta" class="hidden"></canvas>
-                <p id="scannerEstadoVenta" class="text-white/70 text-sm mt-3 text-center">Apunta la cámara al código QR de la prenda</p>
+                <p id="scannerEstadoVenta" class="text-white/70 text-sm mt-3 text-center font-medium">Apunta la cámara al código QR de la prenda</p>
 
-                <!-- Mini control de cantidad de la prenda recién escaneada -->
+                <!-- Mini control de la prenda recién escaneada (+/-) -->
                 <div id="scannerUltimoItem" class="hidden mt-2 bg-white/10 backdrop-blur-md rounded-xl p-2.5 flex items-center justify-between text-white text-xs border border-white/10">
                     <div class="truncate mr-2">
                         <span id="scannerUltimoNombre" class="font-bold block truncate"></span>
@@ -310,8 +331,7 @@
                     </button>
                 </div>
 
-                <!-- Botón protegido para vaciar ventas -->
-                <button onclick="vaciarTodasLasVentasAdmin()" title="Vaciar registro de ventas (crea respaldo)" class="text-xs font-bold text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+                <button onclick="vaciarTodasLasVentasAdmin()" title="Vaciar registro de ventas (crea respaldo automático)" class="text-xs font-bold text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
                     <i class="fa-solid fa-trash-can"></i> Vaciar ventas
                 </button>
             </div>
@@ -348,8 +368,40 @@
         let scannerVentaPausado = false;
         let scannerVentaTimeoutId = null;
 
+        let itemPendienteConfirmar = null; // Guarda temporalmente la prenda duplicada para confirmar
+
         let filtroVentas = 'hoy';
         let listaVentasMemoria = [];
+
+        // ===================================================================
+        // VIBRACIÓN Y BEEP SONORO PROFESIONAL
+        // ===================================================================
+        function emitirFeedbackEscaneo() {
+            // 1. Vibración táctil (Android y navegadores compatibles)
+            if ('vibrate' in navigator) {
+                try {
+                    navigator.vibrate([120, 60, 120]);
+                } catch (e) {}
+            }
+
+            // 2. Beep sonoro de caja registradora (funciona en TODOS, incluyendo iPhone / iOS)
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) {
+                    const ctx = new AudioCtx();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1800, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.12);
+                }
+            } catch (e) {}
+        }
 
         formLogin.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1213,7 +1265,9 @@
             actualizarMiniStepperScanner();
         }
 
-        // ---------- ESCÁNER QR ----------
+        // ===================================================================
+        // ESCÁNER QR CON VIBRACIÓN Y CONFIRMACIÓN DE REPETIDO
+        // ===================================================================
         async function abrirScannerVenta() {
             abrirPanelAccion('fisica');
             if (!productosCatalogo.length) cargarProductosCatalogo();
@@ -1221,6 +1275,7 @@
             ultimoCodigoEscaneado = null;
             ultimoEscaneoTiempo = 0;
             scannerVentaPausado = false;
+            ocultarModalRepetido();
             if (scannerVentaTimeoutId) { clearTimeout(scannerVentaTimeoutId); scannerVentaTimeoutId = null; }
             actualizarMiniStepperScanner();
 
@@ -1228,7 +1283,7 @@
             const estado = document.getElementById('scannerEstadoVenta');
             const marco = document.getElementById('scannerMarcoVenta');
             modal.classList.remove('hidden'); modal.classList.add('flex');
-            if (estado) { estado.textContent = 'Apunta la cámara al código QR de la prenda'; estado.className = 'text-white/70 text-sm mt-3 text-center'; }
+            if (estado) { estado.textContent = 'Apunta la cámara al código QR de la prenda'; estado.className = 'text-white/70 text-sm mt-3 text-center font-medium'; }
             if (marco) { marco.classList.remove('border-emerald-400'); marco.classList.add('border-cyan-400/70'); }
             const video = document.getElementById('scannerVideoVenta');
             try {
@@ -1263,6 +1318,7 @@
             scannerVentaRAF = null;
             if (scannerVentaTimeoutId) { clearTimeout(scannerVentaTimeoutId); scannerVentaTimeoutId = null; }
             scannerVentaPausado = false;
+            ocultarModalRepetido();
             if (scannerVentaStream) { scannerVentaStream.getTracks().forEach(t => t.stop()); scannerVentaStream = null; }
         }
 
@@ -1277,12 +1333,10 @@
             const buscado = valorBusqueda.toLowerCase().trim();
 
             const ahora = Date.now();
-            if (buscado === ultimoCodigoEscaneado && (ahora - ultimoEscaneoTiempo) < 1200) {
+            if (buscado === ultimoCodigoEscaneado && (ahora - ultimoEscaneoTiempo) < 2200) {
                 scannerVentaRAF = requestAnimationFrame(tickScannerVenta);
                 return;
             }
-            ultimoCodigoEscaneado = buscado;
-            ultimoEscaneoTiempo = ahora;
 
             const coincidencia = productosCatalogo.find(p => (p.codigo || '').toLowerCase().trim() === buscado)
                 || productosCatalogo.find(p => (p.producto || p.nombre || '').toLowerCase().trim() === buscado);
@@ -1290,41 +1344,134 @@
             const estado = document.getElementById('scannerEstadoVenta');
             const marco = document.getElementById('scannerMarcoVenta');
 
-            if (coincidencia) {
-                const nombre = coincidencia.producto || coincidencia.nombre || '';
-                const precio = coincidencia.precio ? parseFloat(coincidencia.precio) : 0;
-                const categoria = normalizarCategoria(coincidencia.categoria);
-
-                agregarItemCarritoFisica({ producto: nombre, precio, categoria, cantidad: 1, codigo: coincidencia.codigo || '' });
-
-                scannerVentaPausado = true;
-                const cantidadActual = carritoFisica[ultimoIndiceEscaneado]?.cantidad || 1;
-                if (estado) {
-                    estado.textContent = `✅ ${nombre} (x${cantidadActual} en total)`;
-                    estado.className = 'text-emerald-400 text-sm mt-3 text-center font-bold';
-                }
-                if (marco) { marco.classList.remove('border-cyan-400/70'); marco.classList.add('border-emerald-400'); }
-                if (navigator.vibrate) navigator.vibrate(70);
-
-                if (scannerVentaTimeoutId) clearTimeout(scannerVentaTimeoutId);
-                scannerVentaTimeoutId = setTimeout(() => {
-                    scannerVentaPausado = false;
-                    if (estado) {
-                        estado.textContent = 'Apunta la cámara al código QR de la siguiente prenda';
-                        estado.className = 'text-white/70 text-sm mt-3 text-center';
-                    }
-                    if (marco) { marco.classList.remove('border-emerald-400'); marco.classList.add('border-cyan-400/70'); }
-                }, 1300);
-
-                scannerVentaRAF = requestAnimationFrame(tickScannerVenta);
-            } else {
+            if (!coincidencia) {
                 cerrarScannerVenta();
                 document.getElementById('fisicaProducto').value = valorBusqueda;
                 const mensaje = document.getElementById('mensajeFisica');
                 mensaje.classList.remove('hidden');
-                mensaje.textContent = 'No se encontró el producto en el catálogo. Completa precio y categoría a mano y presiona "Agregar esta prenda".';
+                mensaje.textContent = 'No se encontró el producto en el catálogo. Completa precio y categoría a mano.';
                 mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
+                return;
             }
+
+            const nombre = coincidencia.producto || coincidencia.nombre || '';
+            const precio = coincidencia.precio ? parseFloat(coincidencia.precio) : 0;
+            const categoria = normalizarCategoria(coincidencia.categoria);
+
+            // =========================================================
+            // ¿YA ESTÁ EN EL CARRITO? PREGUNTA ANTES DE DUPLICAR
+            // =========================================================
+            const indexExistente = carritoFisica.findIndex(p => p.producto.toLowerCase() === nombre.toLowerCase());
+
+            if (indexExistente !== -1) {
+                // Pausa el escáner y abre el diálogo de confirmación
+                scannerVentaPausado = true;
+                itemPendienteConfirmar = {
+                    indice: indexExistente,
+                    nombre: nombre,
+                    buscado: buscado
+                };
+                mostrarModalRepetido(nombre, carritoFisica[indexExistente].cantidad);
+                return;
+            }
+
+            // SI ES NUEVO: Agrega, vibra y emite sonido
+            ultimoCodigoEscaneado = buscado;
+            ultimoEscaneoTiempo = ahora;
+
+            agregarItemCarritoFisica({ producto: nombre, precio, categoria, cantidad: 1, codigo: coincidencia.codigo || '' });
+            emitirFeedbackEscaneo();
+
+            scannerVentaPausado = true;
+            if (estado) {
+                estado.textContent = `✅ Agregado: ${nombre}`;
+                estado.className = 'text-emerald-400 text-sm mt-3 text-center font-bold';
+            }
+            if (marco) {
+                marco.classList.remove('border-cyan-400/70');
+                marco.classList.add('border-emerald-400');
+            }
+
+            if (scannerVentaTimeoutId) clearTimeout(scannerVentaTimeoutId);
+            scannerVentaTimeoutId = setTimeout(() => {
+                scannerVentaPausado = false;
+                if (estado) {
+                    estado.textContent = 'Apunta la cámara al código QR de la siguiente prenda';
+                    estado.className = 'text-white/70 text-sm mt-3 text-center font-medium';
+                }
+                if (marco) {
+                    marco.classList.remove('border-emerald-400');
+                    marco.classList.add('border-cyan-400/70');
+                }
+            }, 1400);
+
+            scannerVentaRAF = requestAnimationFrame(tickScannerVenta);
+        }
+
+        // ---------- CONTROL MODAL REPETIDO ----------
+        function mostrarModalRepetido(nombre, cantidadActual) {
+            const modalRepetido = document.getElementById('scannerConfirmacionRepetido');
+            const nomEl = document.getElementById('scannerRepetidoNombre');
+            const cantEl = document.getElementById('scannerRepetidoCant');
+            if (nomEl) nomEl.textContent = nombre;
+            if (cantEl) cantEl.textContent = String(cantidadActual);
+            if (modalRepetido) modalRepetido.classList.remove('hidden');
+
+            if ('vibrate' in navigator) {
+                try { navigator.vibrate(70); } catch(e) {}
+            }
+        }
+
+        function ocultarModalRepetido() {
+            const modalRepetido = document.getElementById('scannerConfirmacionRepetido');
+            if (modalRepetido) modalRepetido.classList.add('hidden');
+        }
+
+        function confirmarRepetidoScanner() {
+            if (itemPendienteConfirmar) {
+                const { indice, buscado } = itemPendienteConfirmar;
+                if (carritoFisica[indice]) {
+                    carritoFisica[indice].cantidad += 1;
+                    ultimoIndiceEscaneado = indice;
+                    renderizarCarritoFisica();
+                    emitirFeedbackEscaneo();
+
+                    const estado = document.getElementById('scannerEstadoVenta');
+                    if (estado) {
+                        estado.textContent = `✅ +1 agregado: ${carritoFisica[indice].producto} (x${carritoFisica[indice].cantidad})`;
+                        estado.className = 'text-emerald-400 text-sm mt-3 text-center font-bold';
+                    }
+                }
+                ultimoCodigoEscaneado = buscado;
+                ultimoEscaneoTiempo = Date.now();
+            }
+            ocultarModalRepetido();
+            itemPendienteConfirmar = null;
+
+            setTimeout(() => {
+                scannerVentaPausado = false;
+                scannerVentaRAF = requestAnimationFrame(tickScannerVenta);
+            }, 1200);
+        }
+
+        function cancelarRepetidoScanner() {
+            if (itemPendienteConfirmar) {
+                ultimoCodigoEscaneado = itemPendienteConfirmar.buscado;
+                ultimoEscaneoTiempo = Date.now();
+            }
+            ocultarModalRepetido();
+            itemPendienteConfirmar = null;
+
+            const estado = document.getElementById('scannerEstadoVenta');
+            if (estado) {
+                estado.textContent = 'Prenda no duplicada. Apunta a la siguiente prenda.';
+                estado.className = 'text-white/70 text-sm mt-3 text-center font-medium';
+            }
+
+            setTimeout(() => {
+                scannerVentaPausado = false;
+                scannerVentaRAF = requestAnimationFrame(tickScannerVenta);
+            }, 800);
         }
 
         const PANELES_ACCION = {
