@@ -13,14 +13,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #111111; }
+        body { font-family: 'Inter', sans-serif; background-color: #f7f8fa; color: #111111; }
         h1, h2, .font-brand { font-family: 'Outfit', sans-serif; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #fff; }
         ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
         .icon-btn { transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease; }
-        .tab-pedidos { color: #9ca3af; border-bottom: 2px solid transparent; }
-        .tab-pedidos.activa { color: #111; border-bottom-color: #06b6d4; }
+
+        /* Segmented control (Pendientes / Aceptadas / Rechazadas / Ventas) */
+        .tab-pedidos {
+            color: #6b7280;
+            background: transparent;
+        }
+        .tab-pedidos.activa {
+            background: #ffffff;
+            color: #111111;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        /* Botones de acción rápida (venta física / QR) */
+        .accion-rapida.activa {
+            border-color: #06b6d4;
+            background: #ecfeff;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen">
@@ -43,111 +58,123 @@
     </div>
 
     <!-- PANEL PRINCIPAL -->
-    <div id="panelPrincipal" class="hidden max-w-2xl mx-auto px-5 py-8">
+    <div id="panelPrincipal" class="hidden max-w-2xl mx-auto px-3 py-8">
 
-        <header class="flex items-center justify-between mb-8">
-            <span class="font-brand text-xl font-extrabold tracking-tight text-gray-900">VALERA<span class="text-cyan-500">SPORT</span></span>
-            <button onclick="cerrarSesion()" class="text-xs text-gray-400 hover:text-gray-900 transition flex items-center gap-1.5">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> Salir
+        <!-- HEADER: marca a la izquierda del todo, Salir a la derecha del todo, en negrita -->
+        <header class="flex items-center justify-between mb-6">
+            <span class="font-brand text-3xl font-black tracking-tight text-gray-900 -ml-0.5">VALERA<span class="text-cyan-500">SPORT</span></span>
+            <button onclick="cerrarSesion()" class="text-sm font-extrabold text-gray-900 hover:text-rose-500 transition flex items-center gap-2 -mr-0.5">
+                SALIR <i class="fa-solid fa-arrow-right-from-bracket"></i>
             </button>
         </header>
 
-        <!-- RESUMEN DEL DÍA -->
-        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-6 mb-8">
-            <p class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-1">Vendido hoy</p>
-            <p class="text-4xl font-black text-gray-900" id="totalHoy">$0.00</p>
-            <p class="text-sm text-gray-500 mt-1" id="cantidadHoy">0 ítems aceptados</p>
-            <p class="text-xs text-gray-400 mt-0.5" id="totalHoyBs"></p>
-        </div>
-
-        <!-- REGISTRAR VENTA FÍSICA -->
-        <div class="mb-8">
-            <button onclick="toggleFormularioFisica()" id="btnToggleFisica" class="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-2xl p-4 flex items-center justify-between transition">
-                <span class="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fa-solid fa-store text-cyan-500"></i> Registrar venta en tienda física
-                </span>
-                <i class="fa-solid fa-chevron-down text-gray-400 text-xs" id="iconoToggleFisica"></i>
-            </button>
-
-            <div id="formularioFisica" class="hidden mt-3 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Correo del cliente (opcional)</label>
-                    <input type="email" id="fisicaCorreo" placeholder="cliente@correo.com" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-                </div>
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Producto</label>
-                        <button type="button" onclick="abrirScannerVenta()" class="icon-btn text-xs font-bold text-cyan-600 hover:text-cyan-500 flex items-center gap-1">
-                            <i class="fa-solid fa-qrcode"></i> Escanear
-                        </button>
-                    </div>
-                    <input type="text" id="fisicaProducto" list="listaProductosFisica" oninput="buscarProductoEscrito()" placeholder="Escribe o elige del catálogo..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-                    <datalist id="listaProductosFisica"></datalist>
-                    <p class="text-[11px] text-gray-400 mt-1">Empieza a escribir para ver sugerencias del catálogo (tal como están en el Sheet), o escribe uno nuevo si no está en la lista.</p>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Precio</label>
-                        <input type="number" step="0.01" id="fisicaPrecio" oninput="actualizarPrecioBsFisica()" placeholder="0.00" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-                        <p id="fisicaPrecioBs" class="text-[11px] text-gray-400 mt-1"></p>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Categoría</label>
-                        <input type="text" id="fisicaCategoria" placeholder="Damas / Caballeros..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-                    </div>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Método de pago</label>
-                    <select id="fisicaMetodoPago" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400">
-                        <option value="Efectivo Bs">Efectivo Bs</option>
-                        <option value="Efectivo USD">Efectivo USD</option>
-                        <option value="Pago Móvil">Pago Móvil</option>
-                        <option value="Transferencia">Transferencia</option>
-                        <option value="Binance">Binance</option>
-                        <option value="Zelle">Zelle</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Nota (opcional)</label>
-                    <input type="text" id="fisicaNota" placeholder="Ej: cliente frecuente, pagó parte en Bs..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-                </div>
-                <button onclick="registrarVentaFisica()" class="icon-btn w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition mt-2">
-                    <i class="fa-solid fa-plus mr-1"></i> Registrar venta
-                </button>
-                <p id="mensajeFisica" class="hidden text-center text-xs font-semibold py-2"></p>
+        <!-- RESUMEN DEL DÍA (rediseñado, mismo lugar de siempre) -->
+        <div class="relative overflow-hidden bg-gray-900 rounded-3xl p-6 mb-6 text-white">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-cyan-500/25 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -left-6 -bottom-10 w-28 h-28 bg-cyan-400/10 rounded-full blur-xl pointer-events-none"></div>
+            <p class="relative text-xs text-gray-300 uppercase tracking-widest font-bold mb-1.5">Vendido hoy</p>
+            <p class="relative text-4xl font-black" id="totalHoy">$0.00</p>
+            <div class="relative flex items-center gap-2.5 mt-2">
+                <p class="text-sm text-gray-300" id="cantidadHoy">0 ítems aceptados</p>
+                <span class="w-1 h-1 bg-gray-500 rounded-full"></span>
+                <p class="text-sm text-cyan-300" id="totalHoyBs"></p>
             </div>
         </div>
 
-        <!-- GENERAR NUEVO CÓDIGO QR -->
-        <div class="mb-8">
-            <button onclick="toggleFormularioQR()" id="btnToggleQR" class="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-2xl p-4 flex items-center justify-between transition">
-                <span class="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fa-solid fa-qrcode text-cyan-500"></i> Generar código QR nuevo
-                </span>
-                <i class="fa-solid fa-chevron-down text-gray-400 text-xs" id="iconoToggleQR"></i>
+        <!-- ACCIONES RÁPIDAS: venta física + QR, una al lado de la otra -->
+        <div class="grid grid-cols-3 gap-2 mb-3">
+            <button onclick="toggleFormularioFisica()" id="btnToggleFisica" class="accion-rapida bg-white border border-gray-200 hover:border-cyan-300 rounded-2xl px-2 py-4 flex flex-col items-center justify-center gap-2 transition text-center">
+                <div class="w-10 h-10 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-500">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+                <span class="text-xs font-bold text-gray-900 leading-tight">Registrar venta<br>en tienda física</span>
+                <i class="fa-solid fa-chevron-down text-gray-300 text-[10px]" id="iconoToggleFisica"></i>
             </button>
+            <button onclick="abrirScannerVenta()" id="btnEscanearRapido" class="accion-rapida bg-white border border-gray-200 hover:border-cyan-300 rounded-2xl px-2 py-4 flex flex-col items-center justify-center gap-2 transition text-center">
+                <div class="w-10 h-10 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-500">
+                    <i class="fa-solid fa-camera"></i>
+                </div>
+                <span class="text-xs font-bold text-gray-900 leading-tight">Escanear<br>QR</span>
+            </button>
+            <button onclick="toggleFormularioQR()" id="btnToggleQR" class="accion-rapida bg-white border border-gray-200 hover:border-cyan-300 rounded-2xl px-2 py-4 flex flex-col items-center justify-center gap-2 transition text-center">
+                <div class="w-10 h-10 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-500">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <span class="text-xs font-bold text-gray-900 leading-tight">Generar código<br>QR nuevo</span>
+                <i class="fa-solid fa-chevron-down text-gray-300 text-[10px]" id="iconoToggleQR"></i>
+            </button>
+        </div>
 
-            <div id="formularioQR" class="hidden mt-3 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
-                <p class="text-xs text-gray-400">Escribe un código que no hayas usado todavía (ej: si tu último fue VS-031, usa VS-032). Este código es el que después escribes en la columna "codigo" de la hoja "Productos" para el producto que le corresponda.</p>
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Código</label>
-                    <input type="text" id="qrCodigo" placeholder="Ej: VS-032" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Nombre del producto (opcional, solo para que se vea en la etiqueta)</label>
-                    <input type="text" id="qrNombreProducto" placeholder="Ej: Chaqueta nueva talla M" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
-                </div>
-                <button onclick="generarQRNuevo()" class="icon-btn w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition mt-2">
-                    <i class="fa-solid fa-qrcode mr-1"></i> Generar
-                </button>
-                <p id="mensajeQR" class="hidden text-center text-xs font-semibold py-2"></p>
-                <div id="resultadoQR" class="hidden flex flex-col items-center gap-2 pt-2 border-t border-gray-100">
-                    <div id="canvasQR" class="border border-gray-200 rounded-lg p-2 bg-white"></div>
-                    <p id="etiquetaQR" class="text-sm font-bold text-gray-900"></p>
-                    <button onclick="imprimirQR()" class="icon-btn text-xs font-bold text-cyan-600 hover:text-cyan-500">
-                        <i class="fa-solid fa-print mr-1"></i> Imprimir esta etiqueta
+        <!-- PANEL: REGISTRAR VENTA FÍSICA (mismas opciones de siempre) -->
+        <div id="formularioFisica" class="hidden mb-6 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Correo del cliente (opcional)</label>
+                <input type="email" id="fisicaCorreo" placeholder="cliente@correo.com" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+            </div>
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">Producto</label>
+                    <button type="button" onclick="abrirScannerVenta()" class="icon-btn text-xs font-bold text-cyan-600 hover:text-cyan-500 flex items-center gap-1">
+                        <i class="fa-solid fa-qrcode"></i> Escanear
                     </button>
                 </div>
+                <input type="text" id="fisicaProducto" list="listaProductosFisica" oninput="buscarProductoEscrito()" placeholder="Escribe o elige del catálogo..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                <datalist id="listaProductosFisica"></datalist>
+                <p class="text-[11px] text-gray-400 mt-1">Empieza a escribir para ver sugerencias del catálogo (tal como están en el Sheet), o escribe uno nuevo si no está en la lista.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Precio</label>
+                    <input type="number" step="0.01" id="fisicaPrecio" oninput="actualizarPrecioBsFisica()" placeholder="0.00" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                    <p id="fisicaPrecioBs" class="text-[11px] text-gray-400 mt-1"></p>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Categoría</label>
+                    <input type="text" id="fisicaCategoria" placeholder="Damas / Caballeros..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                </div>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Método de pago</label>
+                <select id="fisicaMetodoPago" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400">
+                    <option value="Efectivo Bs">Efectivo Bs</option>
+                    <option value="Efectivo USD">Efectivo USD</option>
+                    <option value="Pago Móvil">Pago Móvil</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Binance">Binance</option>
+                    <option value="Zelle">Zelle</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Nota (opcional)</label>
+                <input type="text" id="fisicaNota" placeholder="Ej: cliente frecuente, pagó parte en Bs..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+            </div>
+            <button onclick="registrarVentaFisica()" class="icon-btn w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition mt-2">
+                <i class="fa-solid fa-plus mr-1"></i> Registrar venta
+            </button>
+            <p id="mensajeFisica" class="hidden text-center text-xs font-semibold py-2"></p>
+        </div>
+
+        <!-- PANEL: GENERAR CÓDIGO QR NUEVO -->
+        <div id="formularioQR" class="hidden mb-6 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
+            <p class="text-xs text-gray-400">Escribe un código que no hayas usado todavía (ej: si tu último fue VS-031, usa VS-032). Este código es el que después escribes en la columna "codigo" de la hoja "Productos" para el producto que le corresponda.</p>
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Código</label>
+                <input type="text" id="qrCodigo" placeholder="Ej: VS-032" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Nombre del producto (opcional, solo para que se vea en la etiqueta)</label>
+                <input type="text" id="qrNombreProducto" placeholder="Ej: Chaqueta nueva talla M" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+            </div>
+            <button onclick="generarQRNuevo()" class="icon-btn w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition mt-2">
+                <i class="fa-solid fa-qrcode mr-1"></i> Generar
+            </button>
+            <p id="mensajeQR" class="hidden text-center text-xs font-semibold py-2"></p>
+            <div id="resultadoQR" class="hidden flex flex-col items-center gap-2 pt-2 border-t border-gray-100">
+                <div id="canvasQR" class="border border-gray-200 rounded-lg p-2 bg-white"></div>
+                <p id="etiquetaQR" class="text-sm font-bold text-gray-900"></p>
+                <button onclick="imprimirQR()" class="icon-btn text-xs font-bold text-cyan-600 hover:text-cyan-500">
+                    <i class="fa-solid fa-print mr-1"></i> Imprimir esta etiqueta
+                </button>
             </div>
         </div>
 
@@ -166,23 +193,25 @@
             </div>
         </div>
 
-        <!-- PESTAÑAS: PENDIENTES / ACEPTADAS -->
-        <div class="flex items-center justify-between mb-1 border-b border-gray-100">
-            <div class="flex items-center gap-6">
-                <button data-tab="pendientes" onclick="cambiarTabPedidos('pendientes')" class="tab-pedidos activa font-bold text-sm pb-3">
-                    Pendientes
-                </button>
-                <button data-tab="aceptadas" onclick="cambiarTabPedidos('aceptadas')" class="tab-pedidos font-bold text-sm pb-3">
-                    Aceptadas
-                </button>
-                <button data-tab="rechazadas" onclick="cambiarTabPedidos('rechazadas')" class="tab-pedidos font-bold text-sm pb-3">
-                    Rechazadas
-                </button>
-                <button data-tab="ventas" onclick="cambiarTabPedidos('ventas')" class="tab-pedidos font-bold text-sm pb-3">
-                    Ventas
-                </button>
-            </div>
-            <div class="flex items-center gap-1 pb-2">
+        <!-- SEGMENTED CONTROL: PENDIENTES / ACEPTADAS / RECHAZADAS / VENTAS (todas visibles a la vez) -->
+        <div class="grid grid-cols-4 gap-1 bg-gray-100 rounded-2xl p-1 mb-2">
+            <button data-tab="pendientes" onclick="cambiarTabPedidos('pendientes')" class="tab-pedidos activa font-bold text-xs py-2.5 rounded-xl transition">
+                Pendientes
+            </button>
+            <button data-tab="aceptadas" onclick="cambiarTabPedidos('aceptadas')" class="tab-pedidos font-bold text-xs py-2.5 rounded-xl transition">
+                Aceptadas
+            </button>
+            <button data-tab="rechazadas" onclick="cambiarTabPedidos('rechazadas')" class="tab-pedidos font-bold text-xs py-2.5 rounded-xl transition">
+                Rechazadas
+            </button>
+            <button data-tab="ventas" onclick="cambiarTabPedidos('ventas')" class="tab-pedidos font-bold text-xs py-2.5 rounded-xl transition">
+                Ventas
+            </button>
+        </div>
+
+        <div class="flex items-center justify-between mb-4 px-1">
+            <p id="ultimaActualizacion" class="text-[11px] text-gray-400"></p>
+            <div class="flex items-center gap-1">
                 <button onclick="refrescarManual()" title="Actualizar" class="icon-btn text-gray-400 hover:text-cyan-500 w-8 h-8 flex items-center justify-center rounded-full">
                     <i class="fa-solid fa-arrows-rotate text-sm" id="iconoRefrescar"></i>
                 </button>
@@ -191,7 +220,6 @@
                 </button>
             </div>
         </div>
-        <p id="ultimaActualizacion" class="text-[11px] text-gray-300 mb-4"></p>
 
         <!-- VISTA: PENDIENTES -->
         <div id="vistaPendientes">
@@ -905,8 +933,7 @@
         // ---------- ESCÁNER QR (venta física) ----------
 
         async function abrirScannerVenta() {
-            const form = document.getElementById('formularioFisica');
-            if (form.classList.contains('hidden')) toggleFormularioFisica();
+            abrirPanelAccion('fisica');
 
             if (!productosCatalogo.length) cargarProductosCatalogo();
 
@@ -976,23 +1003,52 @@
 
         // ---------- REGISTRAR VENTA FÍSICA ----------
 
+        // ---------- Abrir/cerrar los paneles de acción (mutuamente excluyentes) ----------
+        // Antes cada panel se abría/cerraba por su cuenta con un simple toggle,
+        // sin avisarle al otro -- así que si abrías "Registrar venta" y luego
+        // tocabas "Generar QR", los dos quedaban abiertos y con el color
+        // "activa" encendido a la vez, y el siguiente clic quedaba desincronizado
+        // (por eso a veces hacía falta tocar dos veces). Ahora hay un solo punto
+        // de control: togglePanelAccion(nombre) siempre dice exactamente qué
+        // panel queda abierto (o ninguno) y qué botón se pinta, sin ambigüedad.
+        const PANELES_ACCION = {
+            fisica: { form: 'formularioFisica', boton: 'btnToggleFisica', icono: 'iconoToggleFisica' },
+            qr: { form: 'formularioQR', boton: 'btnToggleQR', icono: 'iconoToggleQR' },
+        };
+
+        function togglePanelAccion(nombre) {
+            const yaAbierto = !document.getElementById(PANELES_ACCION[nombre].form).classList.contains('hidden');
+            abrirPanelAccion(yaAbierto ? null : nombre);
+        }
+
+        // nombre = 'fisica' | 'qr' | null (null cierra todos)
+        function abrirPanelAccion(nombre) {
+            Object.keys(PANELES_ACCION).forEach((clave) => {
+                const p = PANELES_ACCION[clave];
+                const form = document.getElementById(p.form);
+                const boton = document.getElementById(p.boton);
+                const icono = document.getElementById(p.icono);
+                const abrir = clave === nombre;
+                form.classList.toggle('hidden', !abrir);
+                boton.classList.toggle('activa', abrir);
+                if (icono) {
+                    icono.classList.toggle('fa-chevron-down', !abrir);
+                    icono.classList.toggle('fa-chevron-up', abrir);
+                }
+            });
+        }
+
         function toggleFormularioFisica() {
-            const form = document.getElementById('formularioFisica');
-            const icono = document.getElementById('iconoToggleFisica');
-            form.classList.toggle('hidden');
-            icono.classList.toggle('fa-chevron-down');
-            icono.classList.toggle('fa-chevron-up');
+            togglePanelAccion('fisica');
+        }
+
+        function toggleFormularioQR() {
+            togglePanelAccion('qr');
         }
 
         // ---------- GENERAR NUEVO CÓDIGO QR ----------
 
-        function toggleFormularioQR() {
-            const form = document.getElementById('formularioQR');
-            const icono = document.getElementById('iconoToggleQR');
-            form.classList.toggle('hidden');
-            icono.classList.toggle('fa-chevron-down');
-            icono.classList.toggle('fa-chevron-up');
-        }
+
 
         function generarQRNuevo() {
             const codigo = document.getElementById('qrCodigo').value.trim();
