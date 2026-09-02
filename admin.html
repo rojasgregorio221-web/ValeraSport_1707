@@ -20,7 +20,6 @@
         ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
         .icon-btn { transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease; }
 
-        /* Segmented control (Pendientes / Aceptadas / Rechazadas / Ventas) */
         .tab-pedidos {
             color: #6b7280;
             background: transparent;
@@ -31,7 +30,6 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.08);
         }
 
-        /* Botones de acción rápida (venta física / QR) */
         .accion-rapida.activa {
             border-color: #06b6d4;
             background: #ecfeff;
@@ -60,7 +58,7 @@
     <!-- PANEL PRINCIPAL -->
     <div id="panelPrincipal" class="hidden max-w-2xl mx-auto px-3 py-8">
 
-        <!-- HEADER: marca a la izquierda del todo, Salir a la derecha del todo, en negrita -->
+        <!-- HEADER -->
         <header class="flex items-center justify-between mb-6">
             <span class="font-brand text-3xl font-black tracking-tight text-gray-900 -ml-0.5">VALERA<span class="text-cyan-500">SPORT</span></span>
             <button onclick="cerrarSesion()" class="text-sm font-extrabold text-gray-900 hover:text-rose-500 transition flex items-center gap-2 -mr-0.5">
@@ -68,7 +66,7 @@
             </button>
         </header>
 
-        <!-- RESUMEN DEL DÍA (rediseñado, mismo lugar de siempre) -->
+        <!-- RESUMEN DEL DÍA -->
         <div class="relative overflow-hidden bg-gray-900 rounded-3xl p-6 mb-6 text-white">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-cyan-500/25 rounded-full blur-2xl pointer-events-none"></div>
             <div class="absolute -left-6 -bottom-10 w-28 h-28 bg-cyan-400/10 rounded-full blur-xl pointer-events-none"></div>
@@ -81,7 +79,7 @@
             </div>
         </div>
 
-        <!-- ACCIONES RÁPIDAS: venta física + QR, una al lado de la otra -->
+        <!-- ACCIONES RÁPIDAS -->
         <div class="grid grid-cols-3 gap-2 mb-3">
             <button onclick="toggleFormularioFisica()" id="btnToggleFisica" class="accion-rapida bg-white border border-gray-200 hover:border-cyan-300 rounded-2xl px-2 py-4 flex flex-col items-center justify-center gap-2 transition text-center">
                 <div class="w-10 h-10 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-500">
@@ -105,7 +103,7 @@
             </button>
         </div>
 
-        <!-- PANEL: REGISTRAR VENTA FÍSICA (ahora con carrito de varias prendas) -->
+        <!-- PANEL: REGISTRAR VENTA FÍSICA -->
         <div id="formularioFisica" class="hidden mb-6 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
             <div>
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Correo del cliente (opcional)</label>
@@ -122,11 +120,11 @@
                 <div>
                     <input type="text" id="fisicaProducto" list="listaProductosFisica" oninput="buscarProductoEscrito()" placeholder="Escribe o elige del catálogo..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                     <datalist id="listaProductosFisica"></datalist>
-                    <p class="text-[11px] text-gray-400 mt-1">Empieza a escribir para ver sugerencias del catálogo (tal como están en el Sheet), o escribe uno nuevo si no está en la lista.</p>
+                    <p class="text-[11px] text-gray-400 mt-1">Escribe para autocompletar desde el inventario del Sheet.</p>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Precio</label>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Precio unitario ($)</label>
                         <input type="number" step="0.01" id="fisicaPrecio" oninput="actualizarPrecioBsFisica()" placeholder="0.00" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                         <p id="fisicaPrecioBs" class="text-[11px] text-gray-400 mt-1"></p>
                     </div>
@@ -140,16 +138,14 @@
                 </button>
             </div>
 
-            <!-- Carrito de prendas de esta venta física: se llena escaneando
-                 varias veces seguidas o agregando a mano, para poder cobrar
-                 varias piezas de una sola vez en vez de una por una. -->
-            <div id="carritoFisicaContenedor" class="hidden border border-gray-100 rounded-xl p-3.5 space-y-2">
+            <!-- Carrito de prendas con SUMAR / RESTAR -->
+            <div id="carritoFisicaContenedor" class="hidden border border-gray-100 rounded-xl p-3.5 space-y-3">
                 <div class="flex items-center justify-between">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                        Prendas en esta venta (<span id="carritoFisicaCantidad">0</span>)
+                        Prendas en esta venta (<span id="carritoFisicaCantidad">0</span> piezas)
                     </label>
                     <button type="button" onclick="vaciarCarritoFisica()" class="text-[11px] font-semibold text-gray-400 hover:text-rose-500">
-                        Vaciar
+                        Vaciar todo
                     </button>
                 </div>
                 <div id="carritoFisicaLista" class="space-y-2"></div>
@@ -192,13 +188,13 @@
 
         <!-- PANEL: GENERAR CÓDIGO QR NUEVO -->
         <div id="formularioQR" class="hidden mb-6 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
-            <p class="text-xs text-gray-400">Escribe un código que no hayas usado todavía (ej: si tu último fue VS-031, usa VS-032). Este código es el que después escribes en la columna "codigo" de la hoja "Productos" para el producto que le corresponda.</p>
+            <p class="text-xs text-gray-400">Escribe un código que no hayas usado todavía (ej: VS-032). Este código es el que escribes en la columna "codigo" de "Productos".</p>
             <div>
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Código</label>
                 <input type="text" id="qrCodigo" placeholder="Ej: VS-032" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
             </div>
             <div>
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Nombre del producto (opcional, solo para que se vea en la etiqueta)</label>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Nombre del producto (opcional)</label>
                 <input type="text" id="qrNombreProducto" placeholder="Ej: Chaqueta nueva talla M" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
             </div>
             <button onclick="generarQRNuevo()" class="icon-btn w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition mt-2">
@@ -214,7 +210,7 @@
             </div>
         </div>
 
-        <!-- MODAL ESCÁNER QR (venta física) -->
+        <!-- MODAL ESCÁNER QR CON CONTROLES +/- DIRECTOS -->
         <div id="scannerModalVenta" class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
             <button onclick="cerrarScannerVenta()" class="icon-btn absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full text-white/80 hover:text-white text-base z-10">
                 <i class="fa-solid fa-xmark"></i>
@@ -225,9 +221,23 @@
                     <div id="scannerMarcoVenta" class="absolute inset-0 pointer-events-none border-[3px] border-cyan-400/70 m-10 rounded-xl transition-colors duration-150"></div>
                 </div>
                 <canvas id="scannerCanvasVenta" class="hidden"></canvas>
-                <p id="scannerEstadoVenta" class="text-white/70 text-sm mt-4 text-center">Apunta la cámara al código QR de la prenda</p>
-                <p class="text-white/50 text-xs text-center mt-1">
-                    <span id="scannerVentaContador">0</span> prendas agregadas · <span id="scannerVentaTotalMini">$0.00</span>
+                <p id="scannerEstadoVenta" class="text-white/70 text-sm mt-3 text-center">Apunta la cámara al código QR de la prenda</p>
+
+                <!-- Mini control de cantidad de la prenda recién escaneada -->
+                <div id="scannerUltimoItem" class="hidden mt-2 bg-white/10 backdrop-blur-md rounded-xl p-2.5 flex items-center justify-between text-white text-xs border border-white/10">
+                    <div class="truncate mr-2">
+                        <span id="scannerUltimoNombre" class="font-bold block truncate"></span>
+                        <span id="scannerUltimoDetalle" class="text-white/70 text-[11px]"></span>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0 bg-black/60 rounded-lg p-1">
+                        <button type="button" onclick="modificarCantidadUltimoEscaneado(-1)" class="w-7 h-7 rounded-md bg-white/20 hover:bg-white/30 text-white font-black flex items-center justify-center active:scale-95 transition">-</button>
+                        <span id="scannerUltimoCant" class="font-mono font-bold px-2 min-w-[24px] text-center text-sm">1</span>
+                        <button type="button" onclick="modificarCantidadUltimoEscaneado(1)" class="w-7 h-7 rounded-md bg-cyan-500 hover:bg-cyan-400 text-white font-black flex items-center justify-center active:scale-95 transition">+</button>
+                    </div>
+                </div>
+
+                <p class="text-white/50 text-xs text-center mt-2">
+                    <span id="scannerVentaContador">0</span> prendas en total · <span id="scannerVentaTotalMini">$0.00</span>
                 </p>
                 <div class="grid grid-cols-2 gap-2 mt-3">
                     <button type="button" onclick="cerrarScannerVenta()" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 rounded-full text-sm">
@@ -240,7 +250,7 @@
             </div>
         </div>
 
-        <!-- SEGMENTED CONTROL: PENDIENTES / ACEPTADAS / RECHAZADAS / VENTAS (todas visibles a la vez) -->
+        <!-- PESTAÑAS: PENDIENTES / ACEPTADAS / RECHAZADAS / VENTAS -->
         <div class="grid grid-cols-4 gap-1 bg-gray-100 rounded-2xl p-1 mb-2">
             <button data-tab="pendientes" onclick="cambiarTabPedidos('pendientes')" class="tab-pedidos activa font-bold text-xs py-2.5 rounded-xl transition">
                 Pendientes
@@ -268,34 +278,47 @@
             </div>
         </div>
 
-        <!-- VISTA: PENDIENTES -->
+        <!-- VISTAS -->
         <div id="vistaPendientes">
             <p id="cargando" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
             <div id="listaPedidos" class="space-y-4"></div>
             <p id="sinPedidos" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes pendientes por ahora.</p>
         </div>
 
-        <!-- VISTA: ACEPTADAS -->
         <div id="vistaAceptadas" class="hidden">
             <p id="cargandoAceptadas" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
             <div id="listaAceptadas" class="space-y-4"></div>
             <p id="sinAceptadas" class="hidden text-sm text-gray-400 text-center py-10">Todavía no hay órdenes aceptadas.</p>
         </div>
 
-        <!-- VISTA: RECHAZADAS -->
         <div id="vistaRechazadas" class="hidden">
-            <p class="text-[11px] text-gray-300 -mt-2 mb-4">Solo se muestran las rechazadas de hoy. Después de medianoche desaparecen de aquí (pero el registro sigue guardado en el Sheet).</p>
+            <p class="text-[11px] text-gray-300 -mt-2 mb-4">Solo se muestran las rechazadas de hoy.</p>
             <p id="cargandoRechazadas" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
             <div id="listaRechazadas" class="space-y-4"></div>
             <p id="sinRechazadas" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes rechazadas hoy.</p>
         </div>
 
-        <!-- VISTA: VENTAS (caja registradora: físicas + virtuales) -->
+        <!-- VISTA: VENTAS (CON FILTRO HOY/TODAS Y BOTÓN VACIAR) -->
         <div id="vistaVentas" class="hidden">
-            <p class="text-[11px] text-gray-300 -mt-2 mb-4">Últimas ventas registradas, de tienda física y en línea, con precio, método de pago y nota (si hay).</p>
+            <div class="flex items-center justify-between -mt-2 mb-3">
+                <div class="flex items-center gap-1 bg-gray-200/70 p-1 rounded-xl text-xs font-bold">
+                    <button id="btnFiltroVentasHoy" onclick="filtrarVentasVista('hoy')" class="px-3 py-1 rounded-lg bg-white text-gray-900 shadow-sm transition">
+                        Solo Hoy
+                    </button>
+                    <button id="btnFiltroVentasTodas" onclick="filtrarVentasVista('todas')" class="px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition">
+                        Todas
+                    </button>
+                </div>
+
+                <!-- Botón protegido para vaciar ventas -->
+                <button onclick="vaciarTodasLasVentasAdmin()" title="Vaciar registro de ventas (crea respaldo)" class="text-xs font-bold text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash-can"></i> Vaciar ventas
+                </button>
+            </div>
+
             <p id="cargandoVentas" class="text-sm text-gray-400 text-center py-10">Cargando ventas...</p>
             <div id="listaVentas" class="space-y-3"></div>
-            <p id="sinVentas" class="hidden text-sm text-gray-400 text-center py-10">Todavía no hay ventas registradas.</p>
+            <p id="sinVentas" class="hidden text-sm text-gray-400 text-center py-10">No hay ventas registradas.</p>
         </div>
     </div>
 
@@ -310,37 +333,23 @@
         const panelPrincipal = document.getElementById('panelPrincipal');
 
         let tabActiva = 'pendientes';
-
-        // Contadores para descartar respuestas "viejas" que lleguen después de
-        // una más reciente (evita que una petición lenta pise a una nueva y
-        // haga que un pedido recién llegado "desaparezca" de la pantalla).
-        let idSolicitudPedidos = 0;
-        let idSolicitudAceptadas = 0;
-        let idSolicitudRechazadas = 0;
-        let idSolicitudVentas = 0;
-        let peticionPedidosEnCurso = false;
-        let peticionAceptadasEnCurso = false;
-        let peticionRechazadasEnCurso = false;
-        let peticionVentasEnCurso = false;
+        let idSolicitudPedidos = 0, idSolicitudAceptadas = 0, idSolicitudRechazadas = 0, idSolicitudVentas = 0;
+        let peticionPedidosEnCurso = false, peticionAceptadasEnCurso = false, peticionRechazadasEnCurso = false, peticionVentasEnCurso = false;
 
         let productosCatalogo = [];
         let scannerVentaStream = null;
         let scannerVentaRAF = null;
 
-        // ---------- Carrito de la venta física en curso ----------
-        // Cada elemento: { producto, precio, categoria }. Se va llenando al
-        // escanear varias prendas seguidas o al agregarlas a mano, y se vacía
-        // cuando la venta completa se registra con éxito.
+        // Cada prenda: { producto, precio, categoria, cantidad, codigo }
         let carritoFisica = [];
+        let ultimoIndiceEscaneado = -1;
         let ultimoCodigoEscaneado = null;
         let ultimoEscaneoTiempo = 0;
-
-        // Tras cada prenda agregada por QR, el lector se "congela" un rato
-        // (no sigue decodificando fotogramas) para que la misma etiqueta no
-        // se vuelva a leer dos o tres veces mientras el admin todavía la
-        // está apartando de la cámara.
         let scannerVentaPausado = false;
         let scannerVentaTimeoutId = null;
+
+        let filtroVentas = 'hoy';
+        let listaVentasMemoria = [];
 
         formLogin.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -358,12 +367,6 @@
             }
         });
 
-        // Antes esto era "return resp.status !== 401", lo que trataba CUALQUIER
-        // respuesta que no fuera 401 como contraseña válida -- incluyendo el 429
-        // del freno anti fuerza-bruta (que se dispara ANTES de revisar la
-        // contraseña). Resultado: tras varios intentos fallidos, el siguiente
-        // intento (correcto o no) abría igual el panel. Ahora se distingue cada
-        // caso explícitamente.
         async function probarPassword(clave) {
             try {
                 const resp = await fetch('/api/admin-pedidos', {
@@ -374,7 +377,7 @@
                 if (resp.status === 401) return { valida: false };
                 if (resp.status === 429) {
                     const datos = await resp.json().catch(() => ({}));
-                    return { valida: false, mensaje: datos.error || 'Demasiados intentos fallidos. Intenta más tarde.' };
+                    return { valida: false, mensaje: datos.error || 'Demasiados intentos. Espera un momento.' };
                 }
                 return { valida: true };
             } catch (e) {
@@ -407,9 +410,6 @@
             return div.innerHTML;
         }
 
-        // Solo aceptamos URLs http(s) o imágenes data:, para que un valor
-        // malicioso en el Sheet (ej. "javascript:...") no pueda ejecutarse
-        // al hacer clic en el comprobante.
         function sanitizarURLImagen(url) {
             const valor = url && String(url).trim();
             if (!valor) return null;
@@ -425,7 +425,6 @@
         }
 
         // ---------- PESTAÑAS ----------
-
         function cambiarTabPedidos(tab) {
             tabActiva = tab;
             document.querySelectorAll('.tab-pedidos').forEach(btn => btn.classList.toggle('activa', btn.dataset.tab === tab));
@@ -473,13 +472,10 @@
             }
         }
 
-        // ---------- PEDIDOS PENDIENTES ----------
-
         async function cargarPedidos() {
-            if (peticionPedidosEnCurso) return; // ya hay una en camino, no se apilan
+            if (peticionPedidosEnCurso) return;
             peticionPedidosEnCurso = true;
             const miId = ++idSolicitudPedidos;
-
             const cargando = document.getElementById('cargando');
             const lista = document.getElementById('listaPedidos');
             const sinPedidos = document.getElementById('sinPedidos');
@@ -493,9 +489,6 @@
                     body: JSON.stringify({ password: obtenerPassword(), tipo: 'pedidos' })
                 });
                 const datos = await resp.json();
-
-                // Si mientras esperábamos ya salió una solicitud más nueva,
-                // esta respuesta está vieja: la ignoramos para no pisar datos frescos.
                 if (miId !== idSolicitudPedidos) return;
 
                 cargando.classList.add('hidden');
@@ -507,7 +500,6 @@
                 }
 
                 const ordenes = datos.ordenes || [];
-
                 if (!ordenes.length) {
                     lista.innerHTML = '';
                     sinPedidos.classList.remove('hidden');
@@ -524,13 +516,10 @@
             }
         }
 
-        // ---------- ÓRDENES ACEPTADAS ----------
-
         async function cargarAceptadas() {
             if (peticionAceptadasEnCurso) return;
             peticionAceptadasEnCurso = true;
             const miId = ++idSolicitudAceptadas;
-
             const cargando = document.getElementById('cargandoAceptadas');
             const lista = document.getElementById('listaAceptadas');
             const sinAceptadas = document.getElementById('sinAceptadas');
@@ -544,7 +533,6 @@
                     body: JSON.stringify({ password: obtenerPassword(), tipo: 'aceptados' })
                 });
                 const datos = await resp.json();
-
                 if (miId !== idSolicitudAceptadas) return;
 
                 cargando.classList.add('hidden');
@@ -556,7 +544,6 @@
                 }
 
                 const ordenes = datos.ordenes || [];
-
                 if (!ordenes.length) {
                     lista.innerHTML = '';
                     sinAceptadas.classList.remove('hidden');
@@ -573,13 +560,10 @@
             }
         }
 
-        // ---------- ÓRDENES RECHAZADAS (solo las de hoy) ----------
-
         async function cargarRechazadas() {
             if (peticionRechazadasEnCurso) return;
             peticionRechazadasEnCurso = true;
             const miId = ++idSolicitudRechazadas;
-
             const cargando = document.getElementById('cargandoRechazadas');
             const lista = document.getElementById('listaRechazadas');
             const sinRechazadas = document.getElementById('sinRechazadas');
@@ -593,7 +577,6 @@
                     body: JSON.stringify({ password: obtenerPassword(), tipo: 'rechazadas' })
                 });
                 const datos = await resp.json();
-
                 if (miId !== idSolicitudRechazadas) return;
 
                 cargando.classList.add('hidden');
@@ -605,7 +588,6 @@
                 }
 
                 const ordenes = datos.ordenes || [];
-
                 if (!ordenes.length) {
                     lista.innerHTML = '';
                     sinRechazadas.classList.remove('hidden');
@@ -622,7 +604,43 @@
             }
         }
 
-        // ---------- VENTAS (caja registradora: físicas + virtuales) ----------
+        // ---------- HISTORIAL DE VENTAS Y FILTRADO ----------
+        function filtrarVentasVista(tipo) {
+            filtroVentas = tipo;
+            document.getElementById('btnFiltroVentasHoy').className = tipo === 'hoy'
+                ? 'px-3 py-1 rounded-lg bg-white text-gray-900 shadow-sm transition'
+                : 'px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition';
+            document.getElementById('btnFiltroVentasTodas').className = tipo === 'todas'
+                ? 'px-3 py-1 rounded-lg bg-white text-gray-900 shadow-sm transition'
+                : 'px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition';
+            renderizarListaVentas();
+        }
+
+        function renderizarListaVentas() {
+            const lista = document.getElementById('listaVentas');
+            const sinVentas = document.getElementById('sinVentas');
+            
+            const hoyStr = new Date().toLocaleDateString('es-VE');
+
+            let filtradas = listaVentasMemoria;
+            if (filtroVentas === 'hoy') {
+                filtradas = listaVentasMemoria.filter(v => {
+                    if (!v.fecha) return false;
+                    const fStr = new Date(v.fecha).toLocaleDateString('es-VE');
+                    return fStr === hoyStr;
+                });
+            }
+
+            if (!filtradas.length) {
+                lista.innerHTML = '';
+                sinVentas.textContent = filtroVentas === 'hoy' ? 'No hay ventas registradas hoy.' : 'No hay ventas registradas.';
+                sinVentas.classList.remove('hidden');
+                return;
+            }
+
+            sinVentas.classList.add('hidden');
+            lista.innerHTML = filtradas.map(tarjetaVenta).join('');
+        }
 
         async function cargarVentas() {
             if (peticionVentasEnCurso) return;
@@ -642,26 +660,16 @@
                     body: JSON.stringify({ password: obtenerPassword(), tipo: 'ventas' })
                 });
                 const datos = await resp.json();
-
                 if (miId !== idSolicitudVentas) return;
 
                 cargando.classList.add('hidden');
-                sinVentas.classList.add('hidden');
-
                 if (!datos.ok) {
                     lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar ventas') + '</p>';
                     return;
                 }
 
-                const ventas = datos.ventas || [];
-
-                if (!ventas.length) {
-                    lista.innerHTML = '';
-                    sinVentas.classList.remove('hidden');
-                    return;
-                }
-
-                lista.innerHTML = ventas.map(tarjetaVenta).join('');
+                listaVentasMemoria = datos.ventas || [];
+                renderizarListaVentas();
             } catch (e) {
                 if (miId !== idSolicitudVentas) return;
                 cargando.classList.add('hidden');
@@ -671,12 +679,43 @@
             }
         }
 
+        async function vaciarTodasLasVentasAdmin() {
+            const primerPaso = confirm('⚠️ ¿Deseas vaciar la hoja de ventas del Sheet?\n\nTranquilo: Se creará automáticamente una hoja de respaldo con la fecha de hoy por si necesitas verlas después.');
+            if (!primerPaso) return;
+
+            const confirmacion = prompt('Para confirmar, escribe la palabra BORRAR en mayúsculas:');
+            if (confirmacion !== 'BORRAR') {
+                alert('Acción cancelada. No se borró nada.');
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        password: obtenerPassword(),
+                        accion: 'vaciarVentas'
+                    })
+                });
+                const datos = await resp.json();
+                if (datos.ok) {
+                    alert('✅ ' + (datos.mensaje || 'Ventas vaciadas correctamente.'));
+                    cargarTodo();
+                } else {
+                    alert('Error: ' + (datos.error || 'No se pudo vaciar.'));
+                }
+            } catch (e) {
+                alert('Error al conectar con el servidor.');
+            }
+        }
+
         function tarjetaVenta(venta) {
             const fecha = venta.fecha ? new Date(venta.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
             const precio = Number(venta.precio || 0).toFixed(2);
             const precioBs = venta.precioBs ? Number(venta.precioBs).toFixed(2) : null;
             const canalTexto = venta.canal || 'Venta';
-            const esFisica = canalTexto.toLowerCase().indexOf('f') === 0; // "Física"
+            const esFisica = canalTexto.toLowerCase().indexOf('f') === 0;
             const colorCanal = esFisica ? 'text-cyan-600' : 'text-emerald-600';
             const iconoCanal = esFisica ? 'fa-store' : 'fa-globe';
 
@@ -708,8 +747,6 @@
             `;
         }
 
-        // `conBotones` = true para pendientes (aceptar/rechazar), false para aceptadas/rechazadas (solo lectura)
-        // `rechazada` = true para pintar la tarjeta en rojo y mostrar el motivo del rechazo, si hay uno
         function tarjetaOrden(orden, conBotones, rechazada) {
             const fecha = orden.fecha ? new Date(orden.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
             const total = Number(orden.total || 0).toFixed(2);
@@ -798,14 +835,11 @@
             if (!tarjeta) return;
 
             if (boton.dataset.accion === 'rechazarOrden') {
-                // El cliente va a ver este texto en su pedido -- por eso se pide aparte,
-                // en vez de rechazar directo sin explicación.
-                const motivo = prompt('Motivo del rechazo (el cliente lo va a ver en su pedido). Déjalo en blanco si no quieres poner ninguno:', '');
-                if (motivo === null) return; // canceló el cuadro de dialogo
+                const motivo = prompt('Motivo del rechazo (opcional, el cliente lo verá):', '');
+                if (motivo === null) return;
                 responderOrden(tarjeta.dataset.idorden, 'rechazarOrden', motivo.trim());
                 return;
             }
-
             responderOrden(tarjeta.dataset.idorden, boton.dataset.accion);
         });
 
@@ -842,7 +876,7 @@
         }
 
         async function rechazarTodosPendientes() {
-            const confirmar = confirm('¿Seguro que quieres rechazar TODAS las órdenes pendientes? El stock reservado se devuelve automáticamente, no se borra nada del Sheet, pero esta acción no se puede deshacer desde aquí.');
+            const confirmar = confirm('¿Seguro que quieres rechazar TODAS las órdenes pendientes? El stock reservado se devuelve automáticamente.');
             if (!confirmar) return;
 
             try {
@@ -852,20 +886,14 @@
                     body: JSON.stringify({ password: obtenerPassword(), accion: 'rechazar_todos' })
                 });
                 const datos = await resp.json();
-
-                if (!datos.ok) {
-                    alert('Error: ' + (datos.error || 'no se pudo procesar'));
-                    return;
-                }
-
+                if (!datos.ok) { alert('Error: ' + (datos.error || 'no se pudo procesar')); return; }
                 cargarTodo();
             } catch (e) {
                 alert('No se pudo conectar con el servidor.');
             }
         }
 
-        // ---------- CATÁLOGO (para el escáner de venta física) ----------
-
+        // ---------- CATÁLOGO ----------
         async function cargarProductosCatalogo() {
             try {
                 const respuesta = await fetch('/api/obtener-productos');
@@ -874,14 +902,10 @@
                 productosCatalogo = parseCSV(texto);
                 poblarDatalistProductos();
             } catch (e) {
-                console.error('No se pudo cargar el catálogo para el escáner:', e);
+                console.error('No se pudo cargar el catálogo:', e);
             }
         }
 
-        // Llena las sugerencias del campo "Producto" con los nombres tal como
-        // están escritos en la hoja "Productos" del Sheet -- así el admin puede
-        // buscarlo ahí mismo en vez de escribirlo de memoria (y arriesgarse a
-        // que no calce exacto con el inventario).
         function poblarDatalistProductos() {
             const datalist = document.getElementById('listaProductosFisica');
             if (!datalist) return;
@@ -892,9 +916,6 @@
                 .join('');
         }
 
-        // Si lo que se escribió/eligió en "Producto" calza exacto (sin importar
-        // mayúsculas) con algo del catálogo, autocompleta precio y categoría --
-        // igual que hace el escáner QR.
         function buscarProductoEscrito() {
             const valor = document.getElementById('fisicaProducto').value.trim().toLowerCase();
             if (!valor) return;
@@ -910,15 +931,11 @@
             if (avisar) {
                 const mensaje = document.getElementById('mensajeFisica');
                 mensaje.classList.remove('hidden');
-                mensaje.textContent = 'Producto encontrado. Revisa los datos y presiona "Agregar esta prenda a la venta".';
+                mensaje.textContent = 'Producto encontrado. Puedes tocar "Agregar esta prenda".';
                 mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-600';
             }
         }
 
-        // ---------- Precio en Bs (vista previa mientras se registra la venta) ----------
-        // Usa el mismo endpoint público /api/tasa-bcv que ya muestra el precio en
-        // bolívares en el catálogo -- no depende del Apps Script ni de que ya
-        // hayas pegado la actualización pendiente.
         let tasaBcvAdmin = null;
         let ultimoTotalHoy = 0;
         async function cargarTasaBcvAdmin() {
@@ -932,6 +949,7 @@
             actualizarPrecioBsFisica();
             actualizarTotalHoyBs();
         }
+
         function actualizarPrecioBsFisica() {
             const el = document.getElementById('fisicaPrecioBs');
             if (!el) return;
@@ -939,6 +957,7 @@
             if (!tasaBcvAdmin || !precio) { el.textContent = ''; return; }
             el.textContent = '≈ Bs ' + (precio * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
+
         function actualizarTotalHoyBs() {
             const el = document.getElementById('totalHoyBs');
             if (!el) return;
@@ -984,7 +1003,6 @@
             if (!limpio) return '';
             const minuscula = limpio.toLowerCase();
             if (minuscula === 'revisar' || minuscula === 'combos' || minuscula === 'combo') return '';
-            // Unifica variantes en singular que a veces quedan así en el Sheet.
             if (minuscula === 'caballero') return 'Caballeros';
             if (minuscula === 'dama') return 'Damas';
             if (minuscula === 'niño' || minuscula === 'nino') return 'Niños';
@@ -992,9 +1010,35 @@
             return limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase();
         }
 
-        // ---------- CARRITO DE LA VENTA FÍSICA ----------
-        // A partir de 3 piezas (de cualquier modelo, igual que la regla de
-        // "ventas al mayor" de la tienda web) se descuenta $1 por prenda.
+        // ===================================================================
+        // CARRITO FÍSICA: SUMAR / RESTAR / DESCUENTO AL MAYOR
+        // ===================================================================
+        function contarTotalPiezasFisica() {
+            return carritoFisica.reduce((total, item) => total + (parseInt(item.cantidad, 10) || 1), 0);
+        }
+
+        function calcularResumenCarritoFisica() {
+            const totalPiezas = contarTotalPiezasFisica();
+            const hayDescuento = totalPiezas >= 3;
+            let subtotal = 0;
+            let total = 0;
+
+            carritoFisica.forEach(item => {
+                const cant = parseInt(item.cantidad, 10) || 1;
+                const precioOrig = parseFloat(item.precio) || 0;
+                const precioFinalUnit = hayDescuento ? Math.max(0, precioOrig - 1) : precioOrig;
+                subtotal += precioOrig * cant;
+                total += precioFinalUnit * cant;
+            });
+
+            return {
+                totalPiezas,
+                subtotal,
+                total,
+                descuentoTotal: subtotal - total,
+                hayDescuento
+            };
+        }
 
         function agregarItemCarritoFisica(itemDirecto) {
             let item = itemDirecto;
@@ -1011,11 +1055,8 @@
                     mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
                     return;
                 }
-                item = { producto, precio, categoria };
+                item = { producto, precio, categoria, cantidad: 1 };
 
-                // Limpia solo los campos de la prenda para dejar todo listo
-                // para la siguiente -- correo, método de pago y nota son de
-                // toda la venta, no de una sola prenda, así que no se tocan.
                 document.getElementById('fisicaProducto').value = '';
                 document.getElementById('fisicaPrecio').value = '';
                 document.getElementById('fisicaCategoria').value = '';
@@ -1024,50 +1065,80 @@
                 document.getElementById('fisicaProducto').focus();
             }
 
-            carritoFisica.push(item);
+            const indexExistente = carritoFisica.findIndex(p => p.producto.toLowerCase() === item.producto.toLowerCase());
+            if (indexExistente !== -1) {
+                carritoFisica[indexExistente].cantidad += (item.cantidad || 1);
+                ultimoIndiceEscaneado = indexExistente;
+            } else {
+                carritoFisica.push({
+                    producto: item.producto,
+                    precio: item.precio,
+                    categoria: item.categoria || '',
+                    cantidad: item.cantidad || 1,
+                    codigo: item.codigo || ''
+                });
+                ultimoIndiceEscaneado = carritoFisica.length - 1;
+            }
+
             renderizarCarritoFisica();
+            actualizarMiniStepperScanner();
+        }
+
+        function modificarCantidadItem(indice, delta) {
+            if (!carritoFisica[indice]) return;
+            const nuevaCantidad = carritoFisica[indice].cantidad + delta;
+            if (nuevaCantidad <= 0) {
+                carritoFisica.splice(indice, 1);
+                if (ultimoIndiceEscaneado === indice) ultimoIndiceEscaneado = -1;
+            } else {
+                carritoFisica[indice].cantidad = nuevaCantidad;
+            }
+            renderizarCarritoFisica();
+            actualizarMiniStepperScanner();
         }
 
         function quitarItemCarritoFisica(indice) {
             carritoFisica.splice(indice, 1);
+            if (ultimoIndiceEscaneado === indice) ultimoIndiceEscaneado = -1;
             renderizarCarritoFisica();
+            actualizarMiniStepperScanner();
         }
 
         function vaciarCarritoFisica() {
             if (!carritoFisica.length) return;
-            const confirmar = confirm('¿Quitar todas las prendas agregadas a esta venta?');
-            if (!confirmar) return;
+            if (!confirm('¿Quitar todas las prendas de esta venta?')) return;
             carritoFisica = [];
+            ultimoIndiceEscaneado = -1;
             renderizarCarritoFisica();
+            actualizarMiniStepperScanner();
         }
 
-        function calcularPrecioConDescuentoFisica(precioOriginal) {
-            const aplica = carritoFisica.length >= 3;
-            const precio = aplica ? Math.max(0, precioOriginal - 1) : precioOriginal;
-            return { precio, aplica };
+        function modificarCantidadUltimoEscaneado(delta) {
+            if (ultimoIndiceEscaneado >= 0 && ultimoIndiceEscaneado < carritoFisica.length) {
+                modificarCantidadItem(ultimoIndiceEscaneado, delta);
+            }
         }
 
-        // Un solo lugar que calcula cantidad, subtotal, cuánto se descontó y
-        // el total final -- lo usan tanto la tarjeta del carrito como el
-        // mini resumen dentro del escáner, para que nunca queden
-        // desincronizados entre sí.
-        function calcularResumenCarritoFisica() {
-            const cantidad = carritoFisica.length;
-            const hayDescuento = cantidad >= 3;
-            let subtotal = 0;
-            let total = 0;
-            carritoFisica.forEach(item => {
-                subtotal += item.precio;
-                total += calcularPrecioConDescuentoFisica(item.precio).precio;
-            });
-            return { cantidad, subtotal, total, descuentoTotal: subtotal - total, hayDescuento };
-        }
+        function actualizarMiniStepperScanner() {
+            const contenedor = document.getElementById('scannerUltimoItem');
+            const cantEl = document.getElementById('scannerUltimoCant');
+            const nomEl = document.getElementById('scannerUltimoNombre');
+            const detEl = document.getElementById('scannerUltimoDetalle');
 
-        function actualizarContadorScannerVenta() {
+            if (ultimoIndiceEscaneado >= 0 && ultimoIndiceEscaneado < carritoFisica.length) {
+                const it = carritoFisica[ultimoIndiceEscaneado];
+                nomEl.textContent = it.producto;
+                detEl.textContent = `$${it.precio.toFixed(2)} c/u`;
+                cantEl.textContent = it.cantidad;
+                contenedor.classList.remove('hidden');
+            } else {
+                contenedor.classList.add('hidden');
+            }
+
             const resumen = calcularResumenCarritoFisica();
             const contador = document.getElementById('scannerVentaContador');
             const totalMini = document.getElementById('scannerVentaTotalMini');
-            if (contador) contador.textContent = String(resumen.cantidad);
+            if (contador) contador.textContent = String(resumen.totalPiezas);
             if (totalMini) totalMini.textContent = '$' + resumen.total.toFixed(2);
         }
 
@@ -1081,67 +1152,83 @@
             const descuentoMontoEl = document.getElementById('carritoFisicaDescuentoMonto');
             const totalEl = document.getElementById('carritoFisicaTotal');
 
-            actualizarContadorScannerVenta();
+            const resumen = calcularResumenCarritoFisica();
 
             if (!carritoFisica.length) {
                 contenedor.classList.add('hidden');
                 lista.innerHTML = '';
+                actualizarMiniStepperScanner();
                 return;
             }
 
             contenedor.classList.remove('hidden');
-
-            const resumen = calcularResumenCarritoFisica();
-            cantidadEl.textContent = String(resumen.cantidad);
-            cantidadSubEl.textContent = String(resumen.cantidad);
+            cantidadEl.textContent = String(resumen.totalPiezas);
+            cantidadSubEl.textContent = String(resumen.totalPiezas);
             subtotalEl.textContent = '$' + resumen.subtotal.toFixed(2);
             totalEl.textContent = '$' + resumen.total.toFixed(2);
 
             lineaDescuento.classList.toggle('hidden', !resumen.hayDescuento);
             if (resumen.hayDescuento) {
-                descuentoMontoEl.textContent = '-$' + resumen.descuentoTotal.toFixed(2) + ' (' + resumen.cantidad + ' x $1.00)';
+                descuentoMontoEl.textContent = '-$' + resumen.descuentoTotal.toFixed(2) + ' (' + resumen.totalPiezas + ' x $1.00)';
             }
 
             lista.innerHTML = carritoFisica.map((item, indice) => {
-                const { precio } = calcularPrecioConDescuentoFisica(item.precio);
-                const conDescuento = resumen.hayDescuento && precio !== item.precio;
+                const precioOrigLinea = item.precio * item.cantidad;
+                const precioFinalUnit = resumen.hayDescuento ? Math.max(0, item.precio - 1) : item.precio;
+                const precioFinalLinea = precioFinalUnit * item.cantidad;
+
                 return `
-                    <div class="flex items-center justify-between gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                        <div class="min-w-0">
-                            <p class="text-xs font-semibold text-gray-900 truncate">${escapeHTML(item.producto)}</p>
-                            <p class="text-[10px] text-gray-400">${escapeHTML(item.categoria || 'Variados')}</p>
+                    <div class="flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 rounded-xl p-3">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-bold text-gray-900 truncate">${escapeHTML(item.producto)}</p>
+                            <p class="text-[10px] text-gray-400">${escapeHTML(item.categoria || 'Variados')} · $${item.precio.toFixed(2)} c/u</p>
                         </div>
-                        <div class="flex items-center gap-2 flex-shrink-0">
-                            ${conDescuento
-                                ? `<span class="text-[10px] text-gray-300 line-through">$${item.precio.toFixed(2)}</span><span class="text-xs font-bold text-emerald-600">$${precio.toFixed(2)}</span>`
-                                : `<span class="text-xs font-bold text-gray-900">$${precio.toFixed(2)}</span>`}
-                            <button type="button" onclick="quitarItemCarritoFisica(${indice})" title="Quitar" class="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:text-rose-500 hover:bg-rose-50">
-                                <i class="fa-solid fa-xmark text-xs"></i>
+                        <div class="flex items-center gap-3 flex-shrink-0">
+                            <!-- Stepper (-) Cantidad (+) -->
+                            <div class="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <button type="button" onclick="modificarCantidadItem(${indice}, -1)" title="Restar" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-rose-600 hover:bg-rose-50 rounded-l-lg transition active:scale-95">
+                                    <i class="fa-solid fa-minus text-[10px]"></i>
+                                </button>
+                                <span class="w-8 text-center text-xs font-bold font-mono text-gray-900 select-none">${item.cantidad}</span>
+                                <button type="button" onclick="modificarCantidadItem(${indice}, 1)" title="Sumar" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-cyan-600 hover:bg-cyan-50 rounded-r-lg transition active:scale-95">
+                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                </button>
+                            </div>
+                            <!-- Subtotal de la línea -->
+                            <div class="text-right min-w-[55px]">
+                                ${resumen.hayDescuento
+                                    ? `<span class="text-[10px] text-gray-300 line-through block">$${precioOrigLinea.toFixed(2)}</span>
+                                       <span class="text-xs font-bold text-emerald-600 block">$${precioFinalLinea.toFixed(2)}</span>`
+                                    : `<span class="text-xs font-bold text-gray-900 block">$${precioFinalLinea.toFixed(2)}</span>`}
+                            </div>
+                            <!-- Eliminar -->
+                            <button type="button" onclick="quitarItemCarritoFisica(${indice})" title="Eliminar" class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
                             </button>
                         </div>
                     </div>
                 `;
             }).join('');
+
+            actualizarMiniStepperScanner();
         }
 
-        // ---------- ESCÁNER QR (venta física) ----------
-
+        // ---------- ESCÁNER QR ----------
         async function abrirScannerVenta() {
             abrirPanelAccion('fisica');
-
             if (!productosCatalogo.length) cargarProductosCatalogo();
 
             ultimoCodigoEscaneado = null;
             ultimoEscaneoTiempo = 0;
             scannerVentaPausado = false;
             if (scannerVentaTimeoutId) { clearTimeout(scannerVentaTimeoutId); scannerVentaTimeoutId = null; }
-            actualizarContadorScannerVenta();
+            actualizarMiniStepperScanner();
 
             const modal = document.getElementById('scannerModalVenta');
             const estado = document.getElementById('scannerEstadoVenta');
             const marco = document.getElementById('scannerMarcoVenta');
             modal.classList.remove('hidden'); modal.classList.add('flex');
-            if (estado) { estado.textContent = 'Apunta la cámara al código QR de la prenda'; estado.className = 'text-white/70 text-sm mt-4 text-center'; }
+            if (estado) { estado.textContent = 'Apunta la cámara al código QR de la prenda'; estado.className = 'text-white/70 text-sm mt-3 text-center'; }
             if (marco) { marco.classList.remove('border-emerald-400'); marco.classList.add('border-cyan-400/70'); }
             const video = document.getElementById('scannerVideoVenta');
             try {
@@ -1156,9 +1243,6 @@
         }
 
         function tickScannerVenta() {
-            // Mientras está "pausado" (justo después de agregar una prenda)
-            // no se decodifica nada -- así la cámara no puede releer la misma
-            // etiqueta por más tiempo que siga frente a ella.
             if (scannerVentaPausado) { scannerVentaRAF = requestAnimationFrame(tickScannerVenta); return; }
             const video = document.getElementById('scannerVideoVenta');
             const canvas = document.getElementById('scannerCanvasVenta');
@@ -1182,12 +1266,6 @@
             if (scannerVentaStream) { scannerVentaStream.getTracks().forEach(t => t.stop()); scannerVentaStream = null; }
         }
 
-        // Cada QR reconocido se agrega directo al carrito de la venta y la
-        // cámara se queda abierta (no se cierra), para poder seguir
-        // escaneando la siguiente prenda sin volver a tocar "Escanear" --
-        // así se pueden cobrar varias piezas de un tirón. Si el código no
-        // está en el catálogo, ahí sí se cierra la cámara para completar los
-        // datos a mano.
         function procesarCodigoQRVenta(textoLeido) {
             let valorBusqueda = textoLeido.trim();
             try {
@@ -1198,11 +1276,8 @@
 
             const buscado = valorBusqueda.toLowerCase().trim();
 
-            // Evita agregar la misma prenda dos veces seguidas si la cámara
-            // sigue leyendo el mismo código unos milisegundos más de la
-            // cuenta mientras se aleja.
             const ahora = Date.now();
-            if (buscado === ultimoCodigoEscaneado && (ahora - ultimoEscaneoTiempo) < 2500) {
+            if (buscado === ultimoCodigoEscaneado && (ahora - ultimoEscaneoTiempo) < 1200) {
                 scannerVentaRAF = requestAnimationFrame(tickScannerVenta);
                 return;
             }
@@ -1219,16 +1294,14 @@
                 const nombre = coincidencia.producto || coincidencia.nombre || '';
                 const precio = coincidencia.precio ? parseFloat(coincidencia.precio) : 0;
                 const categoria = normalizarCategoria(coincidencia.categoria);
-                agregarItemCarritoFisica({ producto: nombre, precio, categoria });
 
-                // Se "congela" la lectura un momento: marco en verde + aviso
-                // grande + vibración (si el celular la soporta), para que sea
-                // obvio que ya se agregó y dé tiempo a apartar la prenda
-                // antes de que la cámara vuelva a intentar leer algo.
+                agregarItemCarritoFisica({ producto: nombre, precio, categoria, cantidad: 1, codigo: coincidencia.codigo || '' });
+
                 scannerVentaPausado = true;
+                const cantidadActual = carritoFisica[ultimoIndiceEscaneado]?.cantidad || 1;
                 if (estado) {
-                    estado.textContent = '✅ Agregada: ' + nombre + ' — aparta la prenda...';
-                    estado.className = 'text-emerald-400 text-sm mt-4 text-center font-semibold';
+                    estado.textContent = `✅ ${nombre} (x${cantidadActual} en total)`;
+                    estado.className = 'text-emerald-400 text-sm mt-3 text-center font-bold';
                 }
                 if (marco) { marco.classList.remove('border-cyan-400/70'); marco.classList.add('border-emerald-400'); }
                 if (navigator.vibrate) navigator.vibrate(70);
@@ -1237,11 +1310,11 @@
                 scannerVentaTimeoutId = setTimeout(() => {
                     scannerVentaPausado = false;
                     if (estado) {
-                        estado.textContent = 'Apunta la cámara al código QR de la prenda';
-                        estado.className = 'text-white/70 text-sm mt-4 text-center';
+                        estado.textContent = 'Apunta la cámara al código QR de la siguiente prenda';
+                        estado.className = 'text-white/70 text-sm mt-3 text-center';
                     }
                     if (marco) { marco.classList.remove('border-emerald-400'); marco.classList.add('border-cyan-400/70'); }
-                }, 1800);
+                }, 1300);
 
                 scannerVentaRAF = requestAnimationFrame(tickScannerVenta);
             } else {
@@ -1249,21 +1322,11 @@
                 document.getElementById('fisicaProducto').value = valorBusqueda;
                 const mensaje = document.getElementById('mensajeFisica');
                 mensaje.classList.remove('hidden');
-                mensaje.textContent = 'No se encontró el producto en el catálogo. Completa precio y categoría a mano y presiona "Agregar esta prenda a la venta".';
+                mensaje.textContent = 'No se encontró el producto en el catálogo. Completa precio y categoría a mano y presiona "Agregar esta prenda".';
                 mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
             }
         }
 
-        // ---------- REGISTRAR VENTA FÍSICA ----------
-
-        // ---------- Abrir/cerrar los paneles de acción (mutuamente excluyentes) ----------
-        // Antes cada panel se abría/cerraba por su cuenta con un simple toggle,
-        // sin avisarle al otro -- así que si abrías "Registrar venta" y luego
-        // tocabas "Generar QR", los dos quedaban abiertos y con el color
-        // "activa" encendido a la vez, y el siguiente clic quedaba desincronizado
-        // (por eso a veces hacía falta tocar dos veces). Ahora hay un solo punto
-        // de control: togglePanelAccion(nombre) siempre dice exactamente qué
-        // panel queda abierto (o ninguno) y qué botón se pinta, sin ambigüedad.
         const PANELES_ACCION = {
             fisica: { form: 'formularioFisica', boton: 'btnToggleFisica', icono: 'iconoToggleFisica' },
             qr: { form: 'formularioQR', boton: 'btnToggleQR', icono: 'iconoToggleQR' },
@@ -1274,7 +1337,6 @@
             abrirPanelAccion(yaAbierto ? null : nombre);
         }
 
-        // nombre = 'fisica' | 'qr' | null (null cierra todos)
         function abrirPanelAccion(nombre) {
             Object.keys(PANELES_ACCION).forEach((clave) => {
                 const p = PANELES_ACCION[clave];
@@ -1291,17 +1353,8 @@
             });
         }
 
-        function toggleFormularioFisica() {
-            togglePanelAccion('fisica');
-        }
-
-        function toggleFormularioQR() {
-            togglePanelAccion('qr');
-        }
-
-        // ---------- GENERAR NUEVO CÓDIGO QR ----------
-
-
+        function toggleFormularioFisica() { togglePanelAccion('fisica'); }
+        function toggleFormularioQR() { togglePanelAccion('qr'); }
 
         function generarQRNuevo() {
             const codigo = document.getElementById('qrCodigo').value.trim();
@@ -1318,24 +1371,14 @@
                 return;
             }
 
-            // Ya en uso: avisa pero igual lo genera, por si el admin de verdad
-            // quiere reciclarlo a propósito (ej. el producto de ese código se agotó).
             const yaExiste = productosCatalogo.some(p => (p.codigo || '').toLowerCase().trim() === codigo.toLowerCase());
             if (yaExiste) {
-                mensaje.textContent = 'Ojo: ese código ya está asignado a otro producto en el Sheet. Si es a propósito (para reciclarlo), sigue adelante.';
+                mensaje.textContent = 'Ojo: ese código ya está asignado a otro producto en el Sheet.';
                 mensaje.className = 'block text-center text-xs font-semibold py-2 text-amber-600';
                 mensaje.classList.remove('hidden');
             }
 
             try {
-                // El QR lleva un link al catálogo (no solo el código suelto),
-                // para que sirva para dos cosas con la misma pegatina:
-                //   - Un cliente lo escanea con la cámara normal del celular
-                //     -> lo manda directo a ver esa prenda en la página.
-                //   - El admin lo escanea desde este panel (venta física)
-                //     -> sigue autocompletando el producto igual que siempre,
-                //     porque el escáner del admin ya sabe leer el "?codigo="
-                //     de la URL.
                 const contenedor = document.getElementById('canvasQR');
                 contenedor.innerHTML = '';
                 const urlQR = 'https://www.valerasportvzla.com/catalogo?codigo=' + encodeURIComponent(codigo);
@@ -1351,15 +1394,10 @@
 
         function imprimirQR() {
             const contenedor = document.getElementById('canvasQR');
-            // La librería dibuja un <canvas> (y a veces también una <img> de
-            // respaldo escondida) -- usamos lo que sea que haya generado.
             const canvas = contenedor.querySelector('canvas');
             const imgSrc = canvas ? canvas.toDataURL() : (contenedor.querySelector('img') || {}).src;
             if (!imgSrc) { alert('No se pudo preparar el QR para imprimir.'); return; }
 
-            // La etiqueta física solo lleva el código, nunca el nombre del
-            // producto -- ese código se va a reasignar a otras prendas con
-            // el tiempo, así que un nombre impreso quedaría desactualizado.
             const etiqueta = document.getElementById('qrCodigo').value.trim();
             const ventana = window.open('', '_blank');
             ventana.document.write(`
@@ -1373,18 +1411,14 @@
             ventana.document.close();
         }
 
-        // Registra la venta directo desde la pantalla del escáner -- así no
-        // hace falta cerrar la cámara y volver a los campos de "Producto /
-        // Precio" para poder cobrar lo que ya se escaneó.
         function registrarVentaDesdeScanner() {
             cerrarScannerVenta();
             registrarVentaFisica();
         }
 
-        // Ahora registra TODAS las prendas del carrito de esta venta (una por
-        // una hacia el mismo endpoint de siempre, sin cambiar nada del
-        // backend). Aplica automáticamente el descuento de $1 por prenda
-        // cuando la venta llega a 3 piezas o más.
+        // ===================================================================
+        // REGISTRO DE VENTA FÍSICA EN LOTE (BATCH - 1 SOLA PETICIÓN RÁPIDA)
+        // ===================================================================
         async function registrarVentaFisica() {
             const correo = document.getElementById('fisicaCorreo').value.trim();
             const metodoPago = document.getElementById('fisicaMetodoPago').value;
@@ -1395,8 +1429,6 @@
 
             mensaje.classList.add('hidden');
 
-            // Si quedó algo escrito en el campo de prenda sin agregar
-            // todavía, se agrega solo para no perderlo.
             const productoSuelto = document.getElementById('fisicaProducto').value.trim();
             const precioSuelto = parseFloat(document.getElementById('fisicaPrecio').value);
             if (productoSuelto && !isNaN(precioSuelto) && precioSuelto > 0) {
@@ -1404,83 +1436,81 @@
             }
 
             if (!carritoFisica.length) {
-                mensaje.textContent = 'Agrega al menos una prenda (escaneando o escribiendo) antes de registrar la venta.';
+                mensaje.textContent = 'Agrega al menos una prenda antes de registrar la venta.';
                 mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
                 mensaje.classList.remove('hidden');
                 return;
             }
 
+            const resumen = calcularResumenCarritoFisica();
+
             const itemsAEnviar = carritoFisica.map(item => {
-                const { precio, aplica } = calcularPrecioConDescuentoFisica(item.precio);
-                return { producto: item.producto, precio: item.precio, categoria: item.categoria, precioFinal: precio, descontado: aplica && precio !== item.precio };
+                const precioUnitarioFinal = resumen.hayDescuento ? Math.max(0, item.precio - 1) : item.precio;
+                return {
+                    nombre: item.producto,
+                    producto: item.producto,
+                    precio: precioUnitarioFinal.toFixed(2),
+                    precioUnitario: precioUnitarioFinal.toFixed(2),
+                    precioOriginal: item.precio.toFixed(2),
+                    categoria: item.categoria || '',
+                    cantidad: item.cantidad,
+                    descontado: resumen.hayDescuento
+                };
             });
 
             boton.disabled = true;
             boton.classList.add('opacity-60', 'cursor-not-allowed');
+            textoBoton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Registrando venta...';
 
-            const exitosos = [];
-            const fallidos = [];
+            const notaFinal = resumen.hayDescuento
+                ? (nota ? nota + ' (incluye descuento 3+ piezas)' : 'Descuento por 3+ piezas')
+                : nota;
 
-            for (let i = 0; i < itemsAEnviar.length; i++) {
-                const item = itemsAEnviar[i];
-                textoBoton.textContent = `Registrando ${i + 1} de ${itemsAEnviar.length}...`;
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        password: obtenerPassword(),
+                        accion: 'ventaFisica',
+                        items: itemsAEnviar,
+                        metodoPago: metodoPago,
+                        correoCliente: correo,
+                        nota: notaFinal
+                    })
+                });
+                const datos = await resp.json();
 
-                const notaFinal = item.descontado
-                    ? (nota ? nota + ' (incluye descuento por 3+ piezas)' : 'Descuento por 3+ piezas')
-                    : nota;
+                if (datos.ok) {
+                    mensaje.textContent = `✅ Venta registrada con éxito: ${resumen.totalPiezas} ${resumen.totalPiezas === 1 ? 'prenda' : 'prendas'} por $${resumen.total.toFixed(2)}.`;
+                    mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-600';
+                    mensaje.classList.remove('hidden');
 
-                try {
-                    const resp = await fetch('/api/admin-pedidos', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            password: obtenerPassword(),
-                            accion: 'ventaFisica',
-                            nombre: item.producto,
-                            precio: item.precioFinal.toFixed(2),
-                            categoria: item.categoria,
-                            metodoPago: metodoPago,
-                            correoCliente: correo,
-                            nota: notaFinal
-                        })
-                    });
-                    const datos = await resp.json();
-                    if (datos.ok) {
-                        exitosos.push(item);
-                    } else {
-                        fallidos.push(item);
-                    }
-                } catch (e) {
-                    fallidos.push(item);
+                    carritoFisica = [];
+                    ultimoIndiceEscaneado = -1;
+                    renderizarCarritoFisica();
+                    document.getElementById('fisicaCorreo').value = '';
+                    document.getElementById('fisicaNota').value = '';
+                    document.getElementById('fisicaProducto').value = '';
+                    document.getElementById('fisicaPrecio').value = '';
+                    document.getElementById('fisicaCategoria').value = '';
+
+                    cargarResumen();
+                    if (tabActiva === 'ventas') cargarVentas();
+                } else {
+                    mensaje.textContent = 'Error al registrar venta: ' + (datos.error || 'Intenta de nuevo.');
+                    mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
+                    mensaje.classList.remove('hidden');
                 }
-            }
-
-            boton.disabled = false;
-            boton.classList.remove('opacity-60', 'cursor-not-allowed');
-            textoBoton.textContent = 'Registrar venta';
-
-            // Solo se quitan del carrito las prendas que sí se registraron --
-            // las que fallaron se quedan para poder reintentar sin tener que
-            // escanearlas o escribirlas de nuevo.
-            carritoFisica = fallidos.map(it => ({ producto: it.producto, precio: it.precio, categoria: it.categoria }));
-            renderizarCarritoFisica();
-
-            if (!fallidos.length) {
-                const totalVenta = exitosos.reduce((acc, it) => acc + it.precioFinal, 0);
-                mensaje.textContent = '✅ Venta registrada: ' + exitosos.length + (exitosos.length === 1 ? ' prenda' : ' prendas') + ' por $' + totalVenta.toFixed(2) + '.';
-                mensaje.className = 'block text-center text-xs font-semibold py-2 text-emerald-600';
-                document.getElementById('fisicaCorreo').value = '';
-                document.getElementById('fisicaNota').value = '';
-            } else if (exitosos.length) {
-                mensaje.textContent = 'Se registraron ' + exitosos.length + ' de ' + itemsAEnviar.length + ' prendas. ' + fallidos.length + ' fallaron y quedaron en la lista para reintentar.';
-                mensaje.className = 'block text-center text-xs font-semibold py-2 text-amber-600';
-            } else {
-                mensaje.textContent = 'No se pudo registrar ninguna prenda. Revisa la conexión e intenta de nuevo.';
+            } catch (e) {
+                mensaje.textContent = 'No se pudo conectar con el servidor. Revisa la conexión.';
                 mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
+                mensaje.classList.remove('hidden');
+            } finally {
+                boton.disabled = false;
+                boton.classList.remove('opacity-60', 'cursor-not-allowed');
+                textoBoton.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Registrar venta';
             }
-            mensaje.classList.remove('hidden');
-
-            cargarResumen();
         }
 
         (function iniciar() {
