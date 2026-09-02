@@ -153,9 +153,16 @@
                     </button>
                 </div>
                 <div id="carritoFisicaLista" class="space-y-2"></div>
-                <p id="carritoFisicaDescuentoAviso" class="hidden text-[11px] font-semibold text-emerald-600">
-                    <i class="fa-solid fa-tag mr-1"></i>Descuento por 3+ piezas aplicado: -$1.00 en cada prenda
-                </p>
+                <div class="space-y-1 text-xs text-gray-500 border-t border-gray-100 pt-2">
+                    <div class="flex justify-between">
+                        <span>Subtotal (<span id="carritoFisicaCantidadSub">0</span> prendas)</span>
+                        <span id="carritoFisicaSubtotal">$0.00</span>
+                    </div>
+                    <div id="carritoFisicaLineaDescuento" class="hidden flex justify-between font-semibold text-emerald-600">
+                        <span><i class="fa-solid fa-tag mr-1"></i>Descuento 3+ piezas</span>
+                        <span id="carritoFisicaDescuentoMonto">-$0.00</span>
+                    </div>
+                </div>
                 <div class="flex justify-between items-center text-sm font-black text-gray-900 border-t border-gray-100 pt-2">
                     <span>Total de la venta</span>
                     <span id="carritoFisicaTotal">$0.00</span>
@@ -215,13 +222,21 @@
             <div class="w-full max-w-sm">
                 <div class="relative rounded-2xl overflow-hidden border border-white/20 bg-black aspect-square">
                     <video id="scannerVideoVenta" class="w-full h-full object-cover" playsinline autoplay muted></video>
-                    <div class="absolute inset-0 pointer-events-none border-[3px] border-cyan-400/70 m-10 rounded-xl"></div>
+                    <div id="scannerMarcoVenta" class="absolute inset-0 pointer-events-none border-[3px] border-cyan-400/70 m-10 rounded-xl transition-colors duration-150"></div>
                 </div>
                 <canvas id="scannerCanvasVenta" class="hidden"></canvas>
                 <p id="scannerEstadoVenta" class="text-white/70 text-sm mt-4 text-center">Apunta la cámara al código QR de la prenda</p>
-                <button type="button" onclick="cerrarScannerVenta()" class="w-full mt-4 bg-white text-gray-900 font-bold py-3 rounded-full text-sm">
-                    Terminar de escanear (<span id="scannerVentaContador">0</span> agregadas)
-                </button>
+                <p class="text-white/50 text-xs text-center mt-1">
+                    <span id="scannerVentaContador">0</span> prendas agregadas · <span id="scannerVentaTotalMini">$0.00</span>
+                </p>
+                <div class="grid grid-cols-2 gap-2 mt-3">
+                    <button type="button" onclick="cerrarScannerVenta()" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold py-3 rounded-full text-sm">
+                        Seguir editando
+                    </button>
+                    <button type="button" onclick="registrarVentaDesdeScanner()" class="bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-3 rounded-full text-sm">
+                        Registrar venta
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -319,6 +334,13 @@
         let carritoFisica = [];
         let ultimoCodigoEscaneado = null;
         let ultimoEscaneoTiempo = 0;
+
+        // Tras cada prenda agregada por QR, el lector se "congela" un rato
+        // (no sigue decodificando fotogramas) para que la misma etiqueta no
+        // se vuelva a leer dos o tres veces mientras el admin todavía la
+        // está apartando de la cámara.
+        let scannerVentaPausado = false;
+        let scannerVentaTimeoutId = null;
 
         formLogin.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1025,16 +1047,38 @@
             return { precio, aplica };
         }
 
+        // Un solo lugar que calcula cantidad, subtotal, cuánto se descontó y
+        // el total final -- lo usan tanto la tarjeta del carrito como el
+        // mini resumen dentro del escáner, para que nunca queden
+        // desincronizados entre sí.
+        function calcularResumenCarritoFisica() {
+            const cantidad = carritoFisica.length;
+            const hayDescuento = cantidad >= 3;
+            let subtotal = 0;
+            let total = 0;
+            carritoFisica.forEach(item => {
+                subtotal += item.precio;
+                total += calcularPrecioConDescuentoFisica(item.precio).precio;
+            });
+            return { cantidad, subtotal, total, descuentoTotal: subtotal - total, hayDescuento };
+        }
+
         function actualizarContadorScannerVenta() {
-            const el = document.getElementById('scannerVentaContador');
-            if (el) el.textContent = String(carritoFisica.length);
+            const resumen = calcularResumenCarritoFisica();
+            const contador = document.getElementById('scannerVentaContador');
+            const totalMini = document.getElementById('scannerVentaTotalMini');
+            if (contador) contador.textContent = String(resumen.cantidad);
+            if (totalMini) totalMini.textContent = '$' + resumen.total.toFixed(2);
         }
 
         function renderizarCarritoFisica() {
             const contenedor = document.getElementById('carritoFisicaContenedor');
             const lista = document.getElementById('carritoFisicaLista');
             const cantidadEl = document.getElementById('carritoFisicaCantidad');
-            const avisoDescuento = document.getElementById('carritoFisicaDescuentoAviso');
+            const cantidadSubEl = document.getElementById('carritoFisicaCantidadSub');
+            const lineaDescuento = document.getElementById('carritoFisicaLineaDescuento');
+            const subtotalEl = document.getElementById('carritoFisicaSubtotal');
+            const descuentoMontoEl = document.getElementById('carritoFisicaDescuentoMonto');
             const totalEl = document.getElementById('carritoFisicaTotal');
 
             actualizarContadorScannerVenta();
@@ -1046,16 +1090,21 @@
             }
 
             contenedor.classList.remove('hidden');
-            cantidadEl.textContent = String(carritoFisica.length);
 
-            const hayDescuento = carritoFisica.length >= 3;
-            avisoDescuento.classList.toggle('hidden', !hayDescuento);
+            const resumen = calcularResumenCarritoFisica();
+            cantidadEl.textContent = String(resumen.cantidad);
+            cantidadSubEl.textContent = String(resumen.cantidad);
+            subtotalEl.textContent = '$' + resumen.subtotal.toFixed(2);
+            totalEl.textContent = '$' + resumen.total.toFixed(2);
 
-            let total = 0;
+            lineaDescuento.classList.toggle('hidden', !resumen.hayDescuento);
+            if (resumen.hayDescuento) {
+                descuentoMontoEl.textContent = '-$' + resumen.descuentoTotal.toFixed(2) + ' (' + resumen.cantidad + ' x $1.00)';
+            }
+
             lista.innerHTML = carritoFisica.map((item, indice) => {
                 const { precio } = calcularPrecioConDescuentoFisica(item.precio);
-                total += precio;
-                const conDescuento = hayDescuento && precio !== item.precio;
+                const conDescuento = resumen.hayDescuento && precio !== item.precio;
                 return `
                     <div class="flex items-center justify-between gap-2 bg-gray-50 rounded-lg px-3 py-2">
                         <div class="min-w-0">
@@ -1073,8 +1122,6 @@
                     </div>
                 `;
             }).join('');
-
-            totalEl.textContent = '$' + total.toFixed(2);
         }
 
         // ---------- ESCÁNER QR (venta física) ----------
@@ -1086,12 +1133,16 @@
 
             ultimoCodigoEscaneado = null;
             ultimoEscaneoTiempo = 0;
+            scannerVentaPausado = false;
+            if (scannerVentaTimeoutId) { clearTimeout(scannerVentaTimeoutId); scannerVentaTimeoutId = null; }
             actualizarContadorScannerVenta();
 
             const modal = document.getElementById('scannerModalVenta');
             const estado = document.getElementById('scannerEstadoVenta');
+            const marco = document.getElementById('scannerMarcoVenta');
             modal.classList.remove('hidden'); modal.classList.add('flex');
             if (estado) { estado.textContent = 'Apunta la cámara al código QR de la prenda'; estado.className = 'text-white/70 text-sm mt-4 text-center'; }
+            if (marco) { marco.classList.remove('border-emerald-400'); marco.classList.add('border-cyan-400/70'); }
             const video = document.getElementById('scannerVideoVenta');
             try {
                 scannerVentaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
@@ -1105,6 +1156,10 @@
         }
 
         function tickScannerVenta() {
+            // Mientras está "pausado" (justo después de agregar una prenda)
+            // no se decodifica nada -- así la cámara no puede releer la misma
+            // etiqueta por más tiempo que siga frente a ella.
+            if (scannerVentaPausado) { scannerVentaRAF = requestAnimationFrame(tickScannerVenta); return; }
             const video = document.getElementById('scannerVideoVenta');
             const canvas = document.getElementById('scannerCanvasVenta');
             if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) { scannerVentaRAF = requestAnimationFrame(tickScannerVenta); return; }
@@ -1122,6 +1177,8 @@
             modal.classList.add('hidden'); modal.classList.remove('flex');
             if (scannerVentaRAF) cancelAnimationFrame(scannerVentaRAF);
             scannerVentaRAF = null;
+            if (scannerVentaTimeoutId) { clearTimeout(scannerVentaTimeoutId); scannerVentaTimeoutId = null; }
+            scannerVentaPausado = false;
             if (scannerVentaStream) { scannerVentaStream.getTracks().forEach(t => t.stop()); scannerVentaStream = null; }
         }
 
@@ -1145,7 +1202,7 @@
             // sigue leyendo el mismo código unos milisegundos más de la
             // cuenta mientras se aleja.
             const ahora = Date.now();
-            if (buscado === ultimoCodigoEscaneado && (ahora - ultimoEscaneoTiempo) < 2000) {
+            if (buscado === ultimoCodigoEscaneado && (ahora - ultimoEscaneoTiempo) < 2500) {
                 scannerVentaRAF = requestAnimationFrame(tickScannerVenta);
                 return;
             }
@@ -1156,6 +1213,7 @@
                 || productosCatalogo.find(p => (p.producto || p.nombre || '').toLowerCase().trim() === buscado);
 
             const estado = document.getElementById('scannerEstadoVenta');
+            const marco = document.getElementById('scannerMarcoVenta');
 
             if (coincidencia) {
                 const nombre = coincidencia.producto || coincidencia.nombre || '';
@@ -1163,16 +1221,27 @@
                 const categoria = normalizarCategoria(coincidencia.categoria);
                 agregarItemCarritoFisica({ producto: nombre, precio, categoria });
 
+                // Se "congela" la lectura un momento: marco en verde + aviso
+                // grande + vibración (si el celular la soporta), para que sea
+                // obvio que ya se agregó y dé tiempo a apartar la prenda
+                // antes de que la cámara vuelva a intentar leer algo.
+                scannerVentaPausado = true;
                 if (estado) {
-                    estado.textContent = '✅ Agregada: ' + nombre;
+                    estado.textContent = '✅ Agregada: ' + nombre + ' — aparta la prenda...';
                     estado.className = 'text-emerald-400 text-sm mt-4 text-center font-semibold';
                 }
-                setTimeout(() => {
+                if (marco) { marco.classList.remove('border-cyan-400/70'); marco.classList.add('border-emerald-400'); }
+                if (navigator.vibrate) navigator.vibrate(70);
+
+                if (scannerVentaTimeoutId) clearTimeout(scannerVentaTimeoutId);
+                scannerVentaTimeoutId = setTimeout(() => {
+                    scannerVentaPausado = false;
                     if (estado) {
                         estado.textContent = 'Apunta la cámara al código QR de la prenda';
                         estado.className = 'text-white/70 text-sm mt-4 text-center';
                     }
-                }, 1200);
+                    if (marco) { marco.classList.remove('border-emerald-400'); marco.classList.add('border-cyan-400/70'); }
+                }, 1800);
 
                 scannerVentaRAF = requestAnimationFrame(tickScannerVenta);
             } else {
@@ -1302,6 +1371,14 @@
                 </body></html>
             `);
             ventana.document.close();
+        }
+
+        // Registra la venta directo desde la pantalla del escáner -- así no
+        // hace falta cerrar la cámara y volver a los campos de "Producto /
+        // Precio" para poder cobrar lo que ya se escaneó.
+        function registrarVentaDesdeScanner() {
+            cerrarScannerVenta();
+            registrarVentaFisica();
         }
 
         // Ahora registra TODAS las prendas del carrito de esta venta (una por
