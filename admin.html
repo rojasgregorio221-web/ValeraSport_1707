@@ -1696,8 +1696,12 @@
             registrarVentaFisica();
         }
 
-        // ===================================================================
-        // REGISTRO DE VENTA FÍSICA EN LOTE (BATCH - 1 SOLA PETICIÓN RÁPIDA)
+        //.remove('hidden');
+                return;
+            }
+
+       // ===================================================================
+        // REGISTRO DE VENTA FÍSICA EN LOTE (OPTIMIZADO - RESPUESTA INSTANTÁNEA)
         // ===================================================================
         async function registrarVentaFisica() {
             const correo = document.getElementById('fisicaCorreo').value.trim();
@@ -1739,18 +1743,41 @@
                 };
             });
 
-            // Bloquear botón y mostrar spinner (Sin palomitas duplicadas)
-            boton.disabled = true;
-            boton.classList.add('opacity-75', 'cursor-not-allowed');
-            textoBoton.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Registrando venta...';
-
             const notaFinal = resumen.hayDescuento
                 ? (nota ? nota + ' (incluye descuento 3+ piezas)' : 'Descuento por 3+ piezas')
                 : nota;
 
-            // Prepara resumen de nombres para compatibilidad total
             const nombrePrincipal = itemsAEnviar.map(i => i.nombre + (i.cantidad > 1 ? ' (x' + i.cantidad + ')' : '')).join(', ');
 
+            // ===============================================================
+            // 🚀 ACTUALIZACIÓN OPTIMISTA: MOSTRAR ÉXITO Y LIMPIAR EN 0 MS
+            // ===============================================================
+            const totalBsTexto = tasaBcvAdmin ? ' (≈ Bs ' + (resumen.total * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')' : '';
+            mensaje.textContent = `✅ Venta registrada con éxito: ${resumen.totalPiezas} ${resumen.totalPiezas === 1 ? 'prenda' : 'prendas'} por $${resumen.total.toFixed(2)}${totalBsTexto}.`;
+            mensaje.className = 'block text-center text-xs font-semibold py-2.5 text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl';
+            mensaje.classList.remove('hidden');
+
+            // Copia de los datos por si falla la red
+            const carritoCopia = [...carritoFisica];
+
+            // Limpiar formulario e interfaz al instante
+            carritoFisica = [];
+            ultimoIndiceEscaneado = -1;
+            renderizarCarritoFisica();
+            document.getElementById('fisicaCorreo').value = '';
+            document.getElementById('fisicaNota').value = '';
+            document.getElementById('fisicaProducto').value = '';
+            document.getElementById('fisicaPrecio').value = '';
+            document.getElementById('fisicaCategoria').value = '';
+
+            textoBoton.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i> ¡Venta registrada!';
+            setTimeout(() => {
+                textoBoton.textContent = 'Registrar venta';
+            }, 2500);
+
+            // ===============================================================
+            // 📡 ENVIAR A LA API EN SEGUNDO PLANO
+            // ===============================================================
             try {
                 const resp = await fetch('/api/admin-pedidos', {
                     method: 'POST',
@@ -1770,44 +1797,18 @@
                 const datos = await resp.json();
 
                 if (datos.ok) {
-                    const totalBsTexto = tasaBcvAdmin ? ' (≈ Bs ' + (resumen.total * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')' : '';
-                    mensaje.textContent = `✅ Venta registrada con éxito: ${resumen.totalPiezas} ${resumen.totalPiezas === 1 ? 'prenda' : 'prendas'} por $${resumen.total.toFixed(2)}${totalBsTexto}.`;
-                    mensaje.className = 'block text-center text-xs font-semibold py-2.5 text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl';
-                    mensaje.classList.remove('hidden');
-
-                    carritoFisica = [];
-                    ultimoIndiceEscaneado = -1;
-                    renderizarCarritoFisica();
-                    document.getElementById('fisicaCorreo').value = '';
-                    document.getElementById('fisicaNota').value = '';
-                    document.getElementById('fisicaProducto').value = '';
-                    document.getElementById('fisicaPrecio').value = '';
-                    document.getElementById('fisicaCategoria').value = '';
-
-                    textoBoton.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i> ¡Venta registrada!';
-                    setTimeout(() => {
-                        textoBoton.textContent = 'Registrar venta';
-                    }, 2500);
-
                     cargarResumen();
                     if (tabActiva === 'ventas') cargarVentas();
                 } else {
-                    mensaje.textContent = 'Error al registrar venta: ' + (datos.error || 'Intenta de nuevo.');
-                    mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
-                    mensaje.classList.remove('hidden');
-                    textoBoton.textContent = 'Registrar venta';
+                    throw new Error(datos.error || 'Error al procesar en servidor');
                 }
             } catch (e) {
-                mensaje.textContent = 'No se pudo conectar con el servidor. Revisa la conexión.';
-                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
+                console.error("Error al registrar venta en segundo plano:", e);
+                mensaje.textContent = '⚠️ La venta se mostró en pantalla, pero hubo un error guardando en red. Revisa la conexión.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-amber-600 bg-amber-50 border border-amber-100 rounded-xl';
                 mensaje.classList.remove('hidden');
-                textoBoton.textContent = 'Registrar venta';
-            } finally {
-                boton.disabled = false;
-                boton.classList.remove('opacity-75', 'cursor-not-allowed');
             }
         }
-
         (function iniciar() {
             const claveGuardada = obtenerPassword();
             if (claveGuardada) {
