@@ -520,14 +520,30 @@
             cargarTodo();
         }
 
-        async function cargarTodo() {
-            const tareas = [cargarResumen(), cargarPedidos()];
-            if (tabActiva === 'aceptadas') tareas.push(cargarAceptadas());
-            if (tabActiva === 'rechazadas') tareas.push(cargarRechazadas());
-            if (tabActiva === 'ventas') tareas.push(cargarVentas());
-            await Promise.all(tareas);
-            marcarActualizado();
-        }
+       async function cargarTodo() {
+    const LLAVE_CACHE = 'valera_admin_datos';
+
+    // 1. Si hay datos guardados en el navegador, mostrar la pantalla de inmediato (0 ms)
+    const datosGuardados = localStorage.getItem(LLAVE_CACHE);
+    if (datosGuardados) {
+        const datos = JSON.parse(datosGuardados);
+        if (datos.resumen) renderizarResumen?.(datos.resumen);
+        if (datos.pedidos) renderizarPedidos?.(datos.pedidos);
+    }
+
+    // 2. Traer actualización de internet en segundo plano sin congelar la pantalla
+    try {
+        const tareas = [cargarResumen(), cargarPedidos()];
+        if (tabActiva === 'aceptadas') tareas.push(cargarAceptadas());
+        if (tabActiva === 'rechazadas') tareas.push(cargarRechazadas());
+        if (tabActiva === 'ventas') tareas.push(cargarVentas());
+        
+        await Promise.all(tareas);
+        marcarActualizado();
+    } catch (error) {
+        console.error("Error al actualizar datos en segundo plano:", error);
+    }
+}
 
         async function cargarResumen() {
             try {
