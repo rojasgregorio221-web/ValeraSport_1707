@@ -715,7 +715,24 @@
             }
 
             sinVentas.classList.add('hidden');
-            lista.innerHTML = filtradas.map(tarjetaVenta).join('');
+            lista.innerHTML = agruparVentas(filtradas)
+                .map(grupo => grupo.length > 1 ? tarjetaVentaGrupo(grupo) : tarjetaVenta(grupo[0]))
+                .join('');
+        }
+
+        // Agrupa las ventas que pertenecen a una misma transacción (mismo escaneo/registro
+        // en lote) usando fecha exacta + método de pago + correo + nota + canal como clave.
+        // Así, una venta de varias prendas queda junta en una sola tarjeta con su detalle,
+        // y una venta de una sola prenda queda sola, sin agrupar con nada.
+        function agruparVentas(ventas) {
+            const grupos = new Map();
+            const orden = [];
+            ventas.forEach(v => {
+                const clave = [v.fecha || '', v.metodoPago || '', v.correo || '', v.nota || '', v.canal || ''].join('|');
+                if (!grupos.has(clave)) { grupos.set(clave, []); orden.push(clave); }
+                grupos.get(clave).push(v);
+            });
+            return orden.map(clave => grupos.get(clave));
         }
 
         async function cargarVentas() {
@@ -818,6 +835,62 @@
                     ${venta.nota ? `
                     <div class="mt-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-[11px] text-amber-700">
                         <i class="fa-solid fa-note-sticky mr-1"></i>${escapeHTML(venta.nota)}
+                    </div>` : ''}
+                </div>
+            `;
+        }
+
+        // Tarjeta para una venta compuesta por varias prendas (misma transacción):
+        // muestra cada prenda con su nombre, categoría y precio, y el total abajo.
+        function tarjetaVentaGrupo(ventas) {
+            const primera = ventas[0];
+            const fecha = primera.fecha ? new Date(primera.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
+            const canalTexto = primera.canal || 'Venta';
+            const esFisica = canalTexto.toLowerCase().indexOf('f') === 0;
+            const colorCanal = esFisica ? 'text-cyan-600' : 'text-emerald-600';
+            const iconoCanal = esFisica ? 'fa-store' : 'fa-globe';
+
+            const totalUsd = ventas.reduce((s, v) => s + (Number(v.precio) || 0), 0);
+            const totalBs = ventas.reduce((s, v) => s + (v.precioBs ? Number(v.precioBs) : 0), 0);
+            const notaComun = primera.nota || '';
+
+            const listaItems = ventas.map(v => `
+                <div class="flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
+                    <div>
+                        <span class="text-gray-900">${escapeHTML(v.producto || 'Producto')}</span>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wide ml-2">${escapeHTML(v.categoria || 'Variados')}</span>
+                    </div>
+                    <span class="text-gray-500 text-xs font-mono">$${Number(v.precio || 0).toFixed(2)}</span>
+                </div>
+            `).join('');
+
+            return `
+                <div class="bg-white border border-gray-100 rounded-2xl p-4">
+                    <div class="flex justify-between items-start mb-1.5">
+                        <div>
+                            <span class="text-[10px] font-bold ${colorCanal} uppercase tracking-widest block mb-0.5">
+                                <i class="fa-solid ${iconoCanal} mr-1"></i>${escapeHTML(canalTexto)} · ${ventas.length} prendas
+                            </span>
+                            <p class="text-[11px] text-gray-400">${escapeHTML(fecha)}</p>
+                        </div>
+                        <div class="text-right flex-shrink-0 ml-3">
+                            <span class="text-lg font-black text-gray-900 block">$${totalUsd.toFixed(2)}</span>
+                            ${totalBs ? `<span class="text-[11px] text-gray-400 block font-mono">Bs ${totalBs.toFixed(2)}</span>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl px-4 py-2 mt-2 mb-2">
+                        ${listaItems}
+                    </div>
+
+                    ${(primera.metodoPago || primera.correo) ? `
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-500 mt-2 pt-2 border-t border-gray-50">
+                        ${primera.metodoPago ? `<span><i class="fa-solid fa-credit-card mr-1 text-gray-300"></i>${escapeHTML(primera.metodoPago)}</span>` : ''}
+                        ${primera.correo ? `<span><i class="fa-solid fa-envelope mr-1 text-gray-300"></i>${escapeHTML(primera.correo)}</span>` : ''}
+                    </div>` : ''}
+                    ${notaComun ? `
+                    <div class="mt-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-[11px] text-amber-700">
+                        <i class="fa-solid fa-note-sticky mr-1"></i>${escapeHTML(notaComun)}
                     </div>` : ''}
                 </div>
             `;
