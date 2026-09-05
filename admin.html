@@ -369,6 +369,7 @@
     <script>
         const PASSWORD_KEY = 'vs_admin_password';
         const INTERVALO_REFRESCO = 30000;
+        const LLAVE_CACHE = 'valera_admin_datos';
 
         const formLogin = document.getElementById('formLogin');
         const inputPassword = document.getElementById('inputPassword');
@@ -500,6 +501,41 @@
             el.textContent = 'Actualizado ' + ahora.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
 
+        // ---------- CACHÉ LOCAL (CARGA INSTANTÁNEA MIENTRAS LLEGA LO NUEVO) ----------
+        function guardarCache(datosNuevos) {
+            try {
+                const actual = JSON.parse(localStorage.getItem(LLAVE_CACHE) || '{}');
+                const combinado = Object.assign({}, actual, datosNuevos);
+                localStorage.setItem(LLAVE_CACHE, JSON.stringify(combinado));
+            } catch (e) {
+                // Si el navegador bloquea localStorage (modo privado, etc.), seguimos sin caché
+            }
+        }
+
+        function renderizarResumen(resumen) {
+            ultimoTotalHoy = Number(resumen.totalHoy) || 0;
+            document.getElementById('totalHoy').textContent = '$' + ultimoTotalHoy.toFixed(2);
+            document.getElementById('cantidadHoy').textContent = resumen.cantidadHoy + ' prendas hoy';
+            actualizarTotalHoyBs();
+        }
+
+        function renderizarPedidos(ordenes) {
+            const cargando = document.getElementById('cargando');
+            const lista = document.getElementById('listaPedidos');
+            const sinPedidos = document.getElementById('sinPedidos');
+
+            cargando.classList.add('hidden');
+
+            if (!ordenes || !ordenes.length) {
+                lista.innerHTML = '';
+                sinPedidos.classList.remove('hidden');
+                return;
+            }
+
+            sinPedidos.classList.add('hidden');
+            lista.innerHTML = ordenes.map(o => tarjetaOrden(o, true)).join('');
+        }
+
         // ---------- PESTAÑAS ----------
         function cambiarTabPedidos(tab) {
             tabActiva = tab;
@@ -520,30 +556,31 @@
             cargarTodo();
         }
 
-       async function cargarTodo() {
-    const LLAVE_CACHE = 'valera_admin_datos';
+        async function cargarTodo() {
+            // 1. Si hay datos guardados en el navegador, mostrarlos de inmediato (0 ms)
+            try {
+                const datosGuardados = localStorage.getItem(LLAVE_CACHE);
+                if (datosGuardados) {
+                    const datos = JSON.parse(datosGuardados);
+                    if (datos.resumen) renderizarResumen(datos.resumen);
+                    if (datos.pedidos) renderizarPedidos(datos.pedidos);
+                }
+            } catch (e) {
+                // Caché corrupta o bloqueada: seguimos normal con la carga de red
+            }
 
-    // 1. Si hay datos guardados en el navegador, mostrar la pantalla de inmediato (0 ms)
-    const datosGuardados = localStorage.getItem(LLAVE_CACHE);
-    if (datosGuardados) {
-        const datos = JSON.parse(datosGuardados);
-        if (datos.resumen) renderizarResumen?.(datos.resumen);
-        if (datos.pedidos) renderizarPedidos?.(datos.pedidos);
-    }
-
-    // 2. Traer actualización de internet en segundo plano sin congelar la pantalla
-    try {
-        const tareas = [cargarResumen(), cargarPedidos()];
-        if (tabActiva === 'aceptadas') tareas.push(cargarAceptadas());
-        if (tabActiva === 'rechazadas') tareas.push(cargarRechazadas());
-        if (tabActiva === 'ventas') tareas.push(cargarVentas());
-        
-        await Promise.all(tareas);
-        marcarActualizado();
-    } catch (error) {
-        console.error("Error al actualizar datos en segundo plano:", error);
-    }
-}
+            // 2. Traer los datos frescos de internet en segundo plano
+            try {
+                const tareas = [cargarResumen(), cargarPedidos()];
+                if (tabActiva === 'aceptadas') tareas.push(cargarAceptadas());
+                if (tabActiva === 'rechazadas') tareas.push(cargarRechazadas());
+                if (tabActiva === 'ventas') tareas.push(cargarVentas());
+                await Promise.all(tareas);
+                marcarActualizado();
+            } catch (error) {
+                console.error('Error al actualizar datos en segundo plano:', error);
+            }
+        }
 
         async function cargarResumen() {
             try {
@@ -554,10 +591,8 @@
                 });
                 const datos = await resp.json();
                 if (datos.ok) {
-                    ultimoTotalHoy = Number(datos.resumen.totalHoy) || 0;
-                    document.getElementById('totalHoy').textContent = '$' + ultimoTotalHoy.toFixed(2);
-                    document.getElementById('cantidadHoy').textContent = datos.resumen.cantidadHoy + ' prendas hoy';
-                    actualizarTotalHoyBs();
+                    renderizarResumen(datos.resumen);
+                    guardarCache({ resumen: datos.resumen });
                 }
             } catch (e) {
                 console.error('Error cargando resumen:', e);
@@ -592,13 +627,8 @@
                 }
 
                 const ordenes = datos.ordenes || [];
-                if (!ordenes.length) {
-                    lista.innerHTML = '';
-                    sinPedidos.classList.remove('hidden');
-                    return;
-                }
-
-                lista.innerHTML = ordenes.map(o => tarjetaOrden(o, true)).join('');
+                renderizarPedidos(ordenes);
+                guardarCache({ pedidos: ordenes });
             } catch (e) {
                 if (miId !== idSolicitudPedidos) return;
                 cargando.classList.add('hidden');
@@ -1690,7 +1720,8 @@
             `);
             ventana.document.close();
         }
-               function registrarVentaDesdeScanner() {
+
+        function registrarVentaDesdeScanner() {
             cerrarScannerVenta();
             registrarVentaFisica();
         }
@@ -1698,7 +1729,6 @@
         // ===================================================================
         // REGISTRO DE VENTA FÍSICA EN LOTE (OPTIMIZADO - RESPUESTA INSTANTÁNEA)
         // ===================================================================
-       
         async function registrarVentaFisica() {
             const correo = document.getElementById('fisicaCorreo').value.trim();
             const metodoPago = document.getElementById('fisicaMetodoPago').value;
@@ -1805,6 +1835,7 @@
                 mensaje.classList.remove('hidden');
             }
         }
+
         (function iniciar() {
             const claveGuardada = obtenerPassword();
             if (claveGuardada) {
