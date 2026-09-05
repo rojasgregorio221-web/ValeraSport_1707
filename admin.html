@@ -487,13 +487,6 @@
             return div.innerHTML;
         }
 
-        function sanitizarURLImagen(url) {
-            const valor = url && String(url).trim();
-            if (!valor) return null;
-            if (/^https?:\/\//i.test(valor) || /^data:image\//i.test(valor)) return valor;
-            return null;
-        }
-
         function marcarActualizado() {
             const el = document.getElementById('ultimaActualizacion');
             if (!el) return;
@@ -948,7 +941,7 @@
             const idAttr = escapeHTML(orden.idOrden);
             const metodoPago = escapeHTML(orden.metodoPago || 'No especificado');
             const referencia = orden.referencia && String(orden.referencia).trim() ? escapeHTML(orden.referencia) : null;
-            const comprobanteUrl = sanitizarURLImagen(orden.comprobanteUrl);
+            const telefonoPago = orden.telefonoPago && String(orden.telefonoPago).trim() ? escapeHTML(orden.telefonoPago) : null;
             const items = orden.items || [];
             const motivo = orden.motivo && String(orden.motivo).trim() ? escapeHTML(orden.motivo) : null;
 
@@ -991,17 +984,13 @@
                             <span class="text-gray-400 uppercase font-bold">Referencia:</span>
                             <span class="text-gray-900 font-mono">${referencia}</span>
                         </div>` : ''}
-                        ${comprobanteUrl ? `
-                        <div class="mt-3">
-                            <span class="text-gray-400 uppercase font-bold text-xs block mb-2">Comprobante:</span>
-                            <a href="${escapeHTML(comprobanteUrl)}" target="_blank" rel="noopener noreferrer">
-                                <img src="${escapeHTML(comprobanteUrl)}" class="w-full max-h-64 object-contain rounded-lg border border-gray-200 bg-white" alt="Comprobante de pago">
-                            </a>
-                        </div>` : `
+                        ${telefonoPago ? `
                         <div class="flex justify-between items-center text-xs mt-2">
-                            <span class="text-gray-400 uppercase font-bold">Comprobante:</span>
-                            <span class="text-gray-400">No adjuntado</span>
-                        </div>`}
+                            <span class="text-gray-400 uppercase font-bold">Teléfono pago:</span>
+                            <a href="https://wa.me/58${telefonoPago.replace(/\D/g, '').replace(/^0/, '')}" target="_blank" rel="noopener noreferrer" class="text-cyan-600 font-mono font-semibold hover:text-cyan-500">
+                                ${telefonoPago} <i class="fa-brands fa-whatsapp ml-0.5"></i>
+                            </a>
+                        </div>` : ''}
                     </div>
 
                     ${motivo ? `
