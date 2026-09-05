@@ -12,13 +12,14 @@
 // Body esperado:
 // {
 //   items: [{ nombre, precio, categoria, cantidad }, ...],
-//   metodoPago, referencia,
-//   comprobante  // opcional: imagen en base64 (data URL) del comprobante de pago
+//   metodoPago, referencia (8 dígitos), telefonoPago (teléfono desde el que se pagó)
 // }
+//
+// Nota: ya NO se recibe "comprobante" (foto del pago). Se quitó para que la
+// confirmación del pedido sea instantánea -- antes había que comprimir y
+// subir una imagen en base64, lo cual hacía lento todo el checkout.
 
 import { verificarTokenFirebase } from "../_utils/verificarFirebase.js";
-
-const MAX_COMPROBANTE_BASE64 = 2_000_000;
 
 function jsonResponse(obj, status) {
   return new Response(JSON.stringify(obj), {
@@ -65,18 +66,23 @@ export async function onRequestPost(context) {
   if (!datos.metodoPago) {
     return jsonResponse({ ok: false, error: "Falta el método de pago" }, 400);
   }
-  if (datos.metodoPago !== "Efectivo en tienda" && !datos.referencia) {
-    return jsonResponse({ ok: false, error: "Falta el número de referencia del pago" }, 400);
-  }
-  if (
-    datos.comprobante &&
-    typeof datos.comprobante === "string" &&
-    datos.comprobante.length > MAX_COMPROBANTE_BASE64
-  ) {
-    return jsonResponse(
-      { ok: false, error: "La imagen del comprobante es demasiado grande. Intenta con otra foto." },
-      400
-    );
+
+  const referenciaLimpia = String(datos.referencia || "").trim();
+  const telefonoLimpio = String(datos.telefonoPago || "").trim();
+
+  if (datos.metodoPago !== "Efectivo en tienda") {
+    if (!/^\d{8}$/.test(referenciaLimpia)) {
+      return jsonResponse(
+        { ok: false, error: "La referencia debe tener exactamente 8 dígitos" },
+        400
+      );
+    }
+    if (!telefonoLimpio) {
+      return jsonResponse(
+        { ok: false, error: "Falta el teléfono desde el que se hizo el pago" },
+        400
+      );
+    }
   }
 
   const recortar = (valor, max) => String(valor || "").slice(0, max);
@@ -94,12 +100,10 @@ export async function onRequestPost(context) {
     accion: "carrito",
     items: itemsLimpios,
     metodoPago: recortar(datos.metodoPago, 50),
-    referencia: recortar(datos.referencia, 100),
+    referencia: recortar(referenciaLimpia, 8),
+    telefonoPago: recortar(telefonoLimpio, 20),
     correoCliente: payload.email,
   };
-  if (datos.comprobante && typeof datos.comprobante === "string") {
-    cuerpoParaSheet.comprobante = datos.comprobante;
-  }
 
   try {
     const respuesta = await fetch(SHEET_WRITE_URL, {
