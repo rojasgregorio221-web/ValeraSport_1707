@@ -1690,19 +1690,15 @@
             `);
             ventana.document.close();
         }
-
-        function registrarVentaDesdeScanner() {
+               function registrarVentaDesdeScanner() {
             cerrarScannerVenta();
             registrarVentaFisica();
         }
 
-        //.remove('hidden');
-                return;
-            }
-
-       // ===================================================================
+        // ===================================================================
         // REGISTRO DE VENTA FÍSICA EN LOTE (OPTIMIZADO - RESPUESTA INSTANTÁNEA)
         // ===================================================================
+       
         async function registrarVentaFisica() {
             const correo = document.getElementById('fisicaCorreo').value.trim();
             const metodoPago = document.getElementById('fisicaMetodoPago').value;
