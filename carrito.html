@@ -146,7 +146,7 @@
                             </p>
                         </div>
 
-                        <!-- Después de iniciar sesión: método de pago, referencia, comprobante y confirmar -->
+                        <!-- Después de iniciar sesión: método de pago, referencia y confirmar -->
                         <div id="bloquePago" class="hidden">
                             <p class="text-xs text-gray-500 mb-4">
                                 <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i>
@@ -164,15 +164,13 @@
                             <div id="datosPagoBox" class="hidden bg-cyan-50 border border-cyan-100 rounded-xl p-4 mb-4 space-y-0.5"></div>
 
                             <div class="mb-4 hidden" id="contenedorReferencia">
-                                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">N° de referencia / comprobante</label>
-                                <input type="text" id="referencia" placeholder="Ej: 003456789" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Últimos 8 dígitos de la referencia</label>
+                                <div id="cajasReferencia" class="flex gap-2"></div>
                             </div>
 
-                            <div class="mb-5 hidden" id="contenedorComprobante">
-                                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Foto del comprobante de pago</label>
-                                <input type="file" id="comprobanteInput" accept="image/*" class="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-900 file:text-white hover:file:bg-gray-700">
-                                <p id="estadoComprobante" class="text-[11px] text-gray-400 mt-1"></p>
-                                <img id="previewComprobante" class="hidden mt-2 max-h-40 rounded-lg border border-gray-200" alt="Vista previa del comprobante">
+                            <div class="mb-5 hidden" id="contenedorTelefono">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Teléfono desde el que pagaste</label>
+                                <input type="tel" inputmode="numeric" id="telefonoPago" placeholder="Ej: 04245939407" maxlength="11" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
                             </div>
 
                             <button id="btnConfirmar" onclick="confirmarPedido()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
@@ -226,8 +224,8 @@
     <script>
         const CARRITO_KEY = 'vs_carrito';
         const ULTIMO_PEDIDO_KEY = 'vs_ultimo_pedido';
+        const LARGO_REFERENCIA = 8;
         let usuarioActual = null;
-        let comprobanteBase64 = null;
 
         // Tasa oficial del día (BCV), solo para mostrar el equivalente en
         // bolívares junto al subtotal/descuento/total. Si falla (sin internet,
@@ -413,26 +411,27 @@
             renderizarCarrito();
         }
 
-        // ---------- MÉTODO DE PAGO / DATOS DE LA CUENTA / COMPROBANTE ----------
+        // ---------- MÉTODO DE PAGO / DATOS DE LA CUENTA / REFERENCIA ----------
 
         function actualizarCampoReferencia() {
             const metodo = document.getElementById('metodoPago').value;
             const contenedorRef = document.getElementById('contenedorReferencia');
-            const contenedorComprobante = document.getElementById('contenedorComprobante');
+            const contenedorTelefono = document.getElementById('contenedorTelefono');
             const datosPagoBox = document.getElementById('datosPagoBox');
-            const input = document.getElementById('referencia');
+            const telInput = document.getElementById('telefonoPago');
 
             if (!metodo) {
                 contenedorRef.classList.add('hidden');
-                contenedorComprobante.classList.add('hidden');
+                contenedorTelefono.classList.add('hidden');
                 datosPagoBox.classList.add('hidden');
-                if (input) input.value = '';
-                limpiarComprobante();
+                limpiarReferencia();
+                if (telInput) telInput.value = '';
                 return;
             }
 
             contenedorRef.classList.remove('hidden');
-            contenedorComprobante.classList.remove('hidden');
+            contenedorTelefono.classList.remove('hidden');
+            generarCajasReferencia();
 
             if (DATOS_PAGO[metodo]) {
                 datosPagoBox.classList.remove('hidden');
@@ -444,60 +443,62 @@
             }
         }
 
-        function comprimirImagen(file) {
-            return new Promise((resolve, reject) => {
-                const lector = new FileReader();
-                lector.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const maxAncho = 800;
-                        const escala = Math.min(1, maxAncho / img.width);
-                        const canvas = document.createElement('canvas');
-                        canvas.width = Math.round(img.width * escala);
-                        canvas.height = Math.round(img.height * escala);
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.6));
-                    };
-                    img.onerror = () => reject(new Error('No se pudo leer la imagen'));
-                    img.src = e.target.result;
-                };
-                lector.onerror = () => reject(new Error('No se pudo leer el archivo'));
-                lector.readAsDataURL(file);
-            });
-        }
-
-        function limpiarComprobante() {
-            comprobanteBase64 = null;
-            const preview = document.getElementById('previewComprobante');
-            const estado = document.getElementById('estadoComprobante');
-            const input = document.getElementById('comprobanteInput');
-            if (preview) { preview.src = ''; preview.classList.add('hidden'); }
-            if (estado) estado.textContent = '';
-            if (input) input.value = '';
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const input = document.getElementById('comprobanteInput');
-            if (input) {
-                input.addEventListener('change', async (e) => {
-                    const file = e.target.files[0];
-                    const estado = document.getElementById('estadoComprobante');
-                    const preview = document.getElementById('previewComprobante');
-                    if (!file) { limpiarComprobante(); return; }
-                    if (estado) estado.textContent = 'Procesando imagen...';
-                    try {
-                        comprobanteBase64 = await comprimirImagen(file);
-                        if (preview) { preview.src = comprobanteBase64; preview.classList.remove('hidden'); }
-                        if (estado) estado.textContent = '✓ Comprobante listo para enviar';
-                    } catch (error) {
-                        console.error(error);
-                        comprobanteBase64 = null;
-                        if (estado) estado.textContent = 'No se pudo leer la imagen, intenta con otra.';
-                    }
-                });
+        // Cuadritos de referencia: un dígito por caja, avanza/retrocede solo,
+        // y soporta pegar el número completo de una vez.
+        function generarCajasReferencia() {
+            const cont = document.getElementById('cajasReferencia');
+            if (!cont || cont.childElementCount === LARGO_REFERENCIA) return;
+            cont.innerHTML = '';
+            for (let i = 0; i < LARGO_REFERENCIA; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.inputMode = 'numeric';
+                input.autocomplete = 'off';
+                input.maxLength = 1;
+                input.dataset.index = String(i);
+                input.className = 'w-full h-11 text-center border border-gray-200 rounded-lg text-sm font-semibold text-gray-900 outline-none focus:border-cyan-400';
+                input.addEventListener('input', onInputCajaReferencia);
+                input.addEventListener('keydown', onKeydownCajaReferencia);
+                input.addEventListener('paste', onPasteCajaReferencia);
+                cont.appendChild(input);
             }
-        });
+        }
+
+        function onInputCajaReferencia(e) {
+            const valor = e.target.value.replace(/\D/g, '').slice(-1);
+            e.target.value = valor;
+            if (valor && e.target.nextElementSibling) e.target.nextElementSibling.focus();
+        }
+
+        function onKeydownCajaReferencia(e) {
+            if (e.key === 'Backspace' && !e.target.value && e.target.previousElementSibling) {
+                e.target.previousElementSibling.focus();
+            }
+        }
+
+        function onPasteCajaReferencia(e) {
+            e.preventDefault();
+            const texto = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+            const cajas = Array.from(document.getElementById('cajasReferencia').children);
+            const inicio = Number(e.target.dataset.index);
+            texto.split('').forEach((digito, i) => {
+                const caja = cajas[inicio + i];
+                if (caja) caja.value = digito;
+            });
+            const ultimaCaja = cajas[Math.min(inicio + texto.length, cajas.length - 1)];
+            if (ultimaCaja) ultimaCaja.focus();
+        }
+
+        function obtenerReferencia() {
+            const cont = document.getElementById('cajasReferencia');
+            if (!cont) return '';
+            return Array.from(cont.children).map(inp => inp.value).join('');
+        }
+
+        function limpiarReferencia() {
+            const cont = document.getElementById('cajasReferencia');
+            if (cont) cont.innerHTML = '';
+        }
 
         // ---------- ENVIAR PEDIDO ----------
 
@@ -535,11 +536,12 @@
             }
 
             const metodoPago = document.getElementById('metodoPago').value;
-            const referencia = document.getElementById('referencia').value.trim();
+            const referencia = obtenerReferencia();
+            const telefonoPago = document.getElementById('telefonoPago').value.trim();
 
             if (!metodoPago) { alert('Selecciona un método de pago.'); return; }
-            if (!referencia) { alert('Escribe el número de referencia o comprobante de tu pago.'); return; }
-            if (!comprobanteBase64) { alert('Por favor sube una foto de tu comprobante de pago.'); return; }
+            if (referencia.length !== LARGO_REFERENCIA) { alert('Completa los ' + LARGO_REFERENCIA + ' dígitos de la referencia.'); return; }
+            if (!telefonoPago) { alert('Escribe el teléfono desde el que hiciste el pago.'); return; }
 
             const confirmar = confirm('¿Confirmar pedido por $' + calcularTotal().toFixed(2) + ' para revisión del vendedor?');
             if (!confirmar) return;
@@ -553,9 +555,9 @@
                 const cuerpo = {
                     items: carrito.map(it => ({ nombre: it.nombre, precio: it.precio, categoria: it.categoria, cantidad: it.cantidad, color: it.color || '', talla: it.talla || '' })),
                     metodoPago: metodoPago,
-                    referencia: referencia
+                    referencia: referencia,
+                    telefonoPago: telefonoPago
                 };
-                if (comprobanteBase64) cuerpo.comprobante = comprobanteBase64;
 
                 const token = await usuarioActual.getIdToken();
                 const respuesta = await fetch('/api/marcar-pagado', {
@@ -568,7 +570,6 @@
 
                 localStorage.removeItem(CARRITO_KEY);
                 actualizarContadorCarrito();
-                comprobanteBase64 = null;
                 document.getElementById('vistaCarrito').classList.add('hidden');
                 document.getElementById('vistaConfirmacion').classList.remove('hidden');
 
