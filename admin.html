@@ -877,9 +877,9 @@
             
             const hoyStr = new Date().toLocaleDateString('es-VE');
 
-            let filtradas = listaVentasMemoria;
+            let filtradas = listaVentasMemoria.filter(v => (v.metodoPago || '').toLowerCase() !== 'fiado');
             if (filtroVentas === 'hoy') {
-                filtradas = listaVentasMemoria.filter(v => {
+                filtradas = filtradas.filter(v => {
                     if (!v.fecha) return false;
                     const fStr = new Date(v.fecha).toLocaleDateString('es-VE');
                     return fStr === hoyStr;
@@ -1362,17 +1362,26 @@
         }
 
         async function marcarFiadoPagado(idVenta) {
-            if (!confirm('¿Confirmas que este fiado ya fue pagado por completo?')) return;
+            const metodoPago = prompt('¿Con qué método pagó el cliente?\n(Ej: Pago Móvil, Efectivo USD, Efectivo Bs, Transferencia, Zelle, Binance):', 'Pago Móvil');
+            if (metodoPago === null) return;
             try {
                 const resp = await fetch('/api/admin-pedidos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: obtenerPassword(), accion: 'marcarFiadoPagado', idVenta })
+                    body: JSON.stringify({
+                        password: obtenerPassword(),
+                        accion: 'marcarFiadoPagado',
+                        idVenta: idVenta,
+                        metodoPago: metodoPago.trim() || 'Pago Móvil'
+                    })
                 });
                 const datos = await resp.json();
                 if (!datos.ok) { alert('Error: ' + (datos.error || 'no se pudo actualizar')); return; }
+                alert('✅ ¡Fiado cobrado con éxito! Ya se sumó a las ventas del día.');
                 cargarFiados();
                 cargarResumenFiadosVencidos();
+                cargarResumen();
+                if (tabActiva === 'ventas') cargarVentas();
             } catch (e) {
                 alert('No se pudo conectar con el servidor.');
             }

@@ -85,13 +85,15 @@ export async function onRequestPost(context) {
   intentosFallidosPorIP.delete(ip);
 
   // Lectura: listar órdenes pendientes/aceptadas/rechazadas, el registro de
-  // ventas (caja registradora) o el resumen de ventas del día
+  // ventas (caja registradora), fiados, gastos o el resumen de ventas del día
   if (
     datos.tipo === "pedidos" ||
     datos.tipo === "aceptados" ||
     datos.tipo === "resumen" ||
     datos.tipo === "rechazadas" ||
-    datos.tipo === "ventas"
+    datos.tipo === "ventas" ||
+    datos.tipo === "fiados" ||
+    datos.tipo === "gastos"
   ) {
     const url = SHEET_WRITE_URL + "?accion=" + datos.tipo + "&clave=" + encodeURIComponent(CLAVE_ADMIN);
     const respuesta = await fetch(url, { method: "GET" });
@@ -120,7 +122,7 @@ export async function onRequestPost(context) {
     return jsonResponse(resultado, resultado.ok ? 200 : 500);
   }
 
-  // Escritura: registrar una venta hecha en la tienda física (soporta lote o prenda individual)
+  // Escritura: registrar una venta hecha en la tienda física (soporta lote o prenda individual, y fiados)
   if (datos.accion === "ventaFisica") {
     const tieneItems = Array.isArray(datos.items) && datos.items.length > 0;
     if (!datos.metodoPago || (!datos.nombre && !tieneItems)) {
@@ -138,6 +140,10 @@ export async function onRequestPost(context) {
       correoCliente: recortar(datos.correoCliente, 200),
       nota: recortar(datos.nota, 300),
       clave: CLAVE_ADMIN,
+      esFiado: Boolean(datos.esFiado || datos.metodoPago === "Fiado"),
+      clienteNombre: recortar(datos.clienteNombre, 120),
+      fechaPago: recortar(datos.fechaPago, 30),
+      estadoPago: recortar(datos.estadoPago, 30),
     };
 
     if (tieneItems) {
@@ -153,6 +159,67 @@ export async function onRequestPost(context) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(cuerpo),
+    });
+
+    const resultado = await parsearRespuesta(respuesta);
+    return jsonResponse(resultado, resultado.ok ? 200 : 500);
+  }
+
+  // Escritura: marcar fiado como pagado
+  if (datos.accion === "marcarFiadoPagado") {
+    if (!datos.idVenta && !datos.idFiado && !datos.id) {
+      return jsonResponse({ ok: false, error: "Falta el id del fiado" }, 400);
+    }
+
+    const respuesta = await fetch(SHEET_WRITE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accion: "marcarFiadoPagado",
+        idVenta: datos.idVenta || datos.idFiado || datos.id,
+        metodoPago: datos.metodoPago || "Pago Móvil",
+        clave: CLAVE_ADMIN,
+      }),
+    });
+
+    const resultado = await parsearRespuesta(respuesta);
+    return jsonResponse(resultado, resultado.ok ? 200 : 500);
+  }
+
+  // Escritura: registrar gasto
+  if (datos.accion === "agregarGasto") {
+    const respuesta = await fetch(SHEET_WRITE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accion: "agregarGasto",
+        concepto: datos.concepto,
+        monto: datos.monto,
+        categoria: datos.categoria,
+        fecha: datos.fecha,
+        nota: datos.nota,
+        clave: CLAVE_ADMIN,
+      }),
+    });
+
+    const resultado = await parsearRespuesta(respuesta);
+    return jsonResponse(resultado, resultado.ok ? 200 : 500);
+  }
+
+  // Escritura: eliminar gasto
+  if (datos.accion === "eliminarGasto") {
+    if (!datos.idGasto) {
+      return jsonResponse({ ok: false, error: "Falta el id del gasto" }, 400);
+    }
+
+    const respuesta = await fetch(SHEET_WRITE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accion: "eliminarGasto",
+        idGasto: datos.idGasto,
+        clave: CLAVE_ADMIN,
+      }),
     });
 
     const resultado = await parsearRespuesta(respuesta);
