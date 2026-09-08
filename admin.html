@@ -126,20 +126,32 @@
             </button>
         </header>
 
-        <!-- RESUMEN DEL DÍA (ZONA HORARIA VENEZUELA: EN $ Y BS) -->
-        <div class="relative overflow-hidden bg-gray-900 rounded-3xl p-6 mb-6 text-white shadow-xl shadow-gray-900/10">
+        <!-- RESUMEN DEL DÍA: BS Y $ SEPARADOS, SIN CONVERSIÓN ENTRE ELLOS -->
+        <div class="relative overflow-hidden bg-gray-900 rounded-3xl p-5 mb-6 text-white shadow-xl shadow-gray-900/10">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-cyan-500/25 rounded-full blur-2xl pointer-events-none"></div>
             <div class="absolute -left-6 -bottom-10 w-28 h-28 bg-cyan-400/10 rounded-full blur-xl pointer-events-none"></div>
-            <p class="relative text-xs text-gray-300 uppercase tracking-widest font-bold mb-1.5">Vendido hoy</p>
-            <div class="relative flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <p class="text-4xl font-black" id="totalHoy">$0.00</p>
-                <p class="text-2xl text-cyan-300 font-extrabold font-mono" id="totalHoyBs"></p>
+            <p class="relative text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-3 flex items-center gap-1.5">
+                <i class="fa-regular fa-calendar text-cyan-400"></i> Vendido hoy · por moneda
+            </p>
+            <div class="relative grid grid-cols-2 gap-3">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                    <p class="text-[10px] text-cyan-300 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-money-bill-wave"></i> Bolívares
+                    </p>
+                    <p class="text-2xl font-black font-mono leading-tight" id="heroTotalBs">Bs 0,00</p>
+                    <p class="text-[11px] text-gray-400 mt-1" id="heroPiezasBs">0 prendas</p>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                    <p class="text-[10px] text-emerald-300 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-dollar-sign"></i> Divisas
+                    </p>
+                    <p class="text-2xl font-black font-mono leading-tight" id="heroTotalUsd">$0.00</p>
+                    <p class="text-[11px] text-gray-400 mt-1" id="heroPiezasUsd">0 prendas</p>
+                </div>
             </div>
-            <div class="relative flex items-center gap-2.5 mt-2">
-                <p class="text-sm text-gray-300" id="cantidadHoy">0 prendas hoy</p>
-                <span class="w-1 h-1 bg-gray-500 rounded-full"></span>
-                <p class="text-xs text-gray-400" id="tasaHoyInfo"></p>
-            </div>
+            <p class="relative text-[10px] text-gray-500 mt-3 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info"></i> Cada moneda se muestra por separado, sin convertir una en la otra. <span id="heroTasaInfo"></span>
+            </p>
         </div>
 
         <!-- ACCIONES RÁPIDAS -->
@@ -255,12 +267,13 @@
                 <div>
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Método de pago</label>
                     <select id="fisicaMetodoPago" onchange="alCambiarMetodoPagoFisica()" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400 font-medium">
-                        <option value="Pago Móvil">Pago Móvil</option>
+                        <option value="Pago Móvil">Pago Móvil (Bs)</option>
                         <option value="Efectivo Bs">Efectivo Bs</option>
-                        <option value="Efectivo USD">Efectivo USD</option>
-                        <option value="Transferencia">Transferencia</option>
-                        <option value="Binance">Binance</option>
-                        <option value="Zelle">Zelle</option>
+                        <option value="Punto de venta">Punto de venta (Bs)</option>
+                        <option value="Transferencia">Transferencia (Bs)</option>
+                        <option value="Efectivo USD">Efectivo USD ($)</option>
+                        <option value="Zelle">Zelle ($)</option>
+                        <option value="Binance">Binance ($)</option>
                         <option value="Fiado">Fiado (pago pendiente)</option>
                     </select>
                 </div>
@@ -438,7 +451,7 @@
             <p id="sinRechazadas" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes rechazadas hoy.</p>
         </div>
 
-        <!-- VISTA: VENTAS (CON FILTRO HOY/TODAS Y BOTÓN VACIAR) -->
+        <!-- VISTA: VENTAS (CON FILTRO HOY/TODAS, TOTALES POR MONEDA SEPARADOS Y BOTÓN VACIAR) -->
         <div id="vistaVentas" class="hidden">
             <div class="flex items-center justify-between -mt-2 mb-3">
                 <div class="flex items-center gap-1 bg-gray-200/70 p-1 rounded-xl text-xs font-bold">
@@ -455,21 +468,35 @@
                 </button>
             </div>
 
-            <!-- TARJETA RESUMEN DE VENTAS (TOTAL VENDIDO EN DÓLARES Y BS) -->
+            <!-- Selector de moneda a visualizar: Bs, $ o ambas por separado -->
+            <div class="flex items-center gap-1 bg-gray-200/70 p-1 rounded-xl text-xs font-bold mb-3 w-fit">
+                <button id="btnMonedaAmbas" onclick="filtrarMonedaVentas('ambas')" class="px-3 py-1 rounded-lg bg-white text-gray-900 shadow-sm transition">
+                    Todas
+                </button>
+                <button id="btnMonedaBs" onclick="filtrarMonedaVentas('bs')" class="px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition">
+                    Solo Bs
+                </button>
+                <button id="btnMonedaUsd" onclick="filtrarMonedaVentas('usd')" class="px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition">
+                    Solo $
+                </button>
+            </div>
+
+            <!-- TARJETA RESUMEN DE VENTAS: BOLÍVARES Y DÓLARES POR SEPARADO, SIN CONVERSIÓN -->
             <div id="resumenVentasTarjeta" class="bg-gray-900 rounded-2xl p-4 mb-3 text-white shadow-md">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">
-                            <i class="fa-solid fa-chart-line text-cyan-400 mr-1"></i> Total vendido (<span id="ventasFiltroLabel">Hoy</span>)
-                        </p>
-                        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-                            <span id="ventasTotalDolares" class="text-2xl font-black text-white">$0.00</span>
-                            <span id="ventasTotalBs" class="text-sm font-bold text-cyan-300 font-mono"></span>
-                        </div>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2.5">
+                    <i class="fa-solid fa-chart-line text-cyan-400 mr-1"></i> Total vendido (<span id="ventasFiltroLabel">Hoy</span>) · por moneda
+                </p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white/5 border border-white/10 rounded-xl p-3">
+                        <p class="text-[10px] text-cyan-300 font-bold uppercase tracking-wide mb-1">Bolívares</p>
+                        <p id="ventasTotalBs" class="text-lg font-black font-mono">Bs 0,00</p>
+                        <p id="ventasCantidadBs" class="text-[11px] text-gray-400 mt-0.5">0 prendas</p>
                     </div>
-                    <span id="ventasCantidadPrendas" class="text-xs font-semibold text-gray-300 bg-white/10 px-2.5 py-1 rounded-lg">
-                        0 prendas
-                    </span>
+                    <div class="bg-white/5 border border-white/10 rounded-xl p-3">
+                        <p class="text-[10px] text-emerald-300 font-bold uppercase tracking-wide mb-1">Divisas</p>
+                        <p id="ventasTotalDolares" class="text-lg font-black font-mono">$0.00</p>
+                        <p id="ventasCantidadUsd" class="text-[11px] text-gray-400 mt-0.5">0 prendas</p>
+                    </div>
                 </div>
             </div>
 
@@ -588,6 +615,13 @@
         const INTERVALO_REFRESCO = 30000;
         const LLAVE_CACHE = 'valera_admin_datos';
 
+        // Métodos de pago que se cobran en dólares/divisas reales (sin pasar por Bs)
+        const METODOS_USD = ['efectivo usd', 'zelle', 'binance'];
+
+        function esMetodoUsd(metodo) {
+            return METODOS_USD.includes((metodo || '').toLowerCase().trim());
+        }
+
         const formLogin = document.getElementById('formLogin');
         const inputPassword = document.getElementById('inputPassword');
         const errorLogin = document.getElementById('errorLogin');
@@ -619,6 +653,7 @@
         let itemPendienteConfirmar = null;
 
         let filtroVentas = 'hoy';
+        let filtroMonedaVentas = 'ambas';
         let listaVentasMemoria = [];
         let tasaBcvAdmin = null;
         let ultimoTotalHoy = 0;
@@ -786,11 +821,41 @@
             }
         }
 
-        function renderizarResumen(resumen) {
-            ultimoTotalHoy = Number(resumen.totalHoy) || 0;
-            document.getElementById('totalHoy').textContent = '$' + ultimoTotalHoy.toFixed(2);
-            document.getElementById('cantidadHoy').textContent = resumen.cantidadHoy + ' prendas hoy';
-            actualizarTotalHoyBs();
+        // ---------- HERO "VENDIDO HOY": TOTALES REALES POR MONEDA, SIN CONVERTIR ----------
+        function calcularTotalesPorMoneda(ventasArr) {
+            let totalBs = 0, totalUsd = 0, piezasBs = 0, piezasUsd = 0;
+            (ventasArr || []).forEach(v => {
+                if ((v.metodoPago || '').toLowerCase().trim() === 'fiado') return; // aún no cobrado
+                if (esMetodoUsd(v.metodoPago)) {
+                    totalUsd += Number(v.precio) || 0;
+                    piezasUsd++;
+                } else {
+                    const bs = v.precioBs != null && v.precioBs !== '' ? Number(v.precioBs) : (tasaBcvAdmin ? (Number(v.precio) || 0) * tasaBcvAdmin : 0);
+                    totalBs += bs;
+                    piezasBs++;
+                }
+            });
+            return { totalBs, totalUsd, piezasBs, piezasUsd };
+        }
+
+        function renderizarHeroVendidoHoy() {
+            const hoyStr = new Date().toLocaleDateString('es-VE');
+            const ventasHoy = listaVentasMemoria.filter(v => v.fecha && new Date(v.fecha).toLocaleDateString('es-VE') === hoyStr);
+            const totales = calcularTotalesPorMoneda(ventasHoy);
+
+            const elBs = document.getElementById('heroTotalBs');
+            const elUsd = document.getElementById('heroTotalUsd');
+            const elPiezasBs = document.getElementById('heroPiezasBs');
+            const elPiezasUsd = document.getElementById('heroPiezasUsd');
+            const elTasa = document.getElementById('heroTasaInfo');
+
+            if (elBs) elBs.textContent = 'Bs ' + totales.totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (elUsd) elUsd.textContent = '$' + totales.totalUsd.toFixed(2);
+            if (elPiezasBs) elPiezasBs.textContent = totales.piezasBs + (totales.piezasBs === 1 ? ' prenda' : ' prendas');
+            if (elPiezasUsd) elPiezasUsd.textContent = totales.piezasUsd + (totales.piezasUsd === 1 ? ' prenda' : ' prendas');
+            if (elTasa) elTasa.textContent = tasaBcvAdmin ? 'Tasa BCV: Bs ' + tasaBcvAdmin.toLocaleString('es-VE', { minimumFractionDigits: 2 }) + ' / USD (solo referencial)' : '';
+
+            guardarCache({ heroVendidoHoy: totales });
         }
 
         function renderizarPedidos(ordenes) {
@@ -845,42 +910,31 @@
                 const datosGuardados = localStorage.getItem(LLAVE_CACHE);
                 if (datosGuardados) {
                     const datos = JSON.parse(datosGuardados);
-                    if (datos.resumen) renderizarResumen(datos.resumen);
                     if (datos.pedidos) renderizarPedidos(datos.pedidos);
+                    if (datos.heroVendidoHoy) {
+                        const t = datos.heroVendidoHoy;
+                        document.getElementById('heroTotalBs').textContent = 'Bs ' + Number(t.totalBs || 0).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        document.getElementById('heroTotalUsd').textContent = '$' + Number(t.totalUsd || 0).toFixed(2);
+                        document.getElementById('heroPiezasBs').textContent = (t.piezasBs || 0) + ' prendas';
+                        document.getElementById('heroPiezasUsd').textContent = (t.piezasUsd || 0) + ' prendas';
+                    }
                 }
             } catch (e) {
                 // Caché corrupta o bloqueada: seguimos normal con la carga de red
             }
 
             // 2. Traer los datos frescos de internet en segundo plano
+            // Ventas se trae siempre (no solo en su pestaña) porque alimenta el resumen "Vendido hoy"
             try {
-                const tareas = [cargarResumen(), cargarPedidos(), cargarResumenFiadosVencidos()];
+                const tareas = [cargarPedidos(), cargarVentas(), cargarResumenFiadosVencidos()];
                 if (tabActiva === 'aceptadas') tareas.push(cargarAceptadas());
                 if (tabActiva === 'rechazadas') tareas.push(cargarRechazadas());
-                if (tabActiva === 'ventas') tareas.push(cargarVentas());
                 if (tabActiva === 'fiados') tareas.push(cargarFiados());
                 if (tabActiva === 'gastos') tareas.push(cargarGastos());
                 await Promise.all(tareas);
                 marcarActualizado();
             } catch (error) {
                 console.error('Error al actualizar datos en segundo plano:', error);
-            }
-        }
-
-        async function cargarResumen() {
-            try {
-                const resp = await fetch('/api/admin-pedidos', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: obtenerPassword(), tipo: 'resumen' })
-                });
-                const datos = await resp.json();
-                if (datos.ok) {
-                    renderizarResumen(datos.resumen);
-                    guardarCache({ resumen: datos.resumen });
-                }
-            } catch (e) {
-                console.error('Error cargando resumen:', e);
             }
         }
 
@@ -1023,43 +1077,55 @@
             renderizarListaVentas();
         }
 
+        function filtrarMonedaVentas(tipo) {
+            filtroMonedaVentas = tipo;
+            const mapa = {
+                ambas: document.getElementById('btnMonedaAmbas'),
+                bs: document.getElementById('btnMonedaBs'),
+                usd: document.getElementById('btnMonedaUsd')
+            };
+            Object.keys(mapa).forEach(k => {
+                mapa[k].className = k === tipo
+                    ? 'px-3 py-1 rounded-lg bg-white text-gray-900 shadow-sm transition'
+                    : 'px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition';
+            });
+            renderizarListaVentas();
+        }
+
         function renderizarListaVentas() {
             const lista = document.getElementById('listaVentas');
             const sinVentas = document.getElementById('sinVentas');
-            const totalDolaresEl = document.getElementById('ventasTotalDolares');
             const totalBsEl = document.getElementById('ventasTotalBs');
-            const cantidadPrendasEl = document.getElementById('ventasCantidadPrendas');
+            const totalUsdEl = document.getElementById('ventasTotalDolares');
+            const cantidadBsEl = document.getElementById('ventasCantidadBs');
+            const cantidadUsdEl = document.getElementById('ventasCantidadUsd');
             const filtroLabelEl = document.getElementById('ventasFiltroLabel');
-            
+
             const hoyStr = new Date().toLocaleDateString('es-VE');
 
-            let filtradas = listaVentasMemoria.filter(v => (v.metodoPago || '').toLowerCase() !== 'fiado');
+            // Las fiadas pendientes no cuentan como dinero cobrado todavía
+            let filtradasPeriodo = listaVentasMemoria.filter(v => (v.metodoPago || '').toLowerCase().trim() !== 'fiado');
 
             if (filtroVentas === 'hoy') {
-                filtradas = filtradas.filter(v => {
+                filtradasPeriodo = filtradasPeriodo.filter(v => {
                     if (!v.fecha) return false;
                     const fStr = new Date(v.fecha).toLocaleDateString('es-VE');
                     return fStr === hoyStr;
                 });
             }
 
-            // CALCULAR TOTAL VENDIDO (DÓLARES Y BOLÍVARES)
-            const totalDolares = filtradas.reduce((s, v) => s + (Number(v.precio) || 0), 0);
-            const totalBs = filtradas.reduce((s, v) => s + (v.precioBs ? Number(v.precioBs) : (tasaBcvAdmin ? (Number(v.precio) || 0) * tasaBcvAdmin : 0)), 0);
-            const totalPrendas = filtradas.length;
+            // TOTALES POR MONEDA, SIEMPRE SEPARADOS (SIN CONVERTIR UNO EN OTRO)
+            const totales = calcularTotalesPorMoneda(filtradasPeriodo);
+            if (totalBsEl) totalBsEl.textContent = 'Bs ' + totales.totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (totalUsdEl) totalUsdEl.textContent = '$' + totales.totalUsd.toFixed(2);
+            if (cantidadBsEl) cantidadBsEl.textContent = totales.piezasBs + (totales.piezasBs === 1 ? ' prenda' : ' prendas');
+            if (cantidadUsdEl) cantidadUsdEl.textContent = totales.piezasUsd + (totales.piezasUsd === 1 ? ' prenda' : ' prendas');
+            if (filtroLabelEl) filtroLabelEl.textContent = filtroVentas === 'hoy' ? 'Hoy' : 'Todas las registradas';
 
-            if (totalDolaresEl) totalDolaresEl.textContent = '$' + totalDolares.toFixed(2);
-            if (totalBsEl) {
-                totalBsEl.textContent = (tasaBcvAdmin || totalBs > 0)
-                    ? '≈ Bs ' + (totalBs || (totalDolares * (tasaBcvAdmin || 0))).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                    : '';
-            }
-            if (cantidadPrendasEl) {
-                cantidadPrendasEl.textContent = totalPrendas + (totalPrendas === 1 ? ' prenda' : ' prendas');
-            }
-            if (filtroLabelEl) {
-                filtroLabelEl.textContent = filtroVentas === 'hoy' ? 'Hoy' : 'Todas las registradas';
-            }
+            // Filtro de moneda para la LISTA (el resumen de arriba siempre muestra ambas)
+            let filtradas = filtradasPeriodo;
+            if (filtroMonedaVentas === 'bs') filtradas = filtradas.filter(v => !esMetodoUsd(v.metodoPago));
+            if (filtroMonedaVentas === 'usd') filtradas = filtradas.filter(v => esMetodoUsd(v.metodoPago));
 
             if (!filtradas.length) {
                 lista.innerHTML = '';
@@ -1098,7 +1164,7 @@
             const lista = document.getElementById('listaVentas');
             const sinVentas = document.getElementById('sinVentas');
 
-            if (!lista.children.length) cargando.classList.remove('hidden');
+            if (tabActiva === 'ventas' && !lista.children.length) cargando.classList.remove('hidden');
 
             try {
                 const resp = await fetch('/api/admin-pedidos', {
@@ -1111,16 +1177,17 @@
 
                 cargando.classList.add('hidden');
                 if (!datos.ok) {
-                    lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar ventas') + '</p>';
+                    if (tabActiva === 'ventas') lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar ventas') + '</p>';
                     return;
                 }
 
                 listaVentasMemoria = datos.ventas || [];
                 renderizarListaVentas();
+                renderizarHeroVendidoHoy();
             } catch (e) {
                 if (miId !== idSolicitudVentas) return;
                 cargando.classList.add('hidden');
-                lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
+                if (tabActiva === 'ventas') lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
             } finally {
                 peticionVentasEnCurso = false;
             }
@@ -1159,12 +1226,16 @@
 
         function tarjetaVenta(venta) {
             const fecha = venta.fecha ? new Date(venta.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
-            const precio = Number(venta.precio || 0).toFixed(2);
-            const precioBsNum = venta.precioBs ? Number(venta.precioBs) : (tasaBcvAdmin ? (Number(venta.precio) || 0) * tasaBcvAdmin : null);
             const canalTexto = venta.canal || 'Venta';
             const esFisica = canalTexto.toLowerCase().indexOf('f') === 0;
             const colorCanal = esFisica ? 'text-cyan-600' : 'text-emerald-600';
             const iconoCanal = esFisica ? 'fa-store' : 'fa-globe';
+
+            const esUsd = esMetodoUsd(venta.metodoPago);
+            const montoPrincipal = esUsd
+                ? '$' + Number(venta.precio || 0).toFixed(2)
+                : 'Bs ' + (venta.precioBs != null && venta.precioBs !== '' ? Number(venta.precioBs) : (tasaBcvAdmin ? (Number(venta.precio) || 0) * tasaBcvAdmin : 0)).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const colorMonto = esUsd ? 'text-emerald-600' : 'text-gray-900';
 
             return `
                 <div class="bg-white border border-gray-100 rounded-2xl p-4">
@@ -1177,8 +1248,8 @@
                             <p class="text-[11px] text-gray-400">${escapeHTML(fecha)}${venta.categoria ? ' · ' + escapeHTML(venta.categoria) : ''}</p>
                         </div>
                         <div class="text-right flex-shrink-0 ml-3">
-                            <span class="text-lg font-black text-gray-900 block">$${precio}</span>
-                            ${precioBsNum ? `<span class="text-[11px] text-cyan-600 block font-mono font-bold">≈ Bs ${precioBsNum.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
+                            <span class="text-lg font-black ${colorMonto} block font-mono">${montoPrincipal}</span>
+                            <span class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">${esUsd ? 'Divisas' : 'Bolívares'}</span>
                         </div>
                     </div>
                     ${(venta.metodoPago || venta.correo) ? `
@@ -1195,7 +1266,7 @@
         }
 
         // Tarjeta para una venta compuesta por varias prendas (misma transacción):
-        // muestra cada prenda con su nombre, categoría y precio, y el total abajo.
+        // muestra cada prenda con su nombre, categoría y precio (en la moneda real cobrada), y el total abajo.
         function tarjetaVentaGrupo(ventas) {
             const primera = ventas[0];
             const fecha = primera.fecha ? new Date(primera.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
@@ -1203,27 +1274,29 @@
             const esFisica = canalTexto.toLowerCase().indexOf('f') === 0;
             const colorCanal = esFisica ? 'text-cyan-600' : 'text-emerald-600';
             const iconoCanal = esFisica ? 'fa-store' : 'fa-globe';
+            const esUsd = esMetodoUsd(primera.metodoPago);
 
             const totalUsd = ventas.reduce((s, v) => s + (Number(v.precio) || 0), 0);
-            const totalBsNum = ventas.reduce((s, v) => s + (v.precioBs ? Number(v.precioBs) : (tasaBcvAdmin ? (Number(v.precio) || 0) * tasaBcvAdmin : 0)), 0);
+            const totalBsCalc = ventas.reduce((s, v) => s + (v.precioBs != null && v.precioBs !== '' ? Number(v.precioBs) : (tasaBcvAdmin ? (Number(v.precio) || 0) * tasaBcvAdmin : 0)), 0);
             const notaComun = primera.nota || '';
 
             const listaItems = ventas.map(v => {
-                const itemPrecio = Number(v.precio || 0);
-                const itemBs = tasaBcvAdmin ? (itemPrecio * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : null;
+                const itemMonto = esUsd
+                    ? '$' + Number(v.precio || 0).toFixed(2)
+                    : 'Bs ' + (v.precioBs != null && v.precioBs !== '' ? Number(v.precioBs) : (tasaBcvAdmin ? (Number(v.precio) || 0) * tasaBcvAdmin : 0)).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 return `
                     <div class="flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
                         <div>
                             <span class="text-gray-900">${escapeHTML(v.producto || 'Producto')}</span>
                             <span class="text-[10px] text-gray-400 uppercase tracking-wide ml-2">${escapeHTML(v.categoria || 'Variados')}</span>
                         </div>
-                        <div class="text-right">
-                            <span class="text-gray-900 text-xs font-mono font-bold">$${itemPrecio.toFixed(2)}</span>
-                            ${itemBs ? `<span class="text-[10px] text-gray-400 font-mono block">≈ Bs ${itemBs}</span>` : ''}
-                        </div>
+                        <span class="text-gray-700 text-xs font-mono font-bold">${itemMonto}</span>
                     </div>
                 `;
             }).join('');
+
+            const montoPrincipal = esUsd ? '$' + totalUsd.toFixed(2) : 'Bs ' + totalBsCalc.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const colorMonto = esUsd ? 'text-emerald-600' : 'text-gray-900';
 
             return `
                 <div class="bg-white border border-gray-100 rounded-2xl p-4">
@@ -1235,8 +1308,8 @@
                             <p class="text-[11px] text-gray-400">${escapeHTML(fecha)}</p>
                         </div>
                         <div class="text-right flex-shrink-0 ml-3">
-                            <span class="text-lg font-black text-gray-900 block">$${totalUsd.toFixed(2)}</span>
-                            ${(tasaBcvAdmin || totalBsNum > 0) ? `<span class="text-[11px] text-cyan-600 block font-mono font-bold">≈ Bs ${(totalBsNum || (totalUsd * (tasaBcvAdmin || 0))).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
+                            <span class="text-lg font-black ${colorMonto} block font-mono">${montoPrincipal}</span>
+                            <span class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">${esUsd ? 'Divisas' : 'Bolívares'}</span>
                         </div>
                     </div>
 
@@ -1379,7 +1452,7 @@
                 }
 
                 if (tarjeta) tarjeta.remove();
-                cargarResumen();
+                cargarVentas();
 
                 const lista = document.getElementById('listaPedidos');
                 if (!lista.children.length) {
@@ -1566,7 +1639,7 @@
         }
 
         async function marcarFiadoPagado(idVenta) {
-            const metodoPago = prompt('¿Con qué método pagó el cliente?\n(Ej: Pago Móvil, Efectivo USD, Efectivo Bs, Transferencia, Zelle, Binance):', 'Pago Móvil');
+            const metodoPago = prompt('¿Con qué método pagó el cliente?\n(Ej: Pago Móvil, Efectivo USD, Efectivo Bs, Punto de venta, Transferencia, Zelle, Binance):', 'Pago Móvil');
             if (metodoPago === null) return;
             try {
                 const resp = await fetch('/api/admin-pedidos', {
@@ -1584,8 +1657,7 @@
                 alert('✅ ¡Fiado cobrado con éxito! Ya se sumó a las ventas del día.');
                 cargarFiados();
                 cargarResumenFiadosVencidos();
-                cargarResumen();
-                if (tabActiva === 'ventas') cargarVentas();
+                cargarVentas();
             } catch (e) {
                 alert('No se pudo conectar con el servidor.');
             }
@@ -1844,7 +1916,8 @@
                 tasaBcvAdmin = null;
             }
             actualizarPrecioBsFisica();
-            actualizarTotalHoyBs();
+            renderizarHeroVendidoHoy();
+            renderizarListaVentas();
             renderizarCarritoFisica();
         }
 
@@ -1854,19 +1927,6 @@
             const precio = parseFloat(document.getElementById('fisicaPrecio').value);
             if (!tasaBcvAdmin || !precio) { el.textContent = ''; return; }
             el.textContent = '≈ Bs ' + (precio * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        function actualizarTotalHoyBs() {
-            const el = document.getElementById('totalHoyBs');
-            const tasaEl = document.getElementById('tasaHoyInfo');
-            if (!el) return;
-            if (tasaBcvAdmin) {
-                el.textContent = '≈ Bs ' + (ultimoTotalHoy * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                if (tasaEl) tasaEl.textContent = 'Tasa BCV: Bs ' + tasaBcvAdmin.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' / USD';
-            } else {
-                el.textContent = '';
-                if (tasaEl) tasaEl.textContent = '';
-            }
         }
 
         function parseCSV(texto) {
@@ -2684,8 +2744,7 @@
                 const datos = await resp.json();
 
                 if (datos.ok) {
-                    cargarResumen();
-                    if (tabActiva === 'ventas') cargarVentas();
+                    cargarVentas();
                     if (esFiado) { cargarFiados(); cargarResumenFiadosVencidos(); }
                 } else {
                     throw new Error(datos.error || 'Error al procesar en servidor');
