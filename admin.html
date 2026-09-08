@@ -20,14 +20,52 @@
         ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
         .icon-btn { transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease; }
 
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* ESTILO LIQUID GLASS PARA MENÚ DE PESTAÑAS */
+        .glass-nav-container {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(20px) saturate(190%);
+            -webkit-backdrop-filter: blur(20px) saturate(190%);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 
+                        0 2px 8px -2px rgba(0, 0, 0, 0.02),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.9);
+        }
+
+        .liquid-glider {
+            position: absolute;
+            top: 5px;
+            bottom: 5px;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 253, 250, 0.92) 100%);
+            box-shadow: 0 6px 20px -3px rgba(6, 182, 212, 0.25), 
+                        0 2px 6px rgba(0, 0, 0, 0.03), 
+                        inset 0 1px 2px #ffffff,
+                        inset 0 -1px 2px rgba(6, 182, 212, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            pointer-events: none;
+            z-index: 1;
+            transition: left 0.32s cubic-bezier(0.25, 1, 0.5, 1), 
+                        width 0.32s cubic-bezier(0.25, 1, 0.5, 1),
+                        opacity 0.2s ease;
+        }
+
         .tab-pedidos {
-            color: #6b7280;
+            position: relative;
+            z-index: 2;
+            color: #64748b;
             background: transparent;
+            transition: color 0.2s ease, transform 0.15s ease;
+            user-select: none;
+        }
+        .tab-pedidos:hover {
+            color: #0f172a;
         }
         .tab-pedidos.activa {
-            background: #ffffff;
-            color: #111111;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            color: #083344;
+            font-weight: 800;
         }
 
         .accion-rapida.activa {
@@ -38,20 +76,42 @@
 </head>
 <body class="antialiased min-h-screen">
 
-    <!-- PANTALLA DE CONTRASEÑA -->
-    <div id="pantallaLogin" class="min-h-screen flex items-center justify-center px-6">
-        <div class="w-full max-w-sm">
-            <div class="text-center mb-8">
-                <span class="font-brand text-2xl font-extrabold tracking-tight text-gray-900">VALERA<span class="text-cyan-500">SPORT</span></span>
-                <p class="text-xs text-gray-400 uppercase tracking-widest mt-2">Panel de pedidos</p>
+    <!-- PANTALLA DE CONTRASEÑA CON EFECTO DE CARGA -->
+    <div id="pantallaLogin" class="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-gradient-to-b from-gray-50 via-white to-gray-100">
+        <!-- Manchas de luz tipo glassmorphism en el fondo -->
+        <div class="absolute -top-24 -left-24 w-80 h-80 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="w-full max-w-sm relative z-10">
+            <!-- Tarjeta Glass -->
+            <div class="bg-white/80 backdrop-blur-xl border border-white rounded-3xl p-7 shadow-xl shadow-gray-200/50">
+                <div class="text-center mb-6">
+                    <span class="font-brand text-3xl font-black tracking-tight text-gray-900">VALERA<span class="text-cyan-500">SPORT</span></span>
+                    <p class="text-[11px] text-gray-400 uppercase tracking-widest font-bold mt-1">Panel de administración</p>
+                </div>
+                
+                <form id="formLogin" class="space-y-4">
+                    <div>
+                        <label for="inputPassword" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Contraseña de acceso</label>
+                        <input type="password" id="inputPassword" placeholder="Escribe tu clave..." autocomplete="current-password" class="w-full bg-white/90 border border-gray-200 focus:border-cyan-400 rounded-2xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition shadow-sm">
+                    </div>
+                    
+                    <button type="submit" id="btnSubmitLogin" class="w-full relative overflow-hidden bg-gray-900 hover:bg-gray-800 text-white font-extrabold py-3.5 rounded-full text-xs uppercase tracking-wider transition-all duration-200 shadow-md shadow-gray-900/15 flex items-center justify-center gap-2 active:scale-[0.98]">
+                        <span id="textoBtnLogin">Entrar al panel</span>
+                        <i id="spinnerLogin" class="hidden fa-solid fa-circle-notch fa-spin text-sm text-cyan-400"></i>
+                    </button>
+                    
+                    <!-- Estado de carga visual -->
+                    <div id="estadoCargandoLogin" class="hidden flex items-center justify-center gap-2 pt-1 text-xs font-semibold text-cyan-600 animate-pulse">
+                        <i class="fa-solid fa-spinner fa-spin text-cyan-500"></i>
+                        <span id="textoEstadoCargando">Verificando credenciales...</span>
+                    </div>
+
+                    <p id="errorLogin" class="hidden text-rose-500 text-xs font-semibold text-center bg-rose-50 border border-rose-100 rounded-xl py-2 px-3"></p>
+                </form>
             </div>
-            <form id="formLogin" class="space-y-4">
-                <input type="password" id="inputPassword" placeholder="Contraseña del panel" autocomplete="current-password" class="w-full bg-white border border-gray-200 focus:border-cyan-400 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none">
-                <button type="submit" class="w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3 rounded-full text-sm uppercase tracking-wide transition">
-                    Entrar
-                </button>
-                <p id="errorLogin" class="hidden text-rose-500 text-xs text-center">Contraseña incorrecta</p>
-            </form>
+            
+            <p class="text-center text-[11px] text-gray-400 mt-4 font-medium">Valera Sport · Acceso seguro</p>
         </div>
     </div>
 
@@ -308,25 +368,29 @@
             </div>
         </div>
 
-        <!-- PESTAÑAS: PENDIENTES / ACEPTADAS / RECHAZADAS / VENTAS / FIADO / GASTOS -->
-        <div class="flex gap-1 bg-gray-100 rounded-2xl p-1 mb-2 overflow-x-auto">
-            <button data-tab="pendientes" onclick="cambiarTabPedidos('pendientes')" class="tab-pedidos activa font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
-                Pendientes
+        <!-- PESTAÑAS: REDISEÑO OVALADO LIQUID GLASS -->
+        <div id="contenedorTabsNav" class="glass-nav-container relative flex items-center p-1.5 rounded-full mb-3 overflow-x-auto no-scrollbar gap-1">
+            <!-- Píldora deslizante Liquid Glass -->
+            <div id="liquidGlider" class="liquid-glider opacity-0"></div>
+
+            <button data-tab="pendientes" onclick="cambiarTabPedidos('pendientes')" class="tab-pedidos activa font-bold text-xs py-2.5 px-3.5 rounded-full whitespace-nowrap active:scale-95 flex items-center gap-1.5">
+                <i class="fa-regular fa-clock text-[11px] opacity-75"></i> Pendientes
             </button>
-            <button data-tab="aceptadas" onclick="cambiarTabPedidos('aceptadas')" class="tab-pedidos font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
-                Aceptadas
+            <button data-tab="aceptadas" onclick="cambiarTabPedidos('aceptadas')" class="tab-pedidos font-bold text-xs py-2.5 px-3.5 rounded-full whitespace-nowrap active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-check text-[11px] text-emerald-500"></i> Aceptadas
             </button>
-            <button data-tab="rechazadas" onclick="cambiarTabPedidos('rechazadas')" class="tab-pedidos font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
-                Rechazadas
+            <button data-tab="rechazadas" onclick="cambiarTabPedidos('rechazadas')" class="tab-pedidos font-bold text-xs py-2.5 px-3.5 rounded-full whitespace-nowrap active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-xmark text-[11px] text-rose-500"></i> Rechazadas
             </button>
-            <button data-tab="ventas" onclick="cambiarTabPedidos('ventas')" class="tab-pedidos font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
-                Ventas
+            <button data-tab="ventas" onclick="cambiarTabPedidos('ventas')" class="tab-pedidos font-bold text-xs py-2.5 px-3.5 rounded-full whitespace-nowrap active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-receipt text-[11px] text-cyan-600"></i> Ventas
             </button>
-            <button data-tab="fiados" onclick="cambiarTabPedidos('fiados')" class="tab-pedidos font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
-                Fiado <span id="badgeFiadosVencidos" class="hidden ml-1 bg-rose-500 text-white rounded-full px-1.5 text-[10px]">0</span>
+            <button data-tab="fiados" onclick="cambiarTabPedidos('fiados')" class="tab-pedidos font-bold text-xs py-2.5 px-3.5 rounded-full whitespace-nowrap active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-hand-holding-dollar text-[11px] text-amber-500"></i> Fiado
+                <span id="badgeFiadosVencidos" class="hidden ml-0.5 bg-rose-500 text-white shadow-sm shadow-rose-500/30 rounded-full px-1.5 py-0.5 text-[10px] font-black">0</span>
             </button>
-            <button data-tab="gastos" onclick="cambiarTabPedidos('gastos')" class="tab-pedidos font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
-                Gastos
+            <button data-tab="gastos" onclick="cambiarTabPedidos('gastos')" class="tab-pedidos font-bold text-xs py-2.5 px-3.5 rounded-full whitespace-nowrap active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-wallet text-[11px] text-rose-400"></i> Gastos
             </button>
         </div>
 
@@ -495,6 +559,11 @@
         const errorLogin = document.getElementById('errorLogin');
         const pantallaLogin = document.getElementById('pantallaLogin');
         const panelPrincipal = document.getElementById('panelPrincipal');
+        const btnSubmitLogin = document.getElementById('btnSubmitLogin');
+        const textoBtnLogin = document.getElementById('textoBtnLogin');
+        const spinnerLogin = document.getElementById('spinnerLogin');
+        const estadoCargandoLogin = document.getElementById('estadoCargandoLogin');
+        const textoEstadoCargando = document.getElementById('textoEstadoCargando');
 
         let tabActiva = 'pendientes';
         let idSolicitudPedidos = 0, idSolicitudAceptadas = 0, idSolicitudRechazadas = 0, idSolicitudVentas = 0, idSolicitudFiados = 0, idSolicitudGastos = 0;
@@ -553,17 +622,40 @@
             } catch (e) {}
         }
 
+        function setEstadoCargaLogin(cargando, texto = 'Verificando credenciales...') {
+            if (cargando) {
+                if (inputPassword) inputPassword.disabled = true;
+                if (btnSubmitLogin) btnSubmitLogin.disabled = true;
+                if (textoBtnLogin) textoBtnLogin.textContent = 'Accediendo...';
+                if (spinnerLogin) spinnerLogin.classList.remove('hidden');
+                if (estadoCargandoLogin) estadoCargandoLogin.classList.remove('hidden');
+                if (textoEstadoCargando && texto) textoEstadoCargando.textContent = texto;
+                if (errorLogin) errorLogin.classList.add('hidden');
+            } else {
+                if (inputPassword) inputPassword.disabled = false;
+                if (btnSubmitLogin) btnSubmitLogin.disabled = false;
+                if (textoBtnLogin) textoBtnLogin.textContent = 'Entrar al panel';
+                if (spinnerLogin) spinnerLogin.classList.add('hidden');
+                if (estadoCargandoLogin) estadoCargandoLogin.classList.add('hidden');
+            }
+        }
+
         formLogin.addEventListener('submit', async (e) => {
             e.preventDefault();
             const clave = inputPassword.value.trim();
             if (!clave) return;
 
-            errorLogin.classList.add('hidden');
+            setEstadoCargaLogin(true, 'Verificando credenciales...');
             const resultado = await probarPassword(clave);
             if (resultado.valida) {
+                if (textoEstadoCargando) textoEstadoCargando.textContent = '¡Correcto! Cargando panel...';
                 sessionStorage.setItem(PASSWORD_KEY, clave);
-                mostrarPanel();
+                setTimeout(() => {
+                    setEstadoCargaLogin(false);
+                    mostrarPanel();
+                }, 300);
             } else {
+                setEstadoCargaLogin(false);
                 errorLogin.textContent = resultado.mensaje || 'Contraseña incorrecta';
                 errorLogin.classList.remove('hidden');
             }
@@ -587,6 +679,25 @@
             }
         }
 
+        function reposicionarGlider() {
+            const glider = document.getElementById('liquidGlider');
+            const contenedor = document.getElementById('contenedorTabsNav');
+            if (!glider || !contenedor) return;
+
+            const botonActivo = contenedor.querySelector(`.tab-pedidos[data-tab="${tabActiva}"]`);
+            if (!botonActivo) {
+                glider.classList.add('opacity-0');
+                return;
+            }
+
+            const leftOffset = botonActivo.offsetLeft;
+            const ancho = botonActivo.offsetWidth;
+
+            glider.style.left = `${leftOffset}px`;
+            glider.style.width = `${ancho}px`;
+            glider.classList.remove('opacity-0');
+        }
+
         function mostrarPanel() {
             pantallaLogin.classList.add('hidden');
             panelPrincipal.classList.remove('hidden');
@@ -599,6 +710,7 @@
                 enUnaSemana.setDate(enUnaSemana.getDate() + 7);
                 campoFechaFiado.value = enUnaSemana.toISOString().slice(0, 10);
             }
+            setTimeout(reposicionarGlider, 50);
             cargarTodo();
             cargarProductosCatalogo();
             cargarTasaBcvAdmin();
@@ -667,6 +779,11 @@
         function cambiarTabPedidos(tab) {
             tabActiva = tab;
             document.querySelectorAll('.tab-pedidos').forEach(btn => btn.classList.toggle('activa', btn.dataset.tab === tab));
+            reposicionarGlider();
+            const btnActivo = document.querySelector(`.tab-pedidos[data-tab="${tab}"]`);
+            if (btnActivo) {
+                btnActivo.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
             document.getElementById('vistaPendientes').classList.toggle('hidden', tab !== 'pendientes');
             document.getElementById('vistaAceptadas').classList.toggle('hidden', tab !== 'aceptadas');
             document.getElementById('vistaRechazadas').classList.toggle('hidden', tab !== 'rechazadas');
@@ -2356,6 +2473,9 @@
                 mostrarPanel();
             }
         })();
+
+        window.addEventListener('resize', reposicionarGlider);
+        window.addEventListener('load', () => setTimeout(reposicionarGlider, 100));
 
         setInterval(() => {
             if (!panelPrincipal.classList.contains('hidden')) cargarTodo();
