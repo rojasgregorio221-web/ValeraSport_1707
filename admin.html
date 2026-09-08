@@ -182,18 +182,31 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                 <div>
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Método de pago</label>
-                    <select id="fisicaMetodoPago" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400 font-medium">
+                    <select id="fisicaMetodoPago" onchange="alCambiarMetodoPagoFisica()" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-cyan-400 font-medium">
                         <option value="Pago Móvil">Pago Móvil</option>
                         <option value="Efectivo Bs">Efectivo Bs</option>
                         <option value="Efectivo USD">Efectivo USD</option>
                         <option value="Transferencia">Transferencia</option>
                         <option value="Binance">Binance</option>
                         <option value="Zelle">Zelle</option>
+                        <option value="Fiado">Fiado (pago pendiente)</option>
                     </select>
                 </div>
                 <div>
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1.5">Correo del cliente (opcional)</label>
                     <input type="email" id="fisicaCorreo" placeholder="cliente@correo.com" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                </div>
+            </div>
+
+            <!-- Campos extra solo si el método de pago es Fiado -->
+            <div id="camposFiadoFisica" class="hidden grid grid-cols-1 md:grid-cols-2 gap-3 bg-amber-50 border border-amber-100 rounded-xl p-3">
+                <div>
+                    <label class="text-xs font-bold text-amber-700 uppercase tracking-widest block mb-1.5">Nombre del cliente (fiado)</label>
+                    <input type="text" id="fiadoNombreCliente" placeholder="¿A quién se le fía?" class="w-full bg-white border border-amber-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-amber-400">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-amber-700 uppercase tracking-widest block mb-1.5">Fecha de pago acordada</label>
+                    <input type="date" id="fiadoFechaPago" class="w-full bg-white border border-amber-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-amber-400">
                 </div>
             </div>
 
@@ -295,19 +308,25 @@
             </div>
         </div>
 
-        <!-- PESTAÑAS: PENDIENTES / ACEPTADAS / RECHAZADAS / VENTAS -->
-        <div class="grid grid-cols-4 gap-1 bg-gray-100 rounded-2xl p-1 mb-2">
-            <button data-tab="pendientes" onclick="cambiarTabPedidos('pendientes')" class="tab-pedidos activa font-bold text-xs py-2.5 rounded-xl transition">
+        <!-- PESTAÑAS: PENDIENTES / ACEPTADAS / RECHAZADAS / VENTAS / FIADO / GASTOS -->
+        <div class="flex gap-1 bg-gray-100 rounded-2xl p-1 mb-2 overflow-x-auto">
+            <button data-tab="pendientes" onclick="cambiarTabPedidos('pendientes')" class="tab-pedidos activa font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
                 Pendientes
             </button>
-            <button data-tab="aceptadas" onclick="cambiarTabPedidos('aceptadas')" class="tab-pedidos font-bold text-xs py-2.5 rounded-xl transition">
+            <button data-tab="aceptadas" onclick="cambiarTabPedidos('aceptadas')" class="tab-pedidos font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
                 Aceptadas
             </button>
-            <button data-tab="rechazadas" onclick="cambiarTabPedidos('rechazadas')" class="tab-pedidos font-bold text-xs py-2.5 rounded-xl transition">
+            <button data-tab="rechazadas" onclick="cambiarTabPedidos('rechazadas')" class="tab-pedidos font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
                 Rechazadas
             </button>
-            <button data-tab="ventas" onclick="cambiarTabPedidos('ventas')" class="tab-pedidos font-bold text-xs py-2.5 rounded-xl transition">
+            <button data-tab="ventas" onclick="cambiarTabPedidos('ventas')" class="tab-pedidos font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
                 Ventas
+            </button>
+            <button data-tab="fiados" onclick="cambiarTabPedidos('fiados')" class="tab-pedidos font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
+                Fiado <span id="badgeFiadosVencidos" class="hidden ml-1 bg-rose-500 text-white rounded-full px-1.5 text-[10px]">0</span>
+            </button>
+            <button data-tab="gastos" onclick="cambiarTabPedidos('gastos')" class="tab-pedidos font-bold text-xs py-2.5 px-3 rounded-xl transition whitespace-nowrap">
+                Gastos
             </button>
         </div>
 
@@ -364,6 +383,106 @@
             <div id="listaVentas" class="space-y-3"></div>
             <p id="sinVentas" class="hidden text-sm text-gray-400 text-center py-10">No hay ventas registradas.</p>
         </div>
+
+        <!-- VISTA: FIADO (CLIENTES QUE DEBEN, CON ALERTA ROJA SI ESTÁ VENCIDO) -->
+        <div id="vistaFiados" class="hidden">
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div class="bg-white border border-gray-100 rounded-2xl p-3.5">
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Total por cobrar</p>
+                    <p id="fiadosTotalPendiente" class="text-xl font-black text-gray-900">$0.00</p>
+                </div>
+                <div class="bg-white border border-rose-100 rounded-2xl p-3.5">
+                    <p class="text-[10px] text-rose-400 uppercase tracking-widest font-bold mb-1">Vencidos</p>
+                    <p id="fiadosTotalVencido" class="text-xl font-black text-rose-500">$0.00</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1 bg-gray-200/70 p-1 rounded-xl text-xs font-bold mb-3 w-fit">
+                <button id="btnFiltroFiadosPendientes" onclick="filtrarFiadosVista('pendientes')" class="px-3 py-1 rounded-lg bg-white text-gray-900 shadow-sm transition">
+                    Por cobrar
+                </button>
+                <button id="btnFiltroFiadosPagados" onclick="filtrarFiadosVista('pagados')" class="px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition">
+                    Pagados
+                </button>
+            </div>
+
+            <p id="cargandoFiados" class="text-sm text-gray-400 text-center py-10">Cargando fiados...</p>
+            <div id="listaFiados" class="space-y-3"></div>
+            <p id="sinFiados" class="hidden text-sm text-gray-400 text-center py-10">No hay ventas fiadas registradas.</p>
+        </div>
+
+        <!-- VISTA: GASTOS (DIARIOS / SEMANALES) -->
+        <div id="vistaGastos" class="hidden">
+            <div class="bg-gray-900 rounded-3xl p-5 mb-4 text-white shadow-xl shadow-gray-900/10">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-[10px] text-gray-300 uppercase tracking-widest font-bold mb-1">Gastado hoy</p>
+                        <p id="gastosHoyTotal" class="text-2xl font-black">$0.00</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-gray-300 uppercase tracking-widest font-bold mb-1">Gastado esta semana</p>
+                        <p id="gastosSemanaTotal" class="text-2xl font-black text-rose-300">$0.00</p>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" onclick="toggleFormularioGasto()" id="btnToggleGasto" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-3.5 px-4 rounded-2xl text-sm transition flex items-center justify-center gap-2 shadow-sm shadow-cyan-500/25 mb-4">
+                <i class="fa-solid fa-plus text-base"></i> Registrar nuevo gasto
+            </button>
+
+            <div id="formularioGasto" class="hidden mb-6 bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Concepto</label>
+                    <input type="text" id="gastoConcepto" placeholder="Ej: Pago de luz, transporte, insumos..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Monto ($)</label>
+                        <input type="number" step="0.01" id="gastoMonto" placeholder="0.00" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Categoría</label>
+                        <select id="gastoCategoria" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-cyan-400">
+                            <option value="Insumos">Insumos</option>
+                            <option value="Servicios">Servicios (luz, agua, internet)</option>
+                            <option value="Nómina">Nómina / Pago a personal</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Alquiler">Alquiler</option>
+                            <option value="Publicidad">Publicidad</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Fecha</label>
+                    <input type="date" id="gastoFecha" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-cyan-400">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Nota (opcional)</label>
+                    <input type="text" id="gastoNota" placeholder="Detalle adicional..." class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-cyan-400">
+                </div>
+                <button type="button" onclick="registrarGasto()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-extrabold py-3 rounded-full text-sm uppercase tracking-wide transition shadow-lg shadow-cyan-500/25 mt-2">
+                    Guardar gasto
+                </button>
+                <p id="mensajeGasto" class="hidden text-center text-xs font-semibold py-2"></p>
+            </div>
+
+            <div class="flex items-center gap-1 bg-gray-200/70 p-1 rounded-xl text-xs font-bold mb-3 w-fit">
+                <button id="btnFiltroGastosHoy" onclick="filtrarGastosVista('hoy')" class="px-3 py-1 rounded-lg bg-white text-gray-900 shadow-sm transition">
+                    Hoy
+                </button>
+                <button id="btnFiltroGastosSemana" onclick="filtrarGastosVista('semana')" class="px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition">
+                    Esta semana
+                </button>
+                <button id="btnFiltroGastosTodos" onclick="filtrarGastosVista('todos')" class="px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition">
+                    Todos
+                </button>
+            </div>
+
+            <p id="cargandoGastos" class="text-sm text-gray-400 text-center py-10">Cargando gastos...</p>
+            <div id="listaGastos" class="space-y-3"></div>
+            <p id="sinGastos" class="hidden text-sm text-gray-400 text-center py-10">No hay gastos registrados.</p>
+        </div>
     </div>
 
     <script>
@@ -378,8 +497,8 @@
         const panelPrincipal = document.getElementById('panelPrincipal');
 
         let tabActiva = 'pendientes';
-        let idSolicitudPedidos = 0, idSolicitudAceptadas = 0, idSolicitudRechazadas = 0, idSolicitudVentas = 0;
-        let peticionPedidosEnCurso = false, peticionAceptadasEnCurso = false, peticionRechazadasEnCurso = false, peticionVentasEnCurso = false;
+        let idSolicitudPedidos = 0, idSolicitudAceptadas = 0, idSolicitudRechazadas = 0, idSolicitudVentas = 0, idSolicitudFiados = 0, idSolicitudGastos = 0;
+        let peticionPedidosEnCurso = false, peticionAceptadasEnCurso = false, peticionRechazadasEnCurso = false, peticionVentasEnCurso = false, peticionFiadosEnCurso = false, peticionGastosEnCurso = false;
 
         let productosCatalogo = [];
         let scannerVentaStream = null;
@@ -399,6 +518,12 @@
         let listaVentasMemoria = [];
         let tasaBcvAdmin = null;
         let ultimoTotalHoy = 0;
+
+        let filtroFiados = 'pendientes';
+        let listaFiadosMemoria = [];
+
+        let filtroGastos = 'hoy';
+        let listaGastosMemoria = [];
 
         // ===================================================================
         // VIBRACIÓN Y BEEP SONORO PROFESIONAL
@@ -465,6 +590,15 @@
         function mostrarPanel() {
             pantallaLogin.classList.add('hidden');
             panelPrincipal.classList.remove('hidden');
+            const hoyISO = new Date().toISOString().slice(0, 10);
+            const campoFechaGasto = document.getElementById('gastoFecha');
+            if (campoFechaGasto && !campoFechaGasto.value) campoFechaGasto.value = hoyISO;
+            const campoFechaFiado = document.getElementById('fiadoFechaPago');
+            if (campoFechaFiado && !campoFechaFiado.value) {
+                const enUnaSemana = new Date();
+                enUnaSemana.setDate(enUnaSemana.getDate() + 7);
+                campoFechaFiado.value = enUnaSemana.toISOString().slice(0, 10);
+            }
             cargarTodo();
             cargarProductosCatalogo();
             cargarTasaBcvAdmin();
@@ -537,10 +671,14 @@
             document.getElementById('vistaAceptadas').classList.toggle('hidden', tab !== 'aceptadas');
             document.getElementById('vistaRechazadas').classList.toggle('hidden', tab !== 'rechazadas');
             document.getElementById('vistaVentas').classList.toggle('hidden', tab !== 'ventas');
+            document.getElementById('vistaFiados').classList.toggle('hidden', tab !== 'fiados');
+            document.getElementById('vistaGastos').classList.toggle('hidden', tab !== 'gastos');
             document.getElementById('btnRechazarTodos').classList.toggle('hidden', tab !== 'pendientes');
             if (tab === 'aceptadas') cargarAceptadas();
             if (tab === 'rechazadas') cargarRechazadas();
             if (tab === 'ventas') cargarVentas();
+            if (tab === 'fiados') cargarFiados();
+            if (tab === 'gastos') cargarGastos();
         }
 
         function refrescarManual() {
@@ -564,10 +702,12 @@
 
             // 2. Traer los datos frescos de internet en segundo plano
             try {
-                const tareas = [cargarResumen(), cargarPedidos()];
+                const tareas = [cargarResumen(), cargarPedidos(), cargarResumenFiadosVencidos()];
                 if (tabActiva === 'aceptadas') tareas.push(cargarAceptadas());
                 if (tabActiva === 'rechazadas') tareas.push(cargarRechazadas());
                 if (tabActiva === 'ventas') tareas.push(cargarVentas());
+                if (tabActiva === 'fiados') tareas.push(cargarFiados());
+                if (tabActiva === 'gastos') tareas.push(cargarGastos());
                 await Promise.all(tareas);
                 marcarActualizado();
             } catch (error) {
@@ -1074,6 +1214,359 @@
                 cargarTodo();
             } catch (e) {
                 alert('No se pudo conectar con el servidor.');
+            }
+        }
+
+        // ===================================================================
+        // FIADO: CLIENTES QUE DEBEN, CON ALERTA ROJA SI ESTÁ VENCIDO
+        // ===================================================================
+        function alCambiarMetodoPagoFisica() {
+            const metodo = document.getElementById('fisicaMetodoPago').value;
+            const campos = document.getElementById('camposFiadoFisica');
+            campos.classList.toggle('hidden', metodo !== 'Fiado');
+        }
+
+        function diasEntreFechas(fechaISO) {
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            const objetivo = new Date(fechaISO + 'T00:00:00');
+            return Math.round((objetivo - hoy) / 86400000);
+        }
+
+        function estadoFiado(fechaPagoISO) {
+            if (!fechaPagoISO) return { texto: 'Sin fecha', clase: 'text-gray-400', fondo: 'bg-gray-50 border-gray-100' };
+            const dias = diasEntreFechas(fechaPagoISO);
+            if (dias < 0) return { texto: `Vencido hace ${Math.abs(dias)} ${Math.abs(dias) === 1 ? 'día' : 'días'}`, clase: 'text-rose-600', fondo: 'bg-rose-50 border-rose-200' };
+            if (dias <= 2) return { texto: dias === 0 ? 'Vence hoy' : `Vence en ${dias} ${dias === 1 ? 'día' : 'días'}`, clase: 'text-amber-600', fondo: 'bg-amber-50 border-amber-200' };
+            return { texto: `Vence el ${new Date(fechaPagoISO + 'T00:00:00').toLocaleDateString('es-VE')}`, clase: 'text-gray-500', fondo: 'bg-gray-50 border-gray-100' };
+        }
+
+        function filtrarFiadosVista(tipo) {
+            filtroFiados = tipo;
+            document.getElementById('btnFiltroFiadosPendientes').className = tipo === 'pendientes'
+                ? 'px-3 py-1 rounded-lg bg-white text-gray-900 shadow-sm transition'
+                : 'px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition';
+            document.getElementById('btnFiltroFiadosPagados').className = tipo === 'pagados'
+                ? 'px-3 py-1 rounded-lg bg-white text-gray-900 shadow-sm transition'
+                : 'px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition';
+            renderizarListaFiados();
+        }
+
+        function renderizarListaFiados() {
+            const lista = document.getElementById('listaFiados');
+            const sinFiados = document.getElementById('sinFiados');
+
+            const filtradas = listaFiadosMemoria.filter(f => filtroFiados === 'pagados' ? f.estadoPago === 'pagado' : f.estadoPago !== 'pagado');
+
+            let totalPendiente = 0, totalVencido = 0;
+            listaFiadosMemoria.forEach(f => {
+                if (f.estadoPago === 'pagado') return;
+                totalPendiente += Number(f.total || f.precio || 0);
+                if (f.fechaPago && diasEntreFechas(f.fechaPago) < 0) totalVencido += Number(f.total || f.precio || 0);
+            });
+            document.getElementById('fiadosTotalPendiente').textContent = '$' + totalPendiente.toFixed(2);
+            document.getElementById('fiadosTotalVencido').textContent = '$' + totalVencido.toFixed(2);
+
+            if (!filtradas.length) {
+                lista.innerHTML = '';
+                sinFiados.textContent = filtroFiados === 'pagados' ? 'Aún no hay fiados pagados.' : 'No hay fiados pendientes por cobrar. 🎉';
+                sinFiados.classList.remove('hidden');
+                return;
+            }
+            sinFiados.classList.add('hidden');
+            lista.innerHTML = filtradas.map(f => tarjetaFiado(f)).join('');
+        }
+
+        function tarjetaFiado(f) {
+            const pagado = f.estadoPago === 'pagado';
+            const estado = pagado ? { texto: 'Pagado', clase: 'text-emerald-600', fondo: 'bg-emerald-50 border-emerald-200' } : estadoFiado(f.fechaPago);
+            const fechaVenta = f.fecha ? new Date(f.fecha).toLocaleDateString('es-VE') : '';
+            const total = Number(f.total || f.precio || 0).toFixed(2);
+            const idAttr = escapeHTML(f.idVenta || f.id || '');
+
+            return `
+                <div class="bg-white border ${pagado ? 'border-gray-100' : (estado.clase.includes('rose') ? 'border-rose-200' : 'border-gray-100')} rounded-2xl p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">${escapeHTML(f.clienteNombre || f.correo || 'Cliente sin nombre')}</p>
+                            <p class="text-[11px] text-gray-400">${escapeHTML(f.producto || 'Venta fiada')} · Vendido el ${escapeHTML(fechaVenta)}</p>
+                        </div>
+                        <span class="text-lg font-black text-gray-900">$${total}</span>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg border ${estado.fondo} ${estado.clase}">
+                        <i class="fa-solid ${pagado ? 'fa-check' : 'fa-triangle-exclamation'}"></i> ${escapeHTML(estado.texto)}
+                    </div>
+                    ${!pagado ? `
+                    <button type="button" onclick="marcarFiadoPagado('${idAttr}')" class="w-full mt-3 bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-2.5 rounded-full text-xs uppercase tracking-wide transition">
+                        <i class="fa-solid fa-check mr-1"></i> Marcar como pagado
+                    </button>` : ''}
+                </div>
+            `;
+        }
+
+        async function cargarResumenFiadosVencidos() {
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), tipo: 'fiados' })
+                });
+                const datos = await resp.json();
+                if (!datos.ok) return;
+                const fiados = datos.fiados || [];
+                const vencidos = fiados.filter(f => f.estadoPago !== 'pagado' && f.fechaPago && diasEntreFechas(f.fechaPago) < 0).length;
+                const badge = document.getElementById('badgeFiadosVencidos');
+                if (badge) {
+                    badge.textContent = String(vencidos);
+                    badge.classList.toggle('hidden', vencidos === 0);
+                }
+            } catch (e) { /* silencioso */ }
+        }
+
+        async function cargarFiados() {
+            if (peticionFiadosEnCurso) return;
+            peticionFiadosEnCurso = true;
+            const miId = ++idSolicitudFiados;
+
+            const cargando = document.getElementById('cargandoFiados');
+            const lista = document.getElementById('listaFiados');
+            const sinFiados = document.getElementById('sinFiados');
+
+            if (!lista.children.length) cargando.classList.remove('hidden');
+
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), tipo: 'fiados' })
+                });
+                const datos = await resp.json();
+                if (miId !== idSolicitudFiados) return;
+
+                cargando.classList.add('hidden');
+                if (!datos.ok) {
+                    lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar fiados') + '</p>';
+                    return;
+                }
+
+                listaFiadosMemoria = datos.fiados || [];
+                renderizarListaFiados();
+                cargarResumenFiadosVencidos();
+            } catch (e) {
+                if (miId !== idSolicitudFiados) return;
+                cargando.classList.add('hidden');
+                lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
+            } finally {
+                peticionFiadosEnCurso = false;
+            }
+        }
+
+        async function marcarFiadoPagado(idVenta) {
+            if (!confirm('¿Confirmas que este fiado ya fue pagado por completo?')) return;
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), accion: 'marcarFiadoPagado', idVenta })
+                });
+                const datos = await resp.json();
+                if (!datos.ok) { alert('Error: ' + (datos.error || 'no se pudo actualizar')); return; }
+                cargarFiados();
+                cargarResumenFiadosVencidos();
+            } catch (e) {
+                alert('No se pudo conectar con el servidor.');
+            }
+        }
+
+        // ===================================================================
+        // GASTOS: REGISTRO DIARIO / SEMANAL
+        // ===================================================================
+        function toggleFormularioGasto() {
+            const form = document.getElementById('formularioGasto');
+            form.classList.toggle('hidden');
+        }
+
+        function inicioDeSemana(fecha) {
+            const d = new Date(fecha);
+            d.setHours(0, 0, 0, 0);
+            const dia = d.getDay();
+            const diferencia = (dia === 0 ? -6 : 1) - dia; // lunes como inicio de semana
+            d.setDate(d.getDate() + diferencia);
+            return d;
+        }
+
+        function filtrarGastosVista(tipo) {
+            filtroGastos = tipo;
+            const clases = {
+                hoy: document.getElementById('btnFiltroGastosHoy'),
+                semana: document.getElementById('btnFiltroGastosSemana'),
+                todos: document.getElementById('btnFiltroGastosTodos')
+            };
+            Object.keys(clases).forEach(k => {
+                clases[k].className = k === tipo
+                    ? 'px-3 py-1 rounded-lg bg-white text-gray-900 shadow-sm transition'
+                    : 'px-3 py-1 rounded-lg text-gray-500 hover:text-gray-900 transition';
+            });
+            renderizarListaGastos();
+        }
+
+        function renderizarListaGastos() {
+            const lista = document.getElementById('listaGastos');
+            const sinGastos = document.getElementById('sinGastos');
+
+            const hoy = new Date();
+            const hoyStr = hoy.toLocaleDateString('es-VE');
+            const inicioSemana = inicioDeSemana(hoy);
+
+            let filtrados = listaGastosMemoria;
+            if (filtroGastos === 'hoy') {
+                filtrados = listaGastosMemoria.filter(g => g.fecha && new Date(g.fecha).toLocaleDateString('es-VE') === hoyStr);
+            } else if (filtroGastos === 'semana') {
+                filtrados = listaGastosMemoria.filter(g => g.fecha && new Date(g.fecha) >= inicioSemana);
+            }
+
+            // Totales para las tarjetas de resumen (siempre sobre el total, no sobre el filtro)
+            const totalHoy = listaGastosMemoria
+                .filter(g => g.fecha && new Date(g.fecha).toLocaleDateString('es-VE') === hoyStr)
+                .reduce((s, g) => s + (Number(g.monto) || 0), 0);
+            const totalSemana = listaGastosMemoria
+                .filter(g => g.fecha && new Date(g.fecha) >= inicioSemana)
+                .reduce((s, g) => s + (Number(g.monto) || 0), 0);
+            document.getElementById('gastosHoyTotal').textContent = '$' + totalHoy.toFixed(2);
+            document.getElementById('gastosSemanaTotal').textContent = '$' + totalSemana.toFixed(2);
+
+            if (!filtrados.length) {
+                lista.innerHTML = '';
+                sinGastos.classList.remove('hidden');
+                return;
+            }
+            sinGastos.classList.add('hidden');
+            lista.innerHTML = filtrados
+                .slice()
+                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                .map(g => tarjetaGasto(g)).join('');
+        }
+
+        function tarjetaGasto(g) {
+            const fecha = g.fecha ? new Date(g.fecha).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+            const idAttr = escapeHTML(g.idGasto || g.id || '');
+            return `
+                <div class="bg-white border border-gray-100 rounded-2xl p-4 flex justify-between items-start gap-3">
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold text-gray-900 truncate">${escapeHTML(g.concepto || 'Gasto')}</p>
+                        <p class="text-[11px] text-gray-400">${escapeHTML(fecha)}${g.categoria ? ' · ' + escapeHTML(g.categoria) : ''}</p>
+                        ${g.nota ? `<p class="text-[11px] text-gray-400 mt-1"><i class="fa-solid fa-note-sticky mr-1"></i>${escapeHTML(g.nota)}</p>` : ''}
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="text-lg font-black text-rose-500">-$${Number(g.monto || 0).toFixed(2)}</span>
+                        ${idAttr ? `<button type="button" onclick="eliminarGasto('${idAttr}')" title="Eliminar" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-rose-500 hover:bg-rose-50 transition"><i class="fa-solid fa-trash-can text-xs"></i></button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function cargarGastos() {
+            if (peticionGastosEnCurso) return;
+            peticionGastosEnCurso = true;
+            const miId = ++idSolicitudGastos;
+
+            const cargando = document.getElementById('cargandoGastos');
+            const lista = document.getElementById('listaGastos');
+
+            if (!lista.children.length) cargando.classList.remove('hidden');
+
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), tipo: 'gastos' })
+                });
+                const datos = await resp.json();
+                if (miId !== idSolicitudGastos) return;
+
+                cargando.classList.add('hidden');
+                if (!datos.ok) {
+                    lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">' + escapeHTML(datos.error || 'Error al cargar gastos') + '</p>';
+                    return;
+                }
+
+                listaGastosMemoria = datos.gastos || [];
+                renderizarListaGastos();
+            } catch (e) {
+                if (miId !== idSolicitudGastos) return;
+                cargando.classList.add('hidden');
+                lista.innerHTML = '<p class="text-rose-500 text-sm text-center py-6">No se pudo conectar con el servidor.</p>';
+            } finally {
+                peticionGastosEnCurso = false;
+            }
+        }
+
+        async function registrarGasto() {
+            const concepto = document.getElementById('gastoConcepto').value.trim();
+            const monto = parseFloat(document.getElementById('gastoMonto').value);
+            const categoria = document.getElementById('gastoCategoria').value;
+            const fecha = document.getElementById('gastoFecha').value || new Date().toISOString().slice(0, 10);
+            const nota = document.getElementById('gastoNota').value.trim();
+            const mensaje = document.getElementById('mensajeGasto');
+
+            mensaje.classList.add('hidden');
+
+            if (!concepto || isNaN(monto) || monto <= 0) {
+                mensaje.textContent = 'Escribe el concepto y un monto válido antes de guardar.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
+                mensaje.classList.remove('hidden');
+                return;
+            }
+
+            // Actualización optimista para que se vea al instante
+            const gastoLocal = { concepto, monto, categoria, fecha, nota, idGasto: 'temp-' + Date.now() };
+            listaGastosMemoria.push(gastoLocal);
+            renderizarListaGastos();
+
+            document.getElementById('gastoConcepto').value = '';
+            document.getElementById('gastoMonto').value = '';
+            document.getElementById('gastoNota').value = '';
+            mensaje.textContent = '✅ Gasto registrado.';
+            mensaje.className = 'block text-center text-xs font-semibold py-2.5 text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl';
+            mensaje.classList.remove('hidden');
+
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), accion: 'agregarGasto', concepto, monto: monto.toFixed(2), categoria, fecha, nota })
+                });
+                const datos = await resp.json();
+                if (datos.ok) {
+                    cargarGastos();
+                } else {
+                    throw new Error(datos.error || 'Error al procesar en servidor');
+                }
+            } catch (e) {
+                console.error('Error al registrar gasto:', e);
+                mensaje.textContent = '⚠️ El gasto se mostró en pantalla, pero hubo un error guardando en red.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-amber-600 bg-amber-50 border border-amber-100 rounded-xl';
+                mensaje.classList.remove('hidden');
+            }
+        }
+
+        async function eliminarGasto(idGasto) {
+            if (!confirm('¿Eliminar este gasto?')) return;
+            const respaldo = listaGastosMemoria;
+            listaGastosMemoria = listaGastosMemoria.filter(g => (g.idGasto || g.id) !== idGasto);
+            renderizarListaGastos();
+            try {
+                const resp = await fetch('/api/admin-pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: obtenerPassword(), accion: 'eliminarGasto', idGasto })
+                });
+                const datos = await resp.json();
+                if (!datos.ok) throw new Error(datos.error || 'No se pudo eliminar');
+            } catch (e) {
+                alert('No se pudo eliminar el gasto en el servidor. Se restaurará la lista.');
+                listaGastosMemoria = respaldo;
+                renderizarListaGastos();
             }
         }
 
@@ -1726,7 +2219,18 @@
             const boton = document.getElementById('btnRegistrarVentaFisica');
             const textoBoton = document.getElementById('textoRegistrarVentaFisica');
 
+            const esFiado = metodoPago === 'Fiado';
+            const fiadoNombreCliente = esFiado ? document.getElementById('fiadoNombreCliente').value.trim() : '';
+            const fiadoFechaPago = esFiado ? document.getElementById('fiadoFechaPago').value : '';
+
             mensaje.classList.add('hidden');
+
+            if (esFiado && (!fiadoNombreCliente || !fiadoFechaPago)) {
+                mensaje.textContent = 'Para fiado, escribe el nombre del cliente y la fecha de pago acordada.';
+                mensaje.className = 'block text-center text-xs font-semibold py-2 text-rose-500';
+                mensaje.classList.remove('hidden');
+                return;
+            }
 
             // Si hay algo escrito a mano pendiente de agregar, se agrega al carrito
             const productoSuelto = document.getElementById('fisicaProducto').value.trim();
@@ -1768,7 +2272,9 @@
             // 🚀 ACTUALIZACIÓN OPTIMISTA: MOSTRAR ÉXITO Y LIMPIAR EN 0 MS
             // ===============================================================
             const totalBsTexto = tasaBcvAdmin ? ' (≈ Bs ' + (resumen.total * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')' : '';
-            mensaje.textContent = `✅ Venta registrada con éxito: ${resumen.totalPiezas} ${resumen.totalPiezas === 1 ? 'prenda' : 'prendas'} por $${resumen.total.toFixed(2)}${totalBsTexto}.`;
+            mensaje.textContent = esFiado
+                ? `✅ Fiado registrado: ${resumen.totalPiezas} ${resumen.totalPiezas === 1 ? 'prenda' : 'prendas'} por $${resumen.total.toFixed(2)}${totalBsTexto} — pago acordado para ${fiadoFechaPago}.`
+                : `✅ Venta registrada con éxito: ${resumen.totalPiezas} ${resumen.totalPiezas === 1 ? 'prenda' : 'prendas'} por $${resumen.total.toFixed(2)}${totalBsTexto}.`;
             mensaje.className = 'block text-center text-xs font-semibold py-2.5 text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl';
             mensaje.classList.remove('hidden');
 
@@ -1784,8 +2290,13 @@
             document.getElementById('fisicaProducto').value = '';
             document.getElementById('fisicaPrecio').value = '';
             document.getElementById('fisicaCategoria').value = '';
+            if (esFiado) {
+                document.getElementById('fiadoNombreCliente').value = '';
+                document.getElementById('fisicaMetodoPago').value = 'Pago Móvil';
+                alCambiarMetodoPagoFisica();
+            }
 
-            textoBoton.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i> ¡Venta registrada!';
+            textoBoton.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i> ' + (esFiado ? '¡Fiado registrado!' : '¡Venta registrada!');
             setTimeout(() => {
                 textoBoton.textContent = 'Registrar venta';
             }, 2500);
@@ -1806,7 +2317,11 @@
                         items: itemsAEnviar,
                         metodoPago: metodoPago,
                         correoCliente: correo,
-                        nota: notaFinal
+                        nota: notaFinal,
+                        esFiado: esFiado,
+                        clienteNombre: fiadoNombreCliente,
+                        fechaPago: fiadoFechaPago,
+                        estadoPago: esFiado ? 'pendiente' : ''
                     })
                 });
                 const datos = await resp.json();
@@ -1814,6 +2329,7 @@
                 if (datos.ok) {
                     cargarResumen();
                     if (tabActiva === 'ventas') cargarVentas();
+                    if (esFiado) { cargarFiados(); cargarResumenFiadosVencidos(); }
                 } else {
                     throw new Error(datos.error || 'Error al procesar en servidor');
                 }
