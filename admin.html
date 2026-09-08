@@ -131,11 +131,14 @@
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-cyan-500/25 rounded-full blur-2xl pointer-events-none"></div>
             <div class="absolute -left-6 -bottom-10 w-28 h-28 bg-cyan-400/10 rounded-full blur-xl pointer-events-none"></div>
             <p class="relative text-xs text-gray-300 uppercase tracking-widest font-bold mb-1.5">Vendido hoy</p>
-            <p class="relative text-4xl font-black" id="totalHoy">$0.00</p>
+            <div class="relative flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <p class="text-4xl font-black" id="totalHoy">$0.00</p>
+                <p class="text-2xl text-cyan-300 font-extrabold font-mono" id="totalHoyBs"></p>
+            </div>
             <div class="relative flex items-center gap-2.5 mt-2">
                 <p class="text-sm text-gray-300" id="cantidadHoy">0 prendas hoy</p>
                 <span class="w-1 h-1 bg-gray-500 rounded-full"></span>
-                <p class="text-sm text-cyan-300 font-bold font-mono" id="totalHoyBs"></p>
+                <p class="text-xs text-gray-400" id="tasaHoyInfo"></p>
             </div>
         </div>
 
@@ -214,14 +217,23 @@
 
                 <div id="carritoFisicaLista" class="space-y-2"></div>
 
+                <!-- Control / Pregunta de descuento al mayor (3+ piezas) -->
+                <div id="carritoFisicaPreguntaDescuento" class="hidden"></div>
+
                 <div class="space-y-1.5 text-xs text-gray-500 border-t border-gray-100 pt-3">
-                    <div class="flex justify-between">
+                    <div class="flex justify-between items-baseline">
                         <span>Subtotal (<span id="carritoFisicaCantidadSub">0</span> prendas)</span>
-                        <span id="carritoFisicaSubtotal" class="font-medium">$0.00</span>
+                        <div class="text-right">
+                            <span id="carritoFisicaSubtotal" class="font-bold text-gray-900">$0.00</span>
+                            <span id="carritoFisicaSubtotalBs" class="block text-[11px] text-cyan-600 font-mono"></span>
+                        </div>
                     </div>
-                    <div id="carritoFisicaLineaDescuento" class="hidden flex justify-between font-semibold text-emerald-600">
+                    <div id="carritoFisicaLineaDescuento" class="hidden flex justify-between items-baseline font-semibold text-emerald-600">
                         <span><i class="fa-solid fa-tag mr-1"></i>Descuento 3+ piezas</span>
-                        <span id="carritoFisicaDescuentoMonto">-$0.00</span>
+                        <div class="text-right">
+                            <span id="carritoFisicaDescuentoMonto">-$0.00</span>
+                            <span id="carritoFisicaDescuentoBs" class="block text-[10px] text-emerald-500 font-mono"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -443,6 +455,24 @@
                 </button>
             </div>
 
+            <!-- TARJETA RESUMEN DE VENTAS (TOTAL VENDIDO EN DÓLARES Y BS) -->
+            <div id="resumenVentasTarjeta" class="bg-gray-900 rounded-2xl p-4 mb-3 text-white shadow-md">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">
+                            <i class="fa-solid fa-chart-line text-cyan-400 mr-1"></i> Total vendido (<span id="ventasFiltroLabel">Hoy</span>)
+                        </p>
+                        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                            <span id="ventasTotalDolares" class="text-2xl font-black text-white">$0.00</span>
+                            <span id="ventasTotalBs" class="text-sm font-bold text-cyan-300 font-mono"></span>
+                        </div>
+                    </div>
+                    <span id="ventasCantidadPrendas" class="text-xs font-semibold text-gray-300 bg-white/10 px-2.5 py-1 rounded-lg">
+                        0 prendas
+                    </span>
+                </div>
+            </div>
+
             <p id="cargandoVentas" class="text-sm text-gray-400 text-center py-10">Cargando ventas...</p>
             <div id="listaVentas" class="space-y-3"></div>
             <p id="sinVentas" class="hidden text-sm text-gray-400 text-center py-10">No hay ventas registradas.</p>
@@ -454,10 +484,12 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-3.5">
                     <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Total por cobrar</p>
                     <p id="fiadosTotalPendiente" class="text-xl font-black text-gray-900">$0.00</p>
+                    <p id="fiadosTotalPendienteBs" class="text-xs font-bold text-cyan-600 font-mono"></p>
                 </div>
                 <div class="bg-white border border-rose-100 rounded-2xl p-3.5">
                     <p class="text-[10px] text-rose-400 uppercase tracking-widest font-bold mb-1">Vencidos</p>
                     <p id="fiadosTotalVencido" class="text-xl font-black text-rose-500">$0.00</p>
+                    <p id="fiadosTotalVencidoBs" class="text-xs font-bold text-rose-400 font-mono"></p>
                 </div>
             </div>
 
@@ -482,10 +514,12 @@
                     <div>
                         <p class="text-[10px] text-gray-300 uppercase tracking-widest font-bold mb-1">Gastado hoy</p>
                         <p id="gastosHoyTotal" class="text-2xl font-black">$0.00</p>
+                        <p id="gastosHoyTotalBs" class="text-xs font-bold text-cyan-300 font-mono"></p>
                     </div>
                     <div>
                         <p class="text-[10px] text-gray-300 uppercase tracking-widest font-bold mb-1">Gastado esta semana</p>
                         <p id="gastosSemanaTotal" class="text-2xl font-black text-rose-300">$0.00</p>
+                        <p id="gastosSemanaTotalBs" class="text-xs font-bold text-rose-200 font-mono"></p>
                     </div>
                 </div>
             </div>
@@ -575,6 +609,7 @@
 
         // Cada prenda: { producto, precio, categoria, cantidad, codigo }
         let carritoFisica = [];
+        let aplicarDescuentoMayor = null; // null = sin decidir, true = sí aplicar, false = no aplicar
         let ultimoIndiceEscaneado = -1;
         let ultimoCodigoEscaneado = null;
         let ultimoEscaneoTiempo = 0;
@@ -991,16 +1026,39 @@
         function renderizarListaVentas() {
             const lista = document.getElementById('listaVentas');
             const sinVentas = document.getElementById('sinVentas');
+            const totalDolaresEl = document.getElementById('ventasTotalDolares');
+            const totalBsEl = document.getElementById('ventasTotalBs');
+            const cantidadPrendasEl = document.getElementById('ventasCantidadPrendas');
+            const filtroLabelEl = document.getElementById('ventasFiltroLabel');
             
             const hoyStr = new Date().toLocaleDateString('es-VE');
 
             let filtradas = listaVentasMemoria.filter(v => (v.metodoPago || '').toLowerCase() !== 'fiado');
+
             if (filtroVentas === 'hoy') {
                 filtradas = filtradas.filter(v => {
                     if (!v.fecha) return false;
                     const fStr = new Date(v.fecha).toLocaleDateString('es-VE');
                     return fStr === hoyStr;
                 });
+            }
+
+            // CALCULAR TOTAL VENDIDO (DÓLARES Y BOLÍVARES)
+            const totalDolares = filtradas.reduce((s, v) => s + (Number(v.precio) || 0), 0);
+            const totalBs = filtradas.reduce((s, v) => s + (v.precioBs ? Number(v.precioBs) : (tasaBcvAdmin ? (Number(v.precio) || 0) * tasaBcvAdmin : 0)), 0);
+            const totalPrendas = filtradas.length;
+
+            if (totalDolaresEl) totalDolaresEl.textContent = '$' + totalDolares.toFixed(2);
+            if (totalBsEl) {
+                totalBsEl.textContent = (tasaBcvAdmin || totalBs > 0)
+                    ? '≈ Bs ' + (totalBs || (totalDolares * (tasaBcvAdmin || 0))).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : '';
+            }
+            if (cantidadPrendasEl) {
+                cantidadPrendasEl.textContent = totalPrendas + (totalPrendas === 1 ? ' prenda' : ' prendas');
+            }
+            if (filtroLabelEl) {
+                filtroLabelEl.textContent = filtroVentas === 'hoy' ? 'Hoy' : 'Todas las registradas';
             }
 
             if (!filtradas.length) {
@@ -1102,7 +1160,7 @@
         function tarjetaVenta(venta) {
             const fecha = venta.fecha ? new Date(venta.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
             const precio = Number(venta.precio || 0).toFixed(2);
-            const precioBs = venta.precioBs ? Number(venta.precioBs).toFixed(2) : null;
+            const precioBsNum = venta.precioBs ? Number(venta.precioBs) : (tasaBcvAdmin ? (Number(venta.precio) || 0) * tasaBcvAdmin : null);
             const canalTexto = venta.canal || 'Venta';
             const esFisica = canalTexto.toLowerCase().indexOf('f') === 0;
             const colorCanal = esFisica ? 'text-cyan-600' : 'text-emerald-600';
@@ -1120,7 +1178,7 @@
                         </div>
                         <div class="text-right flex-shrink-0 ml-3">
                             <span class="text-lg font-black text-gray-900 block">$${precio}</span>
-                            ${precioBs ? `<span class="text-[11px] text-gray-400 block font-mono">Bs ${precioBs}</span>` : ''}
+                            ${precioBsNum ? `<span class="text-[11px] text-cyan-600 block font-mono font-bold">≈ Bs ${precioBsNum.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
                         </div>
                     </div>
                     ${(venta.metodoPago || venta.correo) ? `
@@ -1147,18 +1205,25 @@
             const iconoCanal = esFisica ? 'fa-store' : 'fa-globe';
 
             const totalUsd = ventas.reduce((s, v) => s + (Number(v.precio) || 0), 0);
-            const totalBs = ventas.reduce((s, v) => s + (v.precioBs ? Number(v.precioBs) : 0), 0);
+            const totalBsNum = ventas.reduce((s, v) => s + (v.precioBs ? Number(v.precioBs) : (tasaBcvAdmin ? (Number(v.precio) || 0) * tasaBcvAdmin : 0)), 0);
             const notaComun = primera.nota || '';
 
-            const listaItems = ventas.map(v => `
-                <div class="flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
-                    <div>
-                        <span class="text-gray-900">${escapeHTML(v.producto || 'Producto')}</span>
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wide ml-2">${escapeHTML(v.categoria || 'Variados')}</span>
+            const listaItems = ventas.map(v => {
+                const itemPrecio = Number(v.precio || 0);
+                const itemBs = tasaBcvAdmin ? (itemPrecio * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : null;
+                return `
+                    <div class="flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
+                        <div>
+                            <span class="text-gray-900">${escapeHTML(v.producto || 'Producto')}</span>
+                            <span class="text-[10px] text-gray-400 uppercase tracking-wide ml-2">${escapeHTML(v.categoria || 'Variados')}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-gray-900 text-xs font-mono font-bold">$${itemPrecio.toFixed(2)}</span>
+                            ${itemBs ? `<span class="text-[10px] text-gray-400 font-mono block">≈ Bs ${itemBs}</span>` : ''}
+                        </div>
                     </div>
-                    <span class="text-gray-500 text-xs font-mono">$${Number(v.precio || 0).toFixed(2)}</span>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             return `
                 <div class="bg-white border border-gray-100 rounded-2xl p-4">
@@ -1171,7 +1236,7 @@
                         </div>
                         <div class="text-right flex-shrink-0 ml-3">
                             <span class="text-lg font-black text-gray-900 block">$${totalUsd.toFixed(2)}</span>
-                            ${totalBs ? `<span class="text-[11px] text-gray-400 block font-mono">Bs ${totalBs.toFixed(2)}</span>` : ''}
+                            ${(tasaBcvAdmin || totalBsNum > 0) ? `<span class="text-[11px] text-cyan-600 block font-mono font-bold">≈ Bs ${(totalBsNum || (totalUsd * (tasaBcvAdmin || 0))).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
                         </div>
                     </div>
 
@@ -1195,6 +1260,7 @@
         function tarjetaOrden(orden, conBotones, rechazada) {
             const fecha = orden.fecha ? new Date(orden.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
             const total = Number(orden.total || 0).toFixed(2);
+            const totalBsNum = orden.precioBs ? Number(orden.precioBs) : (tasaBcvAdmin ? (Number(orden.total) || 0) * tasaBcvAdmin : null);
             const idAttr = escapeHTML(orden.idOrden);
             const metodoPago = escapeHTML(orden.metodoPago || 'No especificado');
             const referencia = orden.referencia && String(orden.referencia).trim() ? escapeHTML(orden.referencia) : null;
@@ -1205,15 +1271,22 @@
             const colorEtiqueta = rechazada ? 'text-rose-500' : (conBotones ? 'text-cyan-600' : 'text-emerald-600');
             const iconoEtiqueta = rechazada ? '<i class="fa-solid fa-xmark mr-1"></i> ' : (conBotones ? '' : '<i class="fa-solid fa-check mr-1"></i> ');
 
-            const listaItems = items.map(it => `
-                <div class="flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
-                    <div>
-                        <span class="text-gray-900">${escapeHTML(it.producto)}</span>
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wide ml-2">${escapeHTML(it.categoria || 'Variados')}</span>
+            const listaItems = items.map(it => {
+                const itPrecio = Number(it.precio || 0);
+                const itBs = tasaBcvAdmin ? (itPrecio * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : null;
+                return `
+                    <div class="flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
+                        <div>
+                            <span class="text-gray-900">${escapeHTML(it.producto)}</span>
+                            <span class="text-[10px] text-gray-400 uppercase tracking-wide ml-2">${escapeHTML(it.categoria || 'Variados')}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-gray-900 text-xs font-mono font-bold">$${itPrecio.toFixed(2)}</span>
+                            ${itBs ? `<span class="text-[10px] text-gray-400 font-mono block">≈ Bs ${itBs}</span>` : ''}
+                        </div>
                     </div>
-                    <span class="text-gray-500 text-xs font-mono">$${Number(it.precio || 0).toFixed(2)}</span>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             return `
                 <div class="bg-white border border-gray-100 rounded-2xl p-5" id="orden-${idAttr}" data-idorden="${idAttr}">
@@ -1224,7 +1297,10 @@
                             </span>
                             <p class="text-xs text-gray-400">${escapeHTML(fecha)}</p>
                         </div>
-                        <span class="text-xl font-black text-gray-900">$${total}</span>
+                        <div class="text-right flex-shrink-0 ml-3">
+                            <span class="text-xl font-black text-gray-900 block">$${total}</span>
+                            ${totalBsNum ? `<span class="text-[11px] text-cyan-600 block font-mono font-bold">≈ Bs ${totalBsNum.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
+                        </div>
                     </div>
 
                     <div class="bg-gray-50 rounded-xl px-4 py-2 mb-3">
@@ -1378,11 +1454,17 @@
             let totalPendiente = 0, totalVencido = 0;
             listaFiadosMemoria.forEach(f => {
                 if (f.estadoPago === 'pagado') return;
-                totalPendiente += Number(f.total || f.precio || 0);
-                if (f.fechaPago && diasEntreFechas(f.fechaPago) < 0) totalVencido += Number(f.total || f.precio || 0);
+                const monto = Number(f.total || f.precio || 0);
+                totalPendiente += monto;
+                if (f.fechaPago && diasEntreFechas(f.fechaPago) < 0) totalVencido += monto;
             });
             document.getElementById('fiadosTotalPendiente').textContent = '$' + totalPendiente.toFixed(2);
+            const pendBsEl = document.getElementById('fiadosTotalPendienteBs');
+            if (pendBsEl) pendBsEl.textContent = tasaBcvAdmin ? '≈ Bs ' + (totalPendiente * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+
             document.getElementById('fiadosTotalVencido').textContent = '$' + totalVencido.toFixed(2);
+            const vencBsEl = document.getElementById('fiadosTotalVencidoBs');
+            if (vencBsEl) vencBsEl.textContent = tasaBcvAdmin ? '≈ Bs ' + (totalVencido * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
 
             if (!filtradas.length) {
                 lista.innerHTML = '';
@@ -1399,6 +1481,7 @@
             const estado = pagado ? { texto: 'Pagado', clase: 'text-emerald-600', fondo: 'bg-emerald-50 border-emerald-200' } : estadoFiado(f.fechaPago);
             const fechaVenta = f.fecha ? new Date(f.fecha).toLocaleDateString('es-VE') : '';
             const total = Number(f.total || f.precio || 0).toFixed(2);
+            const totalBsNum = tasaBcvAdmin ? (Number(total) * tasaBcvAdmin) : null;
             const idAttr = escapeHTML(f.idVenta || f.id || '');
 
             return `
@@ -1408,11 +1491,15 @@
                             <p class="text-sm font-bold text-gray-900">${escapeHTML(f.clienteNombre || f.correo || 'Cliente sin nombre')}</p>
                             <p class="text-[11px] text-gray-400">${escapeHTML(f.producto || 'Venta fiada')} · Vendido el ${escapeHTML(fechaVenta)}</p>
                         </div>
-                        <span class="text-lg font-black text-gray-900">$${total}</span>
+                        <div class="text-right flex-shrink-0 ml-3">
+                            <span class="text-lg font-black text-gray-900 block">$${total}</span>
+                            ${totalBsNum ? `<span class="text-[11px] text-cyan-600 block font-mono font-bold">≈ Bs ${totalBsNum.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
+                        </div>
                     </div>
                     <div class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg border ${estado.fondo} ${estado.clase}">
                         <i class="fa-solid ${pagado ? 'fa-check' : 'fa-triangle-exclamation'}"></i> ${escapeHTML(estado.texto)}
                     </div>
+                    ${f.nota ? `<p class="text-[11px] text-gray-500 mt-2"><i class="fa-solid fa-note-sticky mr-1 text-gray-400"></i>${escapeHTML(f.nota)}</p>` : ''}
                     ${!pagado ? `
                     <button type="button" onclick="marcarFiadoPagado('${idAttr}')" class="w-full mt-3 bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-2.5 rounded-full text-xs uppercase tracking-wide transition">
                         <i class="fa-solid fa-check mr-1"></i> Marcar como pagado
@@ -1559,7 +1646,12 @@
                 .filter(g => g.fecha && new Date(g.fecha) >= inicioSemana)
                 .reduce((s, g) => s + (Number(g.monto) || 0), 0);
             document.getElementById('gastosHoyTotal').textContent = '$' + totalHoy.toFixed(2);
+            const gHoyBsEl = document.getElementById('gastosHoyTotalBs');
+            if (gHoyBsEl) gHoyBsEl.textContent = tasaBcvAdmin ? '≈ Bs ' + (totalHoy * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+
             document.getElementById('gastosSemanaTotal').textContent = '$' + totalSemana.toFixed(2);
+            const gSemBsEl = document.getElementById('gastosSemanaTotalBs');
+            if (gSemBsEl) gSemBsEl.textContent = tasaBcvAdmin ? '≈ Bs ' + (totalSemana * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
 
             if (!filtrados.length) {
                 lista.innerHTML = '';
@@ -1576,6 +1668,7 @@
         function tarjetaGasto(g) {
             const fecha = g.fecha ? new Date(g.fecha).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
             const idAttr = escapeHTML(g.idGasto || g.id || '');
+            const montoBsNum = tasaBcvAdmin ? (Number(g.monto || 0) * tasaBcvAdmin) : null;
             return `
                 <div class="bg-white border border-gray-100 rounded-2xl p-4 flex justify-between items-start gap-3">
                     <div class="min-w-0">
@@ -1584,7 +1677,10 @@
                         ${g.nota ? `<p class="text-[11px] text-gray-400 mt-1"><i class="fa-solid fa-note-sticky mr-1"></i>${escapeHTML(g.nota)}</p>` : ''}
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
-                        <span class="text-lg font-black text-rose-500">-$${Number(g.monto || 0).toFixed(2)}</span>
+                        <div class="text-right">
+                            <span class="text-lg font-black text-rose-500 block">-$${Number(g.monto || 0).toFixed(2)}</span>
+                            ${montoBsNum ? `<span class="text-[11px] text-rose-400 font-mono font-bold block">≈ -Bs ${montoBsNum.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
+                        </div>
                         ${idAttr ? `<button type="button" onclick="eliminarGasto('${idAttr}')" title="Eliminar" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-rose-500 hover:bg-rose-50 transition"><i class="fa-solid fa-trash-can text-xs"></i></button>` : ''}
                     </div>
                 </div>
@@ -1762,8 +1858,15 @@
 
         function actualizarTotalHoyBs() {
             const el = document.getElementById('totalHoyBs');
+            const tasaEl = document.getElementById('tasaHoyInfo');
             if (!el) return;
-            el.textContent = tasaBcvAdmin ? '≈ Bs ' + (ultimoTotalHoy * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+            if (tasaBcvAdmin) {
+                el.textContent = '≈ Bs ' + (ultimoTotalHoy * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (tasaEl) tasaEl.textContent = 'Tasa BCV: Bs ' + tasaBcvAdmin.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' / USD';
+            } else {
+                el.textContent = '';
+                if (tasaEl) tasaEl.textContent = '';
+            }
         }
 
         function parseCSV(texto) {
@@ -1821,7 +1924,15 @@
 
         function calcularResumenCarritoFisica() {
             const totalPiezas = contarTotalPiezasFisica();
-            const hayDescuento = totalPiezas >= 3;
+            
+            // Si hay menos de 3 prendas, reiniciamos la opción de descuento
+            if (totalPiezas < 3) {
+                aplicarDescuentoMayor = null;
+            }
+            
+            const esCandidatoDescuento = totalPiezas >= 3;
+            // Solo aplica descuento si el usuario explícitamente eligió aplicarlo
+            const hayDescuento = esCandidatoDescuento && (aplicarDescuentoMayor === true);
             let subtotal = 0;
             let total = 0;
 
@@ -1838,8 +1949,41 @@
                 subtotal,
                 total,
                 descuentoTotal: subtotal - total,
+                esCandidatoDescuento,
                 hayDescuento
             };
+        }
+
+        function setAplicarDescuento(aplicar) {
+            aplicarDescuentoMayor = Boolean(aplicar);
+            renderizarCarritoFisica();
+            actualizarMiniStepperScanner();
+        }
+
+        function toggleDescuentoMayor() {
+            aplicarDescuentoMayor = !aplicarDescuentoMayor;
+            renderizarCarritoFisica();
+            actualizarMiniStepperScanner();
+        }
+
+        function editarPrecioItemFisica(indice) {
+            if (!carritoFisica[indice]) return;
+            const item = carritoFisica[indice];
+            const precioActual = Number(item.precio || 0);
+            const entrada = prompt(
+                `Editar precio en dólares ($) para:\n"${item.producto}"\n\nPrecio actual: $${precioActual.toFixed(2)}`,
+                precioActual.toFixed(2)
+            );
+            if (entrada === null) return;
+            const limpio = entrada.replace(',', '.').trim();
+            const nuevoPrecio = parseFloat(limpio);
+            if (isNaN(nuevoPrecio) || nuevoPrecio < 0) {
+                alert('Por favor introduce un precio numérico válido (mayor o igual a 0).');
+                return;
+            }
+            item.precio = nuevoPrecio;
+            renderizarCarritoFisica();
+            actualizarMiniStepperScanner();
         }
 
         function agregarItemCarritoFisica(itemDirecto) {
@@ -1909,6 +2053,7 @@
             if (!carritoFisica.length) return;
             if (!confirm('¿Quitar todas las prendas de esta venta?')) return;
             carritoFisica = [];
+            aplicarDescuentoMayor = null;
             ultimoIndiceEscaneado = -1;
             renderizarCarritoFisica();
             actualizarMiniStepperScanner();
@@ -1929,7 +2074,8 @@
             if (ultimoIndiceEscaneado >= 0 && ultimoIndiceEscaneado < carritoFisica.length) {
                 const it = carritoFisica[ultimoIndiceEscaneado];
                 nomEl.textContent = it.producto;
-                detEl.textContent = `$${it.precio.toFixed(2)} c/u`;
+                const bsUnit = tasaBcvAdmin ? ' · ≈ Bs ' + (it.precio * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+                detEl.textContent = `$${it.precio.toFixed(2)} c/u${bsUnit}`;
                 cantEl.textContent = it.cantidad;
                 contenedor.classList.remove('hidden');
             } else {
@@ -1956,9 +2102,12 @@
             const lista = document.getElementById('carritoFisicaLista');
             const cantidadEl = document.getElementById('carritoFisicaCantidad');
             const cantidadSubEl = document.getElementById('carritoFisicaCantidadSub');
+            const bloquePreguntaDescuento = document.getElementById('carritoFisicaPreguntaDescuento');
             const lineaDescuento = document.getElementById('carritoFisicaLineaDescuento');
             const subtotalEl = document.getElementById('carritoFisicaSubtotal');
+            const subtotalBsEl = document.getElementById('carritoFisicaSubtotalBs');
             const descuentoMontoEl = document.getElementById('carritoFisicaDescuentoMonto');
+            const descuentoBsEl = document.getElementById('carritoFisicaDescuentoBs');
             const totalEl = document.getElementById('carritoFisicaTotal');
             const totalBsEl = document.getElementById('carritoFisicaTotalBs');
             const tasaInfoEl = document.getElementById('carritoFisicaTasaInfo');
@@ -1968,6 +2117,10 @@
             if (!carritoFisica.length) {
                 contenedor.classList.add('hidden');
                 lista.innerHTML = '';
+                if (bloquePreguntaDescuento) {
+                    bloquePreguntaDescuento.classList.add('hidden');
+                    bloquePreguntaDescuento.innerHTML = '';
+                }
                 actualizarMiniStepperScanner();
                 return;
             }
@@ -1976,6 +2129,11 @@
             cantidadEl.textContent = String(resumen.totalPiezas);
             cantidadSubEl.textContent = String(resumen.totalPiezas);
             subtotalEl.textContent = '$' + resumen.subtotal.toFixed(2);
+            if (subtotalBsEl) {
+                subtotalBsEl.textContent = (tasaBcvAdmin && resumen.subtotal > 0)
+                    ? '≈ Bs ' + (resumen.subtotal * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : '';
+            }
             totalEl.textContent = '$' + resumen.total.toFixed(2);
 
             // Mostrar el total en Bolívares y la tasa oficial en vivo
@@ -1991,23 +2149,85 @@
                 tasaInfoEl.textContent = tasaBcvAdmin ? 'Tasa BCV: Bs ' + tasaBcvAdmin.toLocaleString('es-VE', { minimumFractionDigits: 2 }) + ' / USD' : '';
             }
 
+            // CONTROL / PREGUNTA INTERACTIVA DE DESCUENTO 3+ PIEZAS
+            if (bloquePreguntaDescuento) {
+                if (resumen.esCandidatoDescuento) {
+                    bloquePreguntaDescuento.classList.remove('hidden');
+                    if (aplicarDescuentoMayor === null) {
+                        bloquePreguntaDescuento.innerHTML = `
+                            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 space-y-2.5 shadow-sm">
+                                <div class="flex items-start gap-2.5">
+                                    <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center flex-shrink-0 text-sm shadow-sm mt-0.5">
+                                        <i class="fa-solid fa-tags"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-amber-950">Llevas ${resumen.totalPiezas} prendas: ¿Aplicar descuento al mayor?</p>
+                                        <p class="text-[11px] text-amber-800 mt-0.5">Rebajaría $1.00 por prenda (-$${resumen.totalPiezas}.00 en total). Tú decides si aplicarlo o mantener tus precios exactos.</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 pt-0.5">
+                                    <button type="button" onclick="setAplicarDescuento(true)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95">
+                                        <i class="fa-solid fa-check"></i> Sí, aplicar (-$1 c/u)
+                                    </button>
+                                    <button type="button" onclick="setAplicarDescuento(false)" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                                        <i class="fa-solid fa-xmark"></i> No aplicar (normal)
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        bloquePreguntaDescuento.innerHTML = `
+                            <div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs">
+                                <span class="font-medium text-gray-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-tags ${aplicarDescuentoMayor ? 'text-emerald-600' : 'text-gray-400'}"></i>
+                                    Descuento al mayor:
+                                    <strong class="${aplicarDescuentoMayor ? 'text-emerald-600 font-bold' : 'text-gray-500 font-semibold'}">
+                                        ${aplicarDescuentoMayor ? 'APLICADO (-$1.00 c/u)' : 'NO APLICADO (precio normal)'}
+                                    </strong>
+                                </span>
+                                <button type="button" onclick="toggleDescuentoMayor()" class="text-[11px] font-bold text-cyan-600 hover:text-cyan-700 hover:underline">
+                                    Cambiar
+                                </button>
+                            </div>
+                        `;
+                    }
+                } else {
+                    bloquePreguntaDescuento.classList.add('hidden');
+                    bloquePreguntaDescuento.innerHTML = '';
+                }
+            }
+
             lineaDescuento.classList.toggle('hidden', !resumen.hayDescuento);
             if (resumen.hayDescuento) {
                 descuentoMontoEl.textContent = '-$' + resumen.descuentoTotal.toFixed(2) + ' (' + resumen.totalPiezas + ' x $1.00)';
+                if (descuentoBsEl) {
+                    descuentoBsEl.textContent = tasaBcvAdmin ? '≈ -Bs ' + (resumen.descuentoTotal * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+                }
             }
 
             lista.innerHTML = carritoFisica.map((item, indice) => {
-                const precioOrigLinea = item.precio * item.cantidad;
-                const precioFinalUnit = resumen.hayDescuento ? Math.max(0, item.precio - 1) : item.precio;
+                const precioUnit = Number(item.precio || 0);
+                const precioOrigLinea = precioUnit * item.cantidad;
+                const precioFinalUnit = resumen.hayDescuento ? Math.max(0, precioUnit - 1) : precioUnit;
                 const precioFinalLinea = precioFinalUnit * item.cantidad;
+                const precioBsUnit = tasaBcvAdmin ? (precioUnit * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : null;
+                const precioBsFinalLinea = tasaBcvAdmin ? (precioFinalLinea * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : null;
 
                 return `
                     <div class="flex items-center justify-between gap-2.5 bg-gray-50 border border-gray-100 rounded-xl p-3">
                         <div class="min-w-0 flex-1">
                             <p class="text-xs font-bold text-gray-900 truncate">${escapeHTML(item.producto)}</p>
-                            <p class="text-[10px] text-gray-400">${escapeHTML(item.categoria || 'Variados')} · $${item.precio.toFixed(2)} c/u</p>
+                            <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                <span class="text-[10px] text-gray-400 uppercase tracking-wide">${escapeHTML(item.categoria || 'Variados')}</span>
+                                <span class="text-gray-300 text-[10px]">·</span>
+                                <span class="text-xs font-bold text-gray-800 font-mono">$${precioUnit.toFixed(2)} c/u</span>
+                                ${precioBsUnit ? `<span class="text-[10px] text-cyan-600 font-mono font-medium">≈ Bs ${precioBsUnit}</span>` : ''}
+                                <button type="button" onclick="editarPrecioItemFisica(${indice})" title="Editar precio de esta prenda" class="text-[11px] font-bold text-cyan-600 hover:text-cyan-700 hover:underline inline-flex items-center gap-1 ml-1">
+                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i> Editar precio
+                                </button>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2.5 flex-shrink-0">
+                        <div class="flex items-center gap-2 flex-shrink-0">
                             <!-- Stepper (-) Cantidad (+) -->
                             <div class="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm">
                                 <button type="button" onclick="modificarCantidadItem(${indice}, -1)" title="Restar" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-rose-600 hover:bg-rose-50 rounded-l-lg transition active:scale-95">
@@ -2019,11 +2239,13 @@
                                 </button>
                             </div>
                             <!-- Subtotal de la línea -->
-                            <div class="text-right min-w-[55px]">
+                            <div class="text-right min-w-[65px]">
                                 ${resumen.hayDescuento
-                                    ? `<span class="text-[10px] text-gray-300 line-through block">$${precioOrigLinea.toFixed(2)}</span>
-                                       <span class="text-xs font-bold text-emerald-600 block">$${precioFinalLinea.toFixed(2)}</span>`
-                                    : `<span class="text-xs font-bold text-gray-900 block">$${precioFinalLinea.toFixed(2)}</span>`}
+                                    ? `<span class="text-[10px] text-gray-400 line-through block">$${precioOrigLinea.toFixed(2)}</span>
+                                       <span class="text-xs font-bold text-emerald-600 block font-mono">$${precioFinalLinea.toFixed(2)}</span>
+                                       ${precioBsFinalLinea ? `<span class="text-[10px] text-emerald-500 font-mono block">≈ Bs ${precioBsFinalLinea}</span>` : ''}`
+                                    : `<span class="text-xs font-bold text-gray-900 block font-mono">$${precioFinalLinea.toFixed(2)}</span>
+                                       ${precioBsFinalLinea ? `<span class="text-[10px] text-gray-400 font-mono block">≈ Bs ${precioBsFinalLinea}</span>` : ''}`}
                             </div>
                             <!-- Eliminar -->
                             <button type="button" onclick="quitarItemCarritoFisica(${indice})" title="Eliminar" class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition">
@@ -2372,6 +2594,17 @@
                 return;
             }
 
+            if (carritoFisica.length && contarTotalPiezasFisica() >= 3 && aplicarDescuentoMayor === null) {
+                const quiereDescuento = confirm(
+                    `Llevas ${contarTotalPiezasFisica()} prendas en esta venta.\n\n` +
+                    `¿Deseas aplicar el descuento al mayor de $1.00 por prenda?\n\n` +
+                    `• Aceptar = Sí, aplicar descuento (-$1.00 por prenda)\n` +
+                    `• Cancelar = No, cobrar a precio normal exacto`
+                );
+                aplicarDescuentoMayor = quiereDescuento;
+                renderizarCarritoFisica();
+            }
+
             const resumen = calcularResumenCarritoFisica();
 
             const itemsAEnviar = carritoFisica.map(item => {
@@ -2382,6 +2615,7 @@
                     precio: precioUnitarioFinal.toFixed(2),
                     precioUnitario: precioUnitarioFinal.toFixed(2),
                     precioOriginal: item.precio.toFixed(2),
+                    precioBs: tasaBcvAdmin ? (precioUnitarioFinal * tasaBcvAdmin).toFixed(2) : '',
                     categoria: item.categoria || '',
                     cantidad: item.cantidad,
                     descontado: resumen.hayDescuento
@@ -2399,16 +2633,13 @@
             // ===============================================================
             const totalBsTexto = tasaBcvAdmin ? ' (≈ Bs ' + (resumen.total * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')' : '';
             mensaje.textContent = esFiado
-                ? `✅ Fiado registrado: ${resumen.totalPiezas} ${resumen.totalPiezas === 1 ? 'prenda' : 'prendas'} por $${resumen.total.toFixed(2)}${totalBsTexto} — pago acordado para ${fiadoFechaPago}.`
+                ? `✅ Fiado registrado: ${resumen.totalPiezas} ${resumen.totalPiezas === 1 ? 'prenda' : 'prendas'} por $${resumen.total.toFixed(2)}${totalBsTexto} — guardado en Fiados (no suma a caja real).`
                 : `✅ Venta registrada con éxito: ${resumen.totalPiezas} ${resumen.totalPiezas === 1 ? 'prenda' : 'prendas'} por $${resumen.total.toFixed(2)}${totalBsTexto}.`;
             mensaje.className = 'block text-center text-xs font-semibold py-2.5 text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-xl';
             mensaje.classList.remove('hidden');
 
-            // Copia de los datos por si falla la red
-            const carritoCopia = [...carritoFisica];
-
-            // Limpiar formulario e interfaz al instante
             carritoFisica = [];
+            aplicarDescuentoMayor = null;
             ultimoIndiceEscaneado = -1;
             renderizarCarritoFisica();
             document.getElementById('fisicaCorreo').value = '';
