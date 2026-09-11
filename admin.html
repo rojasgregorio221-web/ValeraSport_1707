@@ -72,6 +72,48 @@
             border-color: #06b6d4;
             background: #ecfeff;
         }
+
+        /* SUBPESTAÑAS DEL ACORDEÓN DE PEDIDOS (Pendientes / Aceptadas / Rechazadas) */
+        .subtab-pedidos {
+            color: #64748b;
+            background: transparent;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        .subtab-pedidos.activa {
+            color: #083344;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        /* ACORDEÓN DE TARJETAS DE PEDIDO: transición suave al abrir/cerrar detalle */
+        .detalle-orden {
+            display: grid;
+            grid-template-rows: 0fr;
+            opacity: 0;
+            transition: grid-template-rows 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
+        }
+        .detalle-orden.abierta {
+            grid-template-rows: 1fr;
+            opacity: 1;
+        }
+        .detalle-orden > div {
+            overflow: hidden;
+            min-height: 0;
+        }
+        .icono-acordeon {
+            transition: transform 0.25s ease;
+        }
+        .icono-acordeon.rotado {
+            transform: rotate(180deg);
+        }
+
+        /* EDICIÓN DE PRECIO EN LÍNEA (sin ventana emergente) */
+        .precio-editable-input {
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+        }
+        .precio-editable-input:focus {
+            background: #ecfeff;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen">
@@ -393,19 +435,14 @@
             </div>
         </div>
 
-        <!-- PESTAÑAS: REDISEÑO OVALADO LIQUID GLASS -->
+        <!-- PESTAÑAS: REDISEÑO OVALADO LIQUID GLASS (4 secciones: Pedidos fusionados / Ventas / Fiado / Gastos) -->
         <div id="contenedorTabsNav" class="glass-nav-container relative flex items-center p-1.5 rounded-full mb-3 overflow-x-auto no-scrollbar gap-1">
             <!-- Píldora deslizante Liquid Glass -->
             <div id="liquidGlider" class="liquid-glider opacity-0"></div>
 
-            <button data-tab="pendientes" onclick="cambiarTabPedidos('pendientes')" class="tab-pedidos activa font-bold text-xs py-2.5 px-3.5 rounded-full whitespace-nowrap active:scale-95 flex items-center gap-1.5">
-                <i class="fa-regular fa-clock text-[11px] opacity-75"></i> Pendientes
-            </button>
-            <button data-tab="aceptadas" onclick="cambiarTabPedidos('aceptadas')" class="tab-pedidos font-bold text-xs py-2.5 px-3.5 rounded-full whitespace-nowrap active:scale-95 flex items-center gap-1.5">
-                <i class="fa-solid fa-check text-[11px] text-emerald-500"></i> Aceptadas
-            </button>
-            <button data-tab="rechazadas" onclick="cambiarTabPedidos('rechazadas')" class="tab-pedidos font-bold text-xs py-2.5 px-3.5 rounded-full whitespace-nowrap active:scale-95 flex items-center gap-1.5">
-                <i class="fa-solid fa-xmark text-[11px] text-rose-500"></i> Rechazadas
+            <button data-tab="pedidos" onclick="cambiarTabPedidos('pedidos')" class="tab-pedidos activa font-bold text-xs py-2.5 px-3.5 rounded-full whitespace-nowrap active:scale-95 flex items-center gap-1.5">
+                <i class="fa-solid fa-layer-group text-[11px] opacity-75"></i> Pedidos
+                <span id="badgePedidosPendientes" class="hidden ml-0.5 bg-cyan-500 text-white shadow-sm shadow-cyan-500/30 rounded-full px-1.5 py-0.5 text-[10px] font-black">0</span>
             </button>
             <button data-tab="ventas" onclick="cambiarTabPedidos('ventas')" class="tab-pedidos font-bold text-xs py-2.5 px-3.5 rounded-full whitespace-nowrap active:scale-95 flex items-center gap-1.5">
                 <i class="fa-solid fa-receipt text-[11px] text-cyan-600"></i> Ventas
@@ -431,24 +468,39 @@
             </div>
         </div>
 
-        <!-- VISTAS -->
-        <div id="vistaPendientes">
-            <p id="cargando" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
-            <div id="listaPedidos" class="space-y-4"></div>
-            <p id="sinPedidos" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes pendientes por ahora.</p>
-        </div>
+        <!-- VISTA FUSIONADA: PEDIDOS (Pendientes / Aceptadas / Rechazadas como subpestañas en acordeón) -->
+        <div id="vistaPedidos">
+            <div class="flex items-center gap-1 bg-gray-200/70 p-1 rounded-xl text-xs font-bold mb-4 w-fit overflow-x-auto no-scrollbar">
+                <button data-subtab="pendientes" onclick="cambiarSubtabPedidos('pendientes')" class="subtab-pedidos activa px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-regular fa-clock text-[11px]"></i> Pendientes
+                    <span id="badgeSubtabPendientes" class="hidden bg-cyan-500 text-white rounded-full px-1.5 text-[10px] font-black">0</span>
+                </button>
+                <button data-subtab="aceptadas" onclick="cambiarSubtabPedidos('aceptadas')" class="subtab-pedidos px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-check text-[11px] text-emerald-500"></i> Aceptadas
+                </button>
+                <button data-subtab="rechazadas" onclick="cambiarSubtabPedidos('rechazadas')" class="subtab-pedidos px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-xmark text-[11px] text-rose-500"></i> Rechazadas
+                </button>
+            </div>
 
-        <div id="vistaAceptadas" class="hidden">
-            <p id="cargandoAceptadas" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
-            <div id="listaAceptadas" class="space-y-4"></div>
-            <p id="sinAceptadas" class="hidden text-sm text-gray-400 text-center py-10">Todavía no hay órdenes aceptadas.</p>
-        </div>
+            <div id="vistaPendientes">
+                <p id="cargando" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
+                <div id="listaPedidos" class="space-y-3"></div>
+                <p id="sinPedidos" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes pendientes por ahora.</p>
+            </div>
 
-        <div id="vistaRechazadas" class="hidden">
-            <p class="text-[11px] text-gray-300 -mt-2 mb-4">Solo se muestran las rechazadas de hoy.</p>
-            <p id="cargandoRechazadas" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
-            <div id="listaRechazadas" class="space-y-4"></div>
-            <p id="sinRechazadas" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes rechazadas hoy.</p>
+            <div id="vistaAceptadas" class="hidden">
+                <p id="cargandoAceptadas" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
+                <div id="listaAceptadas" class="space-y-3"></div>
+                <p id="sinAceptadas" class="hidden text-sm text-gray-400 text-center py-10">Todavía no hay órdenes aceptadas.</p>
+            </div>
+
+            <div id="vistaRechazadas" class="hidden">
+                <p class="text-[11px] text-gray-300 -mt-2 mb-4">Solo se muestran las rechazadas de hoy.</p>
+                <p id="cargandoRechazadas" class="text-sm text-gray-400 text-center py-10">Cargando órdenes...</p>
+                <div id="listaRechazadas" class="space-y-3"></div>
+                <p id="sinRechazadas" class="hidden text-sm text-gray-400 text-center py-10">No hay órdenes rechazadas hoy.</p>
+            </div>
         </div>
 
         <!-- VISTA: VENTAS (CON FILTRO HOY/TODAS, TOTALES POR MONEDA SEPARADOS Y BOTÓN VACIAR) -->
@@ -633,7 +685,8 @@
         const estadoCargandoLogin = document.getElementById('estadoCargandoLogin');
         const textoEstadoCargando = document.getElementById('textoEstadoCargando');
 
-        let tabActiva = 'pendientes';
+        let tabActiva = 'pedidos';
+        let subtabPedidosActiva = 'pendientes';
         let idSolicitudPedidos = 0, idSolicitudAceptadas = 0, idSolicitudRechazadas = 0, idSolicitudVentas = 0, idSolicitudFiados = 0, idSolicitudGastos = 0;
         let peticionPedidosEnCurso = false, peticionAceptadasEnCurso = false, peticionRechazadasEnCurso = false, peticionVentasEnCurso = false, peticionFiadosEnCurso = false, peticionGastosEnCurso = false;
 
@@ -781,6 +834,7 @@
                 campoFechaFiado.value = enUnaSemana.toISOString().slice(0, 10);
             }
             setTimeout(reposicionarGlider, 50);
+            inicializarAcordeonesOrdenes();
             cargarTodo();
             cargarProductosCatalogo();
             cargarTasaBcvAdmin();
@@ -868,14 +922,24 @@
             if (!ordenes || !ordenes.length) {
                 lista.innerHTML = '';
                 sinPedidos.classList.remove('hidden');
+                actualizarBadgesPedidos(0);
                 return;
             }
 
             sinPedidos.classList.add('hidden');
             lista.innerHTML = ordenes.map(o => tarjetaOrden(o, true)).join('');
+            actualizarBadgesPedidos(ordenes.length);
         }
 
-        // ---------- PESTAÑAS ----------
+        function actualizarBadgesPedidos(cantidad) {
+            [document.getElementById('badgePedidosPendientes'), document.getElementById('badgeSubtabPendientes')].forEach(badge => {
+                if (!badge) return;
+                badge.textContent = String(cantidad);
+                badge.classList.toggle('hidden', cantidad === 0);
+            });
+        }
+
+        // ---------- PESTAÑAS PRINCIPALES ----------
         function cambiarTabPedidos(tab) {
             tabActiva = tab;
             document.querySelectorAll('.tab-pedidos').forEach(btn => btn.classList.toggle('activa', btn.dataset.tab === tab));
@@ -884,18 +948,59 @@
             if (btnActivo) {
                 btnActivo.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             }
-            document.getElementById('vistaPendientes').classList.toggle('hidden', tab !== 'pendientes');
-            document.getElementById('vistaAceptadas').classList.toggle('hidden', tab !== 'aceptadas');
-            document.getElementById('vistaRechazadas').classList.toggle('hidden', tab !== 'rechazadas');
+            document.getElementById('vistaPedidos').classList.toggle('hidden', tab !== 'pedidos');
             document.getElementById('vistaVentas').classList.toggle('hidden', tab !== 'ventas');
             document.getElementById('vistaFiados').classList.toggle('hidden', tab !== 'fiados');
             document.getElementById('vistaGastos').classList.toggle('hidden', tab !== 'gastos');
-            document.getElementById('btnRechazarTodos').classList.toggle('hidden', tab !== 'pendientes');
-            if (tab === 'aceptadas') cargarAceptadas();
-            if (tab === 'rechazadas') cargarRechazadas();
+            document.getElementById('btnRechazarTodos').classList.toggle('hidden', tab !== 'pedidos' || subtabPedidosActiva !== 'pendientes');
             if (tab === 'ventas') cargarVentas();
             if (tab === 'fiados') cargarFiados();
             if (tab === 'gastos') cargarGastos();
+            if (tab === 'pedidos') cargarSubtabPedidosActiva();
+        }
+
+        // ---------- SUBPESTAÑAS: PENDIENTES / ACEPTADAS / RECHAZADAS (ACORDEÓN DENTRO DE "PEDIDOS") ----------
+        function cambiarSubtabPedidos(subtab) {
+            subtabPedidosActiva = subtab;
+            document.querySelectorAll('.subtab-pedidos').forEach(btn => btn.classList.toggle('activa', btn.dataset.subtab === subtab));
+            document.getElementById('vistaPendientes').classList.toggle('hidden', subtab !== 'pendientes');
+            document.getElementById('vistaAceptadas').classList.toggle('hidden', subtab !== 'aceptadas');
+            document.getElementById('vistaRechazadas').classList.toggle('hidden', subtab !== 'rechazadas');
+            document.getElementById('btnRechazarTodos').classList.toggle('hidden', subtab !== 'pendientes');
+            cargarSubtabPedidosActiva();
+        }
+
+        function cargarSubtabPedidosActiva() {
+            if (subtabPedidosActiva === 'aceptadas') cargarAceptadas();
+            if (subtabPedidosActiva === 'rechazadas') cargarRechazadas();
+            if (subtabPedidosActiva === 'pendientes') cargarPedidos();
+        }
+
+        // ---------- ACORDEÓN DE TARJETAS DE ORDEN: solo una desplegada a la vez, por lista ----------
+        function inicializarAcordeonesOrdenes() {
+            ['listaPedidos', 'listaAceptadas', 'listaRechazadas'].forEach(id => {
+                const contenedor = document.getElementById(id);
+                if (!contenedor || contenedor.dataset.acordeonListo) return;
+                contenedor.dataset.acordeonListo = '1';
+                contenedor.addEventListener('click', (e) => {
+                    const cabecera = e.target.closest('[data-toggle-orden]');
+                    if (!cabecera) return;
+                    const tarjeta = cabecera.closest('[data-idorden]');
+                    if (!tarjeta) return;
+                    const detalle = tarjeta.querySelector('.detalle-orden');
+                    const icono = cabecera.querySelector('.icono-acordeon');
+                    if (!detalle) return;
+                    const estabaAbierta = detalle.classList.contains('abierta');
+
+                    contenedor.querySelectorAll('.detalle-orden.abierta').forEach(d => d.classList.remove('abierta'));
+                    contenedor.querySelectorAll('.icono-acordeon.rotado').forEach(ic => ic.classList.remove('rotado'));
+
+                    if (!estabaAbierta) {
+                        detalle.classList.add('abierta');
+                        if (icono) icono.classList.add('rotado');
+                    }
+                });
+            });
         }
 
         function refrescarManual() {
@@ -927,8 +1032,8 @@
             // Ventas se trae siempre (no solo en su pestaña) porque alimenta el resumen "Vendido hoy"
             try {
                 const tareas = [cargarPedidos(), cargarVentas(), cargarResumenFiadosVencidos()];
-                if (tabActiva === 'aceptadas') tareas.push(cargarAceptadas());
-                if (tabActiva === 'rechazadas') tareas.push(cargarRechazadas());
+                if (tabActiva === 'pedidos' && subtabPedidosActiva === 'aceptadas') tareas.push(cargarAceptadas());
+                if (tabActiva === 'pedidos' && subtabPedidosActiva === 'rechazadas') tareas.push(cargarRechazadas());
                 if (tabActiva === 'fiados') tareas.push(cargarFiados());
                 if (tabActiva === 'gastos') tareas.push(cargarGastos());
                 await Promise.all(tareas);
@@ -1330,6 +1435,7 @@
             `;
         }
 
+        // ---------- TARJETA DE ORDEN COMO ACORDEÓN: cabecera siempre visible, detalle se despliega ----------
         function tarjetaOrden(orden, conBotones, rechazada) {
             const fecha = orden.fecha ? new Date(orden.fecha).toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) : '';
             const total = Number(orden.total || 0).toFixed(2);
@@ -1362,58 +1468,65 @@
             }).join('');
 
             return `
-                <div class="bg-white border border-gray-100 rounded-2xl p-5" id="orden-${idAttr}" data-idorden="${idAttr}">
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden" id="orden-${idAttr}" data-idorden="${idAttr}">
+                    <button type="button" data-toggle-orden="${idAttr}" class="w-full flex justify-between items-start gap-3 p-5 text-left transition hover:bg-gray-50/60">
+                        <div class="min-w-0">
                             <span class="text-[10px] font-bold ${colorEtiqueta} uppercase tracking-widest block mb-1">
                                 ${iconoEtiqueta}${orden.numeroOrden ? 'Pedido #' + escapeHTML(String(orden.numeroOrden)) + ' · ' : ''}${items.length} ${items.length === 1 ? 'producto' : 'productos'}
                             </span>
                             <p class="text-xs text-gray-400">${escapeHTML(fecha)}</p>
                         </div>
-                        <div class="text-right flex-shrink-0 ml-3">
-                            <span class="text-xl font-black text-gray-900 block">$${total}</span>
-                            ${totalBsNum ? `<span class="text-[11px] text-cyan-600 block font-mono font-bold">≈ Bs ${totalBsNum.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
+                        <div class="flex items-center gap-2.5 flex-shrink-0 ml-3">
+                            <div class="text-right">
+                                <span class="text-xl font-black text-gray-900 block">$${total}</span>
+                                ${totalBsNum ? `<span class="text-[11px] text-cyan-600 block font-mono font-bold">≈ Bs ${totalBsNum.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-gray-300 text-xs icono-acordeon"></i>
+                        </div>
+                    </button>
+
+                    <div class="detalle-orden">
+                        <div class="px-5 pb-5">
+                            <div class="bg-gray-50 rounded-xl px-4 py-2 mb-3">
+                                ${listaItems}
+                            </div>
+
+                            <div class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 ${conBotones ? 'mb-4' : ''}">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-gray-400 uppercase font-bold">Método de pago:</span>
+                                    <span class="text-gray-900 font-semibold">${metodoPago}</span>
+                                </div>
+                                ${referencia ? `
+                                <div class="flex justify-between items-center text-xs mt-2">
+                                    <span class="text-gray-400 uppercase font-bold">Referencia:</span>
+                                    <span class="text-gray-900 font-mono">${referencia}</span>
+                                </div>` : ''}
+                                ${telefonoPago ? `
+                                <div class="flex justify-between items-center text-xs mt-2">
+                                    <span class="text-gray-400 uppercase font-bold">Teléfono pago:</span>
+                                    <a href="https://wa.me/58${telefonoPago.replace(/\D/g, '').replace(/^0/, '')}" target="_blank" rel="noopener noreferrer" class="text-cyan-600 font-mono font-semibold hover:text-cyan-500">
+                                        ${telefonoPago} <i class="fa-brands fa-whatsapp ml-0.5"></i>
+                                    </a>
+                                </div>` : ''}
+                            </div>
+
+                            ${motivo ? `
+                            <div class="mt-3 bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 text-xs text-rose-600">
+                                <span class="font-bold uppercase tracking-wide block mb-1">Motivo del rechazo:</span>
+                                ${motivo}
+                            </div>` : ''}
+
+                            ${conBotones ? `
+                            <div class="grid grid-cols-2 gap-3">
+                                <button data-accion="rechazarOrden" class="bg-white hover:bg-rose-50 border border-gray-200 hover:border-rose-300 text-gray-600 hover:text-rose-600 font-bold py-3 rounded-full text-sm transition">
+                                    <i class="fa-solid fa-xmark mr-1"></i> Rechazar
+                                </button>
+                                <button data-accion="aceptarOrden" class="bg-cyan-500 hover:bg-cyan-400 text-white font-black py-3 rounded-full text-sm transition">
+                                    <i class="fa-solid fa-check mr-1"></i> Aceptar
+                                </button>
+                            </div>` : ''}
                         </div>
                     </div>
-
-                    <div class="bg-gray-50 rounded-xl px-4 py-2 mb-3">
-                        ${listaItems}
-                    </div>
-
-                    <div class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 ${conBotones ? 'mb-4' : ''}">
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="text-gray-400 uppercase font-bold">Método de pago:</span>
-                            <span class="text-gray-900 font-semibold">${metodoPago}</span>
-                        </div>
-                        ${referencia ? `
-                        <div class="flex justify-between items-center text-xs mt-2">
-                            <span class="text-gray-400 uppercase font-bold">Referencia:</span>
-                            <span class="text-gray-900 font-mono">${referencia}</span>
-                        </div>` : ''}
-                        ${telefonoPago ? `
-                        <div class="flex justify-between items-center text-xs mt-2">
-                            <span class="text-gray-400 uppercase font-bold">Teléfono pago:</span>
-                            <a href="https://wa.me/58${telefonoPago.replace(/\D/g, '').replace(/^0/, '')}" target="_blank" rel="noopener noreferrer" class="text-cyan-600 font-mono font-semibold hover:text-cyan-500">
-                                ${telefonoPago} <i class="fa-brands fa-whatsapp ml-0.5"></i>
-                            </a>
-                        </div>` : ''}
-                    </div>
-
-                    ${motivo ? `
-                    <div class="mt-3 bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 text-xs text-rose-600">
-                        <span class="font-bold uppercase tracking-wide block mb-1">Motivo del rechazo:</span>
-                        ${motivo}
-                    </div>` : ''}
-
-                    ${conBotones ? `
-                    <div class="grid grid-cols-2 gap-3">
-                        <button data-accion="rechazarOrden" class="bg-white hover:bg-rose-50 border border-gray-200 hover:border-rose-300 text-gray-600 hover:text-rose-600 font-bold py-3 rounded-full text-sm transition">
-                            <i class="fa-solid fa-xmark mr-1"></i> Rechazar
-                        </button>
-                        <button data-accion="aceptarOrden" class="bg-cyan-500 hover:bg-cyan-400 text-white font-black py-3 rounded-full text-sm transition">
-                            <i class="fa-solid fa-check mr-1"></i> Aceptar
-                        </button>
-                    </div>` : ''}
                 </div>
             `;
         }
@@ -1458,7 +1571,8 @@
                 if (!lista.children.length) {
                     document.getElementById('sinPedidos').classList.remove('hidden');
                 }
-                if (accion === 'aceptarOrden' && tabActiva === 'aceptadas') cargarAceptadas();
+                actualizarBadgesPedidos(lista.children.length);
+                if (accion === 'aceptarOrden' && tabActiva === 'pedidos' && subtabPedidosActiva === 'aceptadas') cargarAceptadas();
             } catch (e) {
                 alert('No se pudo conectar con el servidor.');
                 if (tarjeta) tarjeta.style.opacity = '1';
@@ -1976,7 +2090,7 @@
         }
 
         // ===================================================================
-        // CARRITO FÍSICA: SUMAR / RESTAR / DESCUENTO AL MAYOR
+        // CARRITO FÍSICA: SUMAR / RESTAR / DESCUENTO AL MAYOR / PRECIO EN LÍNEA
         // ===================================================================
         function contarTotalPiezasFisica() {
             return carritoFisica.reduce((total, item) => total + (parseInt(item.cantidad, 10) || 1), 0);
@@ -2026,24 +2140,31 @@
             actualizarMiniStepperScanner();
         }
 
-        function editarPrecioItemFisica(indice) {
+        // Edición de precio DIRECTA en la línea del carrito (sin ventana emergente).
+        // El campo numérico vive siempre en la fila; se confirma al perder el foco o presionar Enter.
+        function actualizarPrecioItemFisica(indice, valorTexto, inputEl) {
             if (!carritoFisica[indice]) return;
-            const item = carritoFisica[indice];
-            const precioActual = Number(item.precio || 0);
-            const entrada = prompt(
-                `Editar precio en dólares ($) para:\n"${item.producto}"\n\nPrecio actual: $${precioActual.toFixed(2)}`,
-                precioActual.toFixed(2)
-            );
-            if (entrada === null) return;
-            const limpio = entrada.replace(',', '.').trim();
+            const limpio = String(valorTexto).replace(',', '.').trim();
             const nuevoPrecio = parseFloat(limpio);
             if (isNaN(nuevoPrecio) || nuevoPrecio < 0) {
-                alert('Por favor introduce un precio numérico válido (mayor o igual a 0).');
+                renderizarCarritoFisica(); // revierte al valor válido anterior
                 return;
             }
-            item.precio = nuevoPrecio;
+            carritoFisica[indice].precio = nuevoPrecio;
             renderizarCarritoFisica();
             actualizarMiniStepperScanner();
+        }
+
+        function manejarEnterPrecioItem(event, indice) {
+            if (event.key === 'Enter') {
+                event.target.blur();
+            }
+        }
+
+        function editarPrecioItemFisica(indice) {
+            if (!carritoFisica[indice]) return;
+            const input = document.querySelector(`.precio-editable-input[data-indice="${indice}"]`);
+            if (input) { input.focus(); input.select(); }
         }
 
         function agregarItemCarritoFisica(itemDirecto) {
@@ -2277,14 +2398,26 @@
                     <div class="flex items-center justify-between gap-2.5 bg-gray-50 border border-gray-100 rounded-xl p-3">
                         <div class="min-w-0 flex-1">
                             <p class="text-xs font-bold text-gray-900 truncate">${escapeHTML(item.producto)}</p>
-                            <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                            <div class="flex flex-wrap items-center gap-1.5 mt-1">
                                 <span class="text-[10px] text-gray-400 uppercase tracking-wide">${escapeHTML(item.categoria || 'Variados')}</span>
                                 <span class="text-gray-300 text-[10px]">·</span>
-                                <span class="text-xs font-bold text-gray-800 font-mono">$${precioUnit.toFixed(2)} c/u</span>
+                                <div class="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-lg pl-1.5 pr-1 py-0.5 focus-within:border-cyan-400">
+                                    <span class="text-[10px] text-gray-400 font-mono">$</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        inputmode="decimal"
+                                        value="${precioUnit.toFixed(2)}"
+                                        data-indice="${indice}"
+                                        title="Editar precio de esta prenda"
+                                        onchange="actualizarPrecioItemFisica(${indice}, this.value, this)"
+                                        onkeydown="manejarEnterPrecioItem(event, ${indice})"
+                                        class="precio-editable-input w-14 text-xs font-bold text-gray-800 font-mono bg-transparent outline-none border-none p-0"
+                                    >
+                                    <span class="text-[10px] text-gray-400">c/u</span>
+                                </div>
                                 ${precioBsUnit ? `<span class="text-[10px] text-cyan-600 font-mono font-medium">≈ Bs ${precioBsUnit}</span>` : ''}
-                                <button type="button" onclick="editarPrecioItemFisica(${indice})" title="Editar precio de esta prenda" class="text-[11px] font-bold text-cyan-600 hover:text-cyan-700 hover:underline inline-flex items-center gap-1 ml-1">
-                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i> Editar precio
-                                </button>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
