@@ -114,6 +114,16 @@
         .precio-editable-input:focus {
             background: #ecfeff;
         }
+
+        /* HILO DECORATIVO QUE AGRUPA LAS TARJETAS DE UN MISMO DÍA (sin fusionar su contenido) */
+        .hilo-fecha {
+            width: 3px;
+            border-radius: 9999px;
+            background-image: repeating-linear-gradient(115deg,
+                rgba(6, 182, 212, 0.65) 0px, rgba(6, 182, 212, 0.65) 4px,
+                rgba(6, 182, 212, 0.12) 4px, rgba(6, 182, 212, 0.12) 9px);
+            background-size: 4px 16px;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen">
@@ -1259,11 +1269,18 @@
                 const encabezado = fechaRef ? formatearEncabezadoFechaVenta(fechaRef) : 'Sin fecha';
                 const tarjetas = grupos.map(g => g.length > 1 ? tarjetaVentaGrupo(g) : tarjetaVenta(g[0])).join('');
                 return `
-                    <div class="flex items-center gap-2 px-1">
-                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">${escapeHTML(encabezado)}</span>
-                        <span class="flex-1 h-px bg-gray-200"></span>
+                    <div class="relative">
+                        <span class="hilo-fecha pointer-events-none absolute left-0 top-1 bottom-1" aria-hidden="true"></span>
+                        <div class="pl-4">
+                            <div class="relative inline-block mb-3">
+                                <span class="relative z-10 text-[11px] font-bold text-gray-500 uppercase tracking-widest">${escapeHTML(encabezado)}</span>
+                                <svg class="absolute -bottom-1 left-0 w-full h-2.5 text-amber-300" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
+                                    <path d="M1,6 Q15,1 30,6 T60,5 T99,6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="space-y-3">${tarjetas}</div>
+                        </div>
                     </div>
-                    <div class="space-y-3">${tarjetas}</div>
                 `;
             }).join('');
         }
