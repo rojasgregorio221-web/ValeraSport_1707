@@ -1240,9 +1240,45 @@
             }
 
             sinVentas.classList.add('hidden');
-            lista.innerHTML = agruparVentas(filtradas)
-                .map(grupo => grupo.length > 1 ? tarjetaVentaGrupo(grupo) : tarjetaVenta(grupo[0]))
-                .join('');
+
+            // Cada "grupo" de aquí es una transacción completa (una prenda o varias vendidas juntas)
+            // y ya se muestra como una sola tarjeta. Lo que se agrega ahora es un nivel más arriba:
+            // separar esas tarjetas por día, sin tocar cómo se arma cada tarjeta.
+            const gruposTransaccion = agruparVentas(filtradas);
+            const porDia = new Map();
+            const ordenDias = [];
+            gruposTransaccion.forEach(grupo => {
+                const fechaRef = grupo[0].fecha || '';
+                const claveDia = fechaRef ? new Date(fechaRef).toLocaleDateString('es-VE') : 'sin-fecha';
+                if (!porDia.has(claveDia)) { porDia.set(claveDia, { fechaRef, grupos: [] }); ordenDias.push(claveDia); }
+                porDia.get(claveDia).grupos.push(grupo);
+            });
+
+            lista.innerHTML = ordenDias.map(claveDia => {
+                const { fechaRef, grupos } = porDia.get(claveDia);
+                const encabezado = fechaRef ? formatearEncabezadoFechaVenta(fechaRef) : 'Sin fecha';
+                const tarjetas = grupos.map(g => g.length > 1 ? tarjetaVentaGrupo(g) : tarjetaVenta(g[0])).join('');
+                return `
+                    <div class="flex items-center gap-2 px-1">
+                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">${escapeHTML(encabezado)}</span>
+                        <span class="flex-1 h-px bg-gray-200"></span>
+                    </div>
+                    <div class="space-y-3">${tarjetas}</div>
+                `;
+            }).join('');
+        }
+
+        // Etiqueta legible para el encabezado de cada grupo de fecha en Ventas (Hoy / Ayer / día completo)
+        function formatearEncabezadoFechaVenta(fechaISO) {
+            const d = new Date(fechaISO);
+            const hoyStr = new Date().toLocaleDateString('es-VE');
+            const ayerRef = new Date();
+            ayerRef.setDate(ayerRef.getDate() - 1);
+            const dStr = d.toLocaleDateString('es-VE');
+            if (dStr === hoyStr) return 'Hoy';
+            if (dStr === ayerRef.toLocaleDateString('es-VE')) return 'Ayer';
+            const texto = d.toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' });
+            return texto.charAt(0).toUpperCase() + texto.slice(1);
         }
 
         // Agrupa las ventas que pertenecen a una misma transacción (mismo escaneo/registro
