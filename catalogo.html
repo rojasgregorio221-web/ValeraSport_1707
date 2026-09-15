@@ -4,152 +4,304 @@
     <link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#16131F">
     <title>Catálogo | Valera Sport</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="firebase-auth.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
-        html, body { overflow-x: hidden; max-width: 100vw; width: 100%; }
-        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #111111; width: 100%; }
-        h1, h2, h3, .font-brand { font-family: 'Outfit', sans-serif; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #fff; }
-        ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
-        .nav-link { position: relative; }
-        .nav-link::after { content: ""; position: absolute; left: 0; bottom: -4px; width: 0; height: 1px; background: #111; transition: width 0.25s ease; }
-        .nav-link:hover::after { width: 100%; }
-        .icon-btn { transition: color 0.15s ease; }
-        details > summary { list-style: none; cursor: pointer; }
-        details > summary::-webkit-details-marker { display: none; }
-        .filtro-check:checked + span { color: #111; font-weight: 600; }
-        /* Scrollbar mas fina y transparente dentro del modal de producto -- la
-           gris/blanca de siempre se veia como una barra recta cortando la
-           esquina redondeada del modal. */
+        :root {
+            --noche: #140F2E;
+            --brasa: #FF5A1F;
+            --fucsia: #FF2D87;
+            --violeta: #7C4DFF;
+            --hueso: #F6F3EC;
+            --tinta: #16131F;
+            --gris: #6b665d;
+            --gris-claro: #9a948a;
+            --suave: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { -webkit-tap-highlight-color: transparent; }
+
+        html { overflow-x: hidden; overflow-x: clip; scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--hueso);
+            color: var(--tinta);
+            overflow-x: hidden; overflow-x: clip; width: 100%;
+        }
+
+        .display {
+            font-family: 'Big Shoulders Display', 'Inter', sans-serif;
+            font-weight: 900; line-height: 0.82;
+            letter-spacing: -0.01em; text-transform: uppercase;
+        }
+        .rotulo { font-size: 11px; font-weight: 700; letter-spacing: 0.28em; color: var(--fucsia); }
+
+        ::selection { background: var(--fucsia); color: #fff; }
+        ::-webkit-scrollbar { width: 9px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cfc9bd; border-radius: 9999px; }
+
+        /* ---- HEADER ---- */
+        .barra {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(246, 243, 236, 0.85);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(22, 19, 31, 0.08);
+            transition: transform 0.45s var(--suave);
+        }
+        .barra.oculta { transform: translateY(-101%); }
+        .enlace-nav { position: relative; color: var(--tinta); }
+        .enlace-nav::after {
+            content: ""; position: absolute; left: 0; bottom: -5px; height: 2px; width: 0;
+            background: var(--fucsia); transition: width 0.3s var(--suave);
+        }
+        .enlace-nav:hover::after { width: 100%; }
+        .boton-icono { color: var(--tinta); transition: opacity 0.2s ease, color 0.2s ease; }
+        .boton-icono:hover { opacity: 0.55; }
+        .icono-activo { color: var(--fucsia) !important; }
+
+        /* ---- BUSCADOR ---- */
+        .buscador-grande {
+            width: 100%; background: #fff; border: 1px solid rgba(22,19,31,0.12);
+            border-radius: 9999px; padding: 18px 22px 18px 54px;
+            font-size: 15px; outline: none;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .buscador-grande:focus { border-color: var(--fucsia); box-shadow: 0 0 0 4px rgba(255,45,135,0.10); }
+        .buscador-grande::placeholder { color: var(--gris-claro); }
+
+        /* ---- FILTROS ---- */
+        .grupo-filtro { border-top: 1px solid rgba(22,19,31,0.12); padding: 20px 0; }
+        .grupo-filtro summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none; }
+        .grupo-filtro summary::-webkit-details-marker { display: none; }
+        .titulo-filtro { font-family: 'Big Shoulders Display', sans-serif; font-weight: 800; font-size: 22px; text-transform: uppercase; letter-spacing: 0.01em; }
+        .grupo-filtro .cruz { position: relative; width: 12px; height: 12px; }
+        .grupo-filtro .cruz::before, .grupo-filtro .cruz::after {
+            content: ""; position: absolute; background: var(--tinta); transition: transform 0.3s var(--suave);
+        }
+        .grupo-filtro .cruz::before { top: 5.5px; left: 0; width: 12px; height: 1.5px; }
+        .grupo-filtro .cruz::after { left: 5.5px; top: 0; width: 1.5px; height: 12px; }
+        .grupo-filtro[open] .cruz::after { transform: rotate(90deg); }
+
+        .opcion-filtro {
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
+            font-size: 14px; color: var(--gris); padding: 4px 0;
+            transition: color 0.2s ease;
+        }
+        .opcion-filtro:hover { color: var(--tinta); }
+        .filtro-check {
+            appearance: none; -webkit-appearance: none;
+            width: 18px; height: 18px; border: 1.5px solid rgba(22,19,31,0.25);
+            border-radius: 6px; flex-shrink: 0; position: relative; cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .filtro-check:checked { background: var(--tinta); border-color: var(--tinta); }
+        .filtro-check:checked::after {
+            content: ""; position: absolute; left: 5.5px; top: 2px;
+            width: 4px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        .filtro-check:checked + span { color: var(--tinta); font-weight: 600; }
+        .campo-mini {
+            width: 100%; background: #fff; border: 1px solid rgba(22,19,31,0.12);
+            border-radius: 12px; padding: 9px 12px; font-size: 13px; outline: none;
+        }
+        .campo-mini:focus { border-color: var(--fucsia); }
+
+        /* ---- TARJETAS ---- */
+        .tarjeta { cursor: pointer; animation: entraTarjeta 0.6s var(--suave) both; }
+        @keyframes entraTarjeta {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: none; }
+        }
+        .marco {
+            position: relative; overflow: hidden; border-radius: 20px;
+            background: #ece7dc; aspect-ratio: 4 / 5;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .marco img { max-width: 84%; max-height: 84%; object-fit: contain; transition: transform 0.7s var(--suave); }
+        .tarjeta:hover .marco img { transform: scale(1.07) rotate(-1.2deg); }
+        .marco::after {
+            content: ""; position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(140deg, rgba(255,90,31,0.18), rgba(124,77,255,0.18));
+            opacity: 0; transition: opacity 0.5s ease;
+        }
+        .tarjeta:hover .marco::after { opacity: 1; }
+        .sello {
+            position: absolute; top: 12px; left: 12px; z-index: 2;
+            background: rgba(22,19,31,0.85); color: #fff;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+            padding: 5px 10px; border-radius: 9999px;
+        }
+
+        .boton-solido {
+            position: relative; overflow: hidden; isolation: isolate;
+            background: var(--tinta); color: var(--hueso);
+            transition: color 0.35s var(--suave);
+        }
+        .boton-solido::before {
+            content: ""; position: absolute; inset: 0; z-index: -1;
+            background: linear-gradient(120deg, var(--brasa), var(--fucsia));
+            transform: translateY(101%); transition: transform 0.45s var(--suave);
+        }
+        .boton-solido:hover::before { transform: translateY(0); }
+
+        /* ---- FOOTER ---- */
+        .pie { background: var(--tinta); color: var(--hueso); }
+        .pie a { transition: color 0.25s ease; }
+        .pie a:hover { color: var(--fucsia); }
+        .palabra-pie {
+            font-family: 'Big Shoulders Display', sans-serif; font-weight: 900;
+            line-height: 0.78; text-transform: uppercase;
+            color: transparent; -webkit-text-stroke: 1px rgba(246,243,236,0.35);
+        }
+
+        /* ---- MODAL ---- */
         #detalleModalContainer::-webkit-scrollbar { width: 5px; }
         #detalleModalContainer::-webkit-scrollbar-track { background: transparent; }
         #detalleModalContainer::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 9999px; }
         #detalleModalContainer { scrollbar-width: thin; scrollbar-color: #e5e7eb transparent; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tarjeta { animation: none !important; }
+            html { scroll-behavior: auto; }
+        }
     </style>
 </head>
-<body class="antialiased min-h-screen">
+<body class="antialiased min-h-screen flex flex-col">
 
     <!-- HEADER -->
-    <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <a href="/" class="font-brand font-extrabold text-xl tracking-tight text-gray-900">
-                VALERA<span class="text-cyan-500">SPORT</span>
+    <header id="barra" class="barra">
+        <div class="max-w-[1400px] mx-auto px-5 md:px-8 h-[72px] md:h-[88px] flex items-center justify-between">
+            <a href="/" class="display text-[26px] md:text-[32px] tracking-tight" style="color: var(--tinta)">
+                Valera<span style="color: var(--fucsia)">Sport</span>
             </a>
-            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-800">
-                <a href="/catalogo" class="nav-link">Catálogo</a>
-                <a href="/catalogo?categoria=Damas" class="nav-link">Damas</a>
-                <a href="/catalogo?categoria=Caballeros" class="nav-link">Caballeros</a>
-                <a href="/catalogo?categoria=Niños" class="nav-link">Niños</a>
-                <a href="/#contacto" class="nav-link">Ubicación</a>
+            <nav class="hidden lg:flex items-center gap-9 text-[13px] font-semibold tracking-wide">
+                <a href="/catalogo" class="enlace-nav">Catálogo</a>
+                <a href="/catalogo?categoria=Damas" class="enlace-nav">Damas</a>
+                <a href="/catalogo?categoria=Caballeros" class="enlace-nav">Caballeros</a>
+                <a href="/catalogo?categoria=Niños" class="enlace-nav">Niños</a>
+                <a href="/#contacto" class="enlace-nav">Tienda</a>
             </nav>
             <div class="flex items-center gap-1">
-                <button onclick="location.href='/carrito'" title="Carrito" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
-                    <i class="fa-solid fa-bag-shopping text-sm"></i>
-                    <span id="contadorCarrito" class="hidden absolute top-1 right-1.5 bg-cyan-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">0</span>
+                <button onclick="location.href='/carrito'" title="Carrito" class="boton-icono relative w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-bag-shopping text-[15px]"></i>
+                    <span id="contadorCarrito" class="hidden absolute top-0.5 right-0.5 text-white text-[9px] font-bold rounded-full min-w-[17px] h-[17px] px-1 flex items-center justify-center" style="background: var(--fucsia)">0</span>
                 </button>
-                <button id="btnMiPedido" onclick="location.href='/pedido'" title="Estado de mi pedido" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
-                    <i class="fa-solid fa-receipt text-sm"></i>
-                    <span id="puntoMiPedido" class="hidden absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full"></span>
+                <button id="btnMiPedido" onclick="location.href='/pedido'" title="Estado de mi pedido" class="boton-icono relative w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-receipt text-[15px]"></i>
+                    <span id="puntoMiPedido" class="hidden absolute top-2 right-2 w-2 h-2 rounded-full" style="background: var(--brasa)"></span>
                 </button>
-                <button id="btnCuenta" onclick="clicBotonCuenta()" title="Mi cuenta" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
-                    <i class="fa-solid fa-user text-sm"></i>
+                <button id="btnCuenta" onclick="clicBotonCuenta()" title="Mi cuenta" class="boton-icono w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-user text-[15px]"></i>
                 </button>
-                <a href="https://wa.me/584245939407" target="_blank" title="WhatsApp" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-emerald-500">
-                    <i class="fa-brands fa-whatsapp text-base"></i>
+                <a href="https://wa.me/584245939407" target="_blank" title="WhatsApp" class="boton-icono w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-brands fa-whatsapp text-[17px]"></i>
                 </a>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 py-10 mt-20 w-full flex-1">
-        <div class="flex items-center justify-between mb-4">
-            <h1 class="font-brand font-bold text-2xl text-gray-900">Catálogo</h1>
-            <div class="flex items-center gap-3">
-                <p id="contadorResultados" class="text-sm text-gray-400"></p>
-                <button onclick="toggleFiltrosMovil()" class="md:hidden text-sm font-semibold text-gray-700 border border-gray-200 rounded-full px-4 py-2">
-                    <i class="fa-solid fa-sliders mr-1"></i> Filtros
+    <main class="max-w-[1400px] mx-auto px-5 md:px-8 w-full flex-1 pt-[104px] md:pt-[128px] pb-20">
+
+        <!-- TÍTULO -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-9">
+            <div>
+                <p class="rotulo mb-4">TODAS LAS PRENDAS</p>
+                <h1 class="display text-[17vw] md:text-[7vw]">Catálogo</h1>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+                <p id="contadorResultados" class="text-sm" style="color: var(--gris-claro)"></p>
+                <button onclick="toggleFiltrosMovil()" class="md:hidden text-[13px] font-semibold rounded-full px-5 py-2.5" style="border: 1px solid rgba(22,19,31,0.15)">
+                    <i class="fa-solid fa-sliders mr-1.5"></i> Filtros
                 </button>
             </div>
         </div>
 
-        <div class="relative mb-8">
-            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-            <input type="text" id="buscadorPrincipal" oninput="sincronizarBusqueda(this.value)" placeholder="Buscar productos..." class="w-full border border-gray-200 rounded-full pl-11 pr-4 py-3 text-sm outline-none focus:border-cyan-400">
+        <!-- BUSCADOR -->
+        <div class="relative mb-10">
+            <i class="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-sm" style="color: var(--gris-claro)"></i>
+            <input type="text" id="buscadorPrincipal" oninput="sincronizarBusqueda(this.value)" placeholder="Busca una prenda, una categoría..." class="buscador-grande">
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-[1fr_220px] gap-10">
-
-            <!-- GRID DE PRODUCTOS -->
-            <div class="order-2 md:order-1">
-                <p id="estadoCarga" class="text-center text-gray-400 text-sm py-10">Cargando catálogo...</p>
-                <div id="gridProductos" class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-10"></div>
-                <p id="sinResultados" class="hidden text-center text-gray-400 text-sm py-16">No encontramos productos con esos filtros.</p>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-10 md:gap-14">
 
             <!-- FILTROS -->
-            <aside id="panelFiltros" class="hidden md:block space-y-1 order-1 md:order-2">
-                <div class="mb-4">
-                    <input type="text" id="buscador" oninput="aplicarFiltros()" placeholder="Buscar..." class="w-full border border-gray-200 rounded-full px-4 py-2 text-sm outline-none focus:border-cyan-400">
-                </div>
-
-                <details open class="border-t border-gray-100 py-4">
-                    <summary class="flex items-center justify-between text-sm font-bold text-gray-900">
-                        Categoría <i class="fa-solid fa-plus text-[10px] text-gray-400"></i>
-                    </summary>
-                    <div class="mt-3 space-y-2" id="filtroCategorias"></div>
-                </details>
-
-                <details open class="border-t border-gray-100 py-4">
-                    <summary class="flex items-center justify-between text-sm font-bold text-gray-900">
-                        Precio <i class="fa-solid fa-plus text-[10px] text-gray-400"></i>
-                    </summary>
-                    <div class="mt-3 flex items-center gap-2">
-                        <input type="number" id="precioMin" placeholder="Mín" oninput="aplicarFiltros()" class="w-1/2 border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-cyan-400">
-                        <span class="text-gray-300 text-xs">—</span>
-                        <input type="number" id="precioMax" placeholder="Máx" oninput="aplicarFiltros()" class="w-1/2 border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-cyan-400">
+            <aside id="panelFiltros" class="hidden md:block order-1">
+                <div class="md:sticky md:top-[120px]">
+                    <div class="mb-5">
+                        <input type="text" id="buscador" oninput="aplicarFiltros()" placeholder="Buscar..." class="campo-mini rounded-full px-4 py-2.5">
                     </div>
-                </details>
 
-                <details open class="border-t border-b border-gray-100 py-4">
-                    <summary class="flex items-center justify-between text-sm font-bold text-gray-900">
-                        Disponibilidad <i class="fa-solid fa-plus text-[10px] text-gray-400"></i>
-                    </summary>
-                    <label class="mt-3 flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                        <input type="checkbox" id="soloDisponibles" onchange="aplicarFiltros()" class="rounded border-gray-300 text-cyan-500 focus:ring-cyan-400">
-                        Solo disponibles
-                    </label>
-                </details>
+                    <details open class="grupo-filtro">
+                        <summary>
+                            <span class="titulo-filtro">Categoría</span>
+                            <span class="cruz"></span>
+                        </summary>
+                        <div class="mt-4 space-y-1" id="filtroCategorias"></div>
+                    </details>
 
-                <button onclick="limpiarFiltros()" class="mt-4 text-xs font-semibold text-gray-400 hover:text-gray-700">
-                    Limpiar filtros
-                </button>
+                    <details open class="grupo-filtro">
+                        <summary>
+                            <span class="titulo-filtro">Precio</span>
+                            <span class="cruz"></span>
+                        </summary>
+                        <div class="mt-4 flex items-center gap-2">
+                            <input type="number" id="precioMin" placeholder="Mín" oninput="aplicarFiltros()" class="campo-mini">
+                            <span style="color: var(--gris-claro)">—</span>
+                            <input type="number" id="precioMax" placeholder="Máx" oninput="aplicarFiltros()" class="campo-mini">
+                        </div>
+                    </details>
+
+                    <details open class="grupo-filtro" style="border-bottom: 1px solid rgba(22,19,31,0.12)">
+                        <summary>
+                            <span class="titulo-filtro">Disponibilidad</span>
+                            <span class="cruz"></span>
+                        </summary>
+                        <label class="opcion-filtro mt-4">
+                            <input type="checkbox" id="soloDisponibles" onchange="aplicarFiltros()" class="filtro-check">
+                            <span>Solo disponibles</span>
+                        </label>
+                    </details>
+
+                    <button onclick="limpiarFiltros()" class="mt-5 text-xs font-semibold underline underline-offset-4" style="color: var(--gris-claro)">
+                        Limpiar filtros
+                    </button>
+                </div>
             </aside>
+
+            <!-- GRID -->
+            <div class="order-2">
+                <p id="estadoCarga" class="text-center text-sm py-16" style="color: var(--gris-claro)">Cargando catálogo...</p>
+                <div id="gridProductos" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-10"></div>
+                <p id="sinResultados" class="hidden text-center text-sm py-20" style="color: var(--gris-claro)">No encontramos prendas con esos filtros.</p>
+            </div>
         </div>
     </main>
 
     <!-- MODAL DETALLE / AGREGAR AL CARRITO -->
-    <div id="detalleModal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-[2rem] w-full max-w-md p-6 relative shadow-xl scale-95 opacity-0 max-h-[90vh] overflow-y-auto overscroll-y-contain transition-all duration-200" id="detalleModalContainer">
+    <div id="detalleModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] w-full max-w-md p-6 relative shadow-2xl scale-95 opacity-0 max-h-[90vh] overflow-y-auto overscroll-y-contain transition-all duration-200" id="detalleModalContainer">
             <div class="sticky top-0 z-10 flex justify-end -mb-10 pointer-events-none">
-                <button onclick="cerrarDetalle()" class="icon-btn pointer-events-auto flex items-center gap-1.5 pl-3 pr-2.5 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold shadow-sm">
+                <button onclick="cerrarDetalle()" class="pointer-events-auto flex items-center gap-1.5 pl-3 pr-2.5 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold shadow-sm">
                     Cerrar <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
-            <div class="w-full h-72 rounded-3xl overflow-hidden bg-gray-50 flex items-center justify-center mb-3">
+            <div class="w-full h-72 rounded-[24px] overflow-hidden bg-gray-50 flex items-center justify-center mb-3">
                 <img id="detalleImagen" src="" alt="" class="max-w-full max-h-full object-contain">
             </div>
             <div id="detalleGaleria" class="hidden flex gap-2 mb-5 overflow-x-auto pb-1"></div>
-            <span id="detalleCategoria" class="text-[11px] font-semibold text-cyan-600 uppercase tracking-widest mb-1 block"></span>
-            <h3 id="detalleNombre" class="text-xl font-bold text-gray-900 mb-3"></h3>
+            <span id="detalleCategoria" class="text-[11px] font-semibold uppercase tracking-widest mb-1 block" style="color: var(--fucsia)"></span>
+            <h3 id="detalleNombre" class="display text-[34px] mb-4"></h3>
             <div class="mb-5">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Colores disponibles</label>
                 <div class="flex flex-wrap gap-2" id="detalleColores"></div>
@@ -158,10 +310,10 @@
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Talla</label>
                 <div class="flex flex-wrap gap-2" id="detalleTallas"></div>
             </div>
-            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex justify-between items-center mb-5">
-                <span class="text-xs text-gray-500 uppercase font-bold">Precio</span>
+            <div class="rounded-[20px] p-4 flex justify-between items-center mb-5" style="background: var(--hueso); border: 1px solid rgba(22,19,31,0.08)">
+                <span class="text-xs text-gray-500 uppercase font-bold tracking-widest">Precio</span>
                 <div class="text-right">
-                    <span class="text-2xl font-black text-gray-900 block" id="detallePrecio"></span>
+                    <span class="text-3xl font-black text-gray-900 block" id="detallePrecio"></span>
                     <span id="detallePrecioBs" class="block text-xs text-gray-400 font-normal"></span>
                 </div>
             </div>
@@ -176,10 +328,10 @@
                 <p id="detalleStock" class="text-xs text-gray-400 mt-2"></p>
             </div>
 
-            <button id="detalleBotonCarrito" onclick="agregarAlCarritoDesdeModal()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
+            <button id="detalleBotonCarrito" onclick="agregarAlCarritoDesdeModal()" class="boton-solido w-full font-semibold py-4 rounded-full text-sm flex items-center justify-center gap-2">
                 <i class="fa-solid fa-bag-shopping text-base"></i> Agregar al carrito
             </button>
-            <a id="detalleBotonWA" href="#" target="_blank" class="w-full mt-3 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
+            <a id="detalleBotonWA" href="#" target="_blank" class="w-full mt-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-4 rounded-full text-sm transition flex items-center justify-center gap-2">
                 <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
             </a>
             <p id="detalleNoDisponible" class="hidden text-center text-sm text-gray-400 py-3">Actualmente no disponible</p>
@@ -217,20 +369,55 @@
     </button>
 
     <!-- Aviso de bienvenida: solo se muestra una vez, la primera vez que alguien entra al sitio. -->
-    <div id="bienvenidaToast" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm bg-cyan-50 border border-cyan-200 text-cyan-800 rounded-xl shadow-xl px-4 py-3 text-sm">
-        <div class="flex items-start gap-2">
+    <div id="bienvenidaToast" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm bg-white border border-gray-200 text-gray-800 rounded-2xl shadow-xl px-4 py-3 text-sm">
+        <div class="flex items-start gap-2.5">
             <span class="text-base leading-none">👋</span>
             <div class="flex-1 min-w-0">
                 <p class="font-semibold">¡Bienvenido a Valera Sport!</p>
-                <p class="text-xs text-cyan-700/80 mt-0.5">Toca cualquier prenda para elegir color, talla y cantidad. Puedes agregar varias antes de pagar.</p>
+                <p class="text-xs text-gray-500 mt-0.5">Toca cualquier prenda para elegir color, talla y cantidad. Puedes agregar varias antes de pagar.</p>
             </div>
-            <button type="button" onclick="ocultarBienvenida()" class="text-cyan-400 hover:text-cyan-700 text-xs shrink-0" title="Cerrar">✕</button>
+            <button type="button" onclick="ocultarBienvenida()" class="text-gray-300 hover:text-gray-600 text-xs shrink-0" title="Cerrar">✕</button>
         </div>
     </div>
 
-    <footer class="border-t border-gray-100 py-10 text-center space-y-1">
-        <p class="text-xs tracking-wide text-gray-400">© 2026 Valera Sport. Todos los derechos reservados. RIF: V221943100</p>
-        <p class="text-xs text-gray-300">Sitio Web desarrollado por <span class="text-cyan-500 font-semibold">Gregorio Yépez</span> | Ingeniería en Sistemas</p>
+    <footer class="pie pt-16 pb-10">
+        <div class="max-w-[1400px] mx-auto px-5 md:px-8">
+            <p class="palabra-pie text-[19vw] mb-12 select-none">Valera Sport</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm pb-12" style="border-bottom: 1px solid rgba(246,243,236,0.12)">
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">TIENDA</p>
+                    <div class="flex flex-col gap-2.5">
+                        <a href="/">Inicio</a>
+                        <a href="/carrito">Carrito</a>
+                        <a href="/pedido">Mi pedido</a>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">CATEGORÍAS</p>
+                    <div class="flex flex-col gap-2.5">
+                        <a href="/catalogo?categoria=Damas">Damas</a>
+                        <a href="/catalogo?categoria=Caballeros">Caballeros</a>
+                        <a href="/catalogo?categoria=Niños">Niños</a>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">CONTACTO</p>
+                    <div class="flex flex-col gap-2.5">
+                        <a href="https://wa.me/584245939407" target="_blank">WhatsApp</a>
+                        <a href="/#contacto">Ubicación</a>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">LEGAL</p>
+                    <p class="text-white/60">RIF V221943100</p>
+                    <p class="text-white/60 mt-2.5">Envíos a toda Venezuela</p>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row items-center justify-between gap-3 pt-8 text-xs text-white/35">
+                <p>© 2026 Valera Sport. Todos los derechos reservados.</p>
+                <p>Sitio desarrollado por <span class="font-semibold" style="color: var(--fucsia)">Gregorio Yépez</span> · Ingeniería en Sistemas</p>
+            </div>
+        </div>
     </footer>
 
     <script src="tienda-comun.js"></script>
@@ -239,13 +426,13 @@
 
         async function cargarProductosDesdeSheet() {
             const estado = document.getElementById('estadoCarga');
-            if (estado) estado.textContent = "Cargando catálogo...";
+            if (estado) { estado.style.display = 'block'; estado.textContent = "Cargando catálogo..."; }
             try {
                 const respuesta = await fetch('/api/obtener-productos');
                 if (!respuesta.ok) throw new Error("El servidor respondió con error " + respuesta.status);
                 const texto = await respuesta.text();
                 productos = parseCSV(texto);
-                if (estado) estado.textContent = "";
+                if (estado) estado.style.display = 'none';
                 construirFiltroCategorias();
                 aplicarParametrosURL();
                 aplicarFiltros();
@@ -255,15 +442,36 @@
                 obtenerTasaBcv().then(() => aplicarFiltros());
             } catch (error) {
                 console.error("Error al cargar el catálogo:", error);
-                if (estado) estado.textContent = "No se pudo cargar el catálogo.";
+                if (estado) { estado.style.display = 'block'; estado.textContent = "No se pudo cargar el catálogo."; }
             }
         }
+
         document.addEventListener("DOMContentLoaded", () => {
             cargarProductosDesdeSheet();
             actualizarContadorCarrito();
             actualizarIndicadorPedido();
             mostrarBienvenidaSiEsNuevo();
+            iniciarBarra();
         });
+
+        // La barra se esconde al bajar y vuelve apenas subes: más pantalla para ver prendas.
+        function iniciarBarra() {
+            const barra = document.getElementById('barra');
+            if (!barra) return;
+            let ultimoY = window.scrollY;
+            let pendiente = false;
+            window.addEventListener('scroll', () => {
+                if (pendiente) return;
+                pendiente = true;
+                requestAnimationFrame(() => {
+                    const y = window.scrollY;
+                    if (y > 220 && y > ultimoY) barra.classList.add('oculta');
+                    else barra.classList.remove('oculta');
+                    ultimoY = y;
+                    pendiente = false;
+                });
+            }, { passive: true });
+        }
 
         // ---------- FILTROS ----------
 
@@ -278,8 +486,8 @@
             const categoriasUnicas = [...mapaCategorias.values()].sort();
             const cont = document.getElementById('filtroCategorias');
             cont.innerHTML = categoriasUnicas.map(cat => `
-                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                    <input type="checkbox" class="filtro-check rounded border-gray-300 text-cyan-500 focus:ring-cyan-400" value="${escapeHTML(cat)}" onchange="toggleCategoria('${escapeJS(cat)}', this.checked)">
+                <label class="opcion-filtro">
+                    <input type="checkbox" class="filtro-check" value="${escapeHTML(cat)}" onchange="toggleCategoria('${escapeJS(cat)}', this.checked)">
                     <span>${escapeHTML(cat)}</span>
                 </label>
             `).join('');
@@ -390,7 +598,7 @@
             const vacio = document.getElementById('sinResultados');
             const contador = document.getElementById('contadorResultados');
 
-            contador.textContent = lista.length + (lista.length === 1 ? ' producto' : ' productos');
+            contador.textContent = lista.length + (lista.length === 1 ? ' prenda' : ' prendas');
 
             if (!lista.length) {
                 grid.innerHTML = '';
@@ -401,7 +609,7 @@
             grid.innerHTML = lista.map(crearTarjetaGrid).join('');
         }
 
-        function crearTarjetaGrid(p) {
+        function crearTarjetaGrid(p, i) {
             let nombreProducto = p.producto || p.nombre || "Producto sin nombre";
             let textoImagen = p.imagen || "";
             let imagenUrl = obtenerListaImagenes(textoImagen)[0];
@@ -415,19 +623,24 @@
             let tallasTexto = p.tallas || "";
             let stockVariantesTexto = p.stock_variantes || "";
             let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}, ${stockDisponible}, '${escapeJS(stockColoresTexto)}', '${escapeJS(tallasTexto)}', '${escapeJS(stockVariantesTexto)}'`;
+            // El retraso se corta a los 12 primeros: si no, las últimas prendas
+            // de una lista larga tardarían demasiado en aparecer.
+            let retraso = Math.min(i || 0, 11) * 45;
 
             return `
-                <div class="cursor-pointer group" onclick="abrirDetalle(${argsAbrirDetalle})">
-                    <div class="w-full aspect-square bg-gray-50 rounded-2xl overflow-hidden flex items-center justify-center mb-3">
-                        <img src="${escapeHTML(imagenUrl)}" alt="${escapeHTML(nombreProducto)}" class="max-w-[85%] max-h-[85%] object-contain group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
+                <div class="tarjeta group" style="animation-delay: ${retraso}ms" onclick="abrirDetalle(${argsAbrirDetalle})">
+                    <div class="marco">
+                        ${!estaDisponible ? '<span class="sello">AGOTADO</span>' : ''}
+                        <img src="${escapeHTML(imagenUrl)}" alt="${escapeHTML(nombreProducto)}" loading="lazy" onerror="this.src='imagenes/logo.jpg'">
                     </div>
-                    <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5">${escapeHTML(categoriaLabel)}</span>
-                    <h3 class="text-sm text-gray-900 font-medium leading-snug line-clamp-1">${escapeHTML(nombreProducto)}</h3>
-                    <p class="text-sm font-bold text-gray-900 mt-1">$${precioFormateado}${textoPrecioBs(parseFloat(precioFormateado))}${!estaDisponible ? ' <span class="text-gray-400 font-normal">· Agotado</span>' : ''}</p>
+                    <div class="pt-4">
+                        <p class="text-[10px] font-bold tracking-[0.18em] mb-1.5" style="color: var(--gris-claro)">${escapeHTML(categoriaLabel.toUpperCase())}</p>
+                        <h3 class="text-[15px] font-semibold leading-snug line-clamp-1">${escapeHTML(nombreProducto)}</h3>
+                        <p class="text-[15px] font-bold mt-1.5">$${precioFormateado}<span class="font-normal text-xs" style="color: var(--gris-claro)">${textoPrecioBs(parseFloat(precioFormateado))}</span></p>
+                    </div>
                 </div>
             `;
         }
-
     </script>
 </body>
 </html>
