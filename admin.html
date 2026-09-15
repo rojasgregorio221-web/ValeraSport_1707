@@ -792,6 +792,7 @@
             <div class="flex items-center justify-between flex-wrap gap-3 -mt-2 mb-4">
                 <div class="seg">
                     <button id="btnFiltroVentasHoy" onclick="filtrarVentasVista('hoy')" class="seg-btn on">Hoy</button>
+                    <button id="btnFiltroVentasSemana" onclick="filtrarVentasVista('semana')" class="seg-btn">Esta semana</button>
                     <button id="btnFiltroVentasTodas" onclick="filtrarVentasVista('todas')" class="seg-btn">Todas</button>
                 </div>
                 <div class="seg">
@@ -817,6 +818,16 @@
                         <p id="ventasCantidadUsd" class="text-[11px] mt-1" style="color: var(--tenue)">0 prendas</p>
                     </div>
                 </div>
+            </div>
+
+            <div id="bloqueSemanas" class="panel p-5 mb-4">
+                <div class="flex items-center justify-between mb-4">
+                    <p class="rotulo">
+                        <i class="fa-regular fa-calendar-check mr-1.5" style="color: var(--cyan)"></i> Semana por semana
+                    </p>
+                    <button type="button" onclick="toggleSemanas()" id="btnToggleSemanas" class="text-[11px] font-bold" style="color: var(--cyan)">Ocultar</button>
+                </div>
+                <div id="listaSemanas" class="space-y-2.5"></div>
             </div>
 
             <div class="flex justify-end mb-4">
@@ -1529,6 +1540,7 @@
         function filtrarVentasVista(tipo) {
             filtroVentas = tipo;
             document.getElementById('btnFiltroVentasHoy').className = tipo === 'hoy' ? 'seg-btn on' : 'seg-btn';
+            document.getElementById('btnFiltroVentasSemana').className = tipo === 'semana' ? 'seg-btn on' : 'seg-btn';
             document.getElementById('btnFiltroVentasTodas').className = tipo === 'todas' ? 'seg-btn on' : 'seg-btn';
             renderizarListaVentas();
         }
@@ -1566,7 +1578,15 @@
                     const fStr = new Date(v.fecha).toLocaleDateString('es-VE');
                     return fStr === hoyStr;
                 });
+            } else if (filtroVentas === 'semana') {
+                const arranqueSemana = inicioDeSemana(new Date());
+                filtradasPeriodo = filtradasPeriodo.filter(v => v.fecha && new Date(v.fecha) >= arranqueSemana);
             }
+
+            // El repaso semana por semana siempre se calcula sobre todo lo que hay
+            // en memoria, no sobre el filtro: así el total de cada semana no cambia
+            // al mirar solo hoy.
+            renderizarSemanas();
 
             // TOTALES POR MONEDA, SIEMPRE SEPARADOS (SIN CONVERTIR UNO EN OTRO)
             const totales = calcularTotalesPorMoneda(filtradasPeriodo);
@@ -1574,7 +1594,7 @@
             if (totalUsdEl) totalUsdEl.textContent = '$' + totales.totalUsd.toFixed(2);
             if (cantidadBsEl) cantidadBsEl.textContent = totales.piezasBs + (totales.piezasBs === 1 ? ' prenda' : ' prendas');
             if (cantidadUsdEl) cantidadUsdEl.textContent = totales.piezasUsd + (totales.piezasUsd === 1 ? ' prenda' : ' prendas');
-            if (filtroLabelEl) filtroLabelEl.textContent = filtroVentas === 'hoy' ? 'Hoy' : 'Todo lo registrado';
+            if (filtroLabelEl) filtroLabelEl.textContent = filtroVentas === 'hoy' ? 'Hoy' : (filtroVentas === 'semana' ? 'Esta semana' : 'Todo lo registrado');
 
             // Filtro de moneda para la LISTA (el resumen de arriba siempre muestra ambas)
             let filtradas = filtradasPeriodo;
@@ -1583,7 +1603,9 @@
 
             if (!filtradas.length) {
                 lista.innerHTML = '';
-                sinVentas.textContent = filtroVentas === 'hoy' ? 'Hoy todavía no hay ventas.' : 'Todavía no hay ventas registradas.';
+                sinVentas.textContent = filtroVentas === 'hoy'
+                    ? 'Hoy todavía no hay ventas.'
+                    : (filtroVentas === 'semana' ? 'Esta semana todavía no hay ventas.' : 'Todavía no hay ventas registradas.');
                 sinVentas.classList.remove('hidden');
                 return;
             }
@@ -1614,6 +1636,92 @@
                         '</div>' +
                     '</div>';
             }).join('');
+        }
+
+        // ---------- REPASO SEMANA POR SEMANA ----------
+        // Agrupa todas las ventas cobradas por semana (de lunes a domingo) y saca
+        // el total de cada una, con Bs y $ siempre separados, igual que el resto
+        // del panel. Lo fiado no cuenta hasta que el cliente pague.
+        let semanasVisibles = true;
+
+        function claveSemana(fecha) {
+            return inicioDeSemana(fecha).toISOString().slice(0, 10);
+        }
+
+        function etiquetaSemana(inicio) {
+            const fin = new Date(inicio);
+            fin.setDate(fin.getDate() + 6);
+            const arranqueEsta = inicioDeSemana(new Date());
+            const arranquePasada = new Date(arranqueEsta);
+            arranquePasada.setDate(arranquePasada.getDate() - 7);
+
+            const claveInicio = inicio.toISOString().slice(0, 10);
+            if (claveInicio === arranqueEsta.toISOString().slice(0, 10)) return 'Esta semana';
+            if (claveInicio === arranquePasada.toISOString().slice(0, 10)) return 'La semana pasada';
+
+            const mismoMes = inicio.getMonth() === fin.getMonth();
+            const dIni = inicio.toLocaleDateString('es-VE', mismoMes ? { day: 'numeric' } : { day: 'numeric', month: 'short' });
+            const dFin = fin.toLocaleDateString('es-VE', { day: 'numeric', month: 'short' });
+            return 'Del ' + dIni + ' al ' + dFin;
+        }
+
+        function rangoSemana(inicio) {
+            const fin = new Date(inicio);
+            fin.setDate(fin.getDate() + 6);
+            return inicio.toLocaleDateString('es-VE') + ' al ' + fin.toLocaleDateString('es-VE');
+        }
+
+        function renderizarSemanas() {
+            const cont = document.getElementById('listaSemanas');
+            const bloque = document.getElementById('bloqueSemanas');
+            if (!cont || !bloque) return;
+
+            const cobradas = listaVentasMemoria.filter(v => v.fecha && (v.metodoPago || '').toLowerCase().trim() !== 'fiado');
+            if (!cobradas.length) {
+                bloque.classList.add('hidden');
+                return;
+            }
+            bloque.classList.remove('hidden');
+
+            const porSemana = new Map();
+            cobradas.forEach(v => {
+                const clave = claveSemana(new Date(v.fecha));
+                if (!porSemana.has(clave)) porSemana.set(clave, { inicio: inicioDeSemana(new Date(v.fecha)), ventas: [] });
+                porSemana.get(clave).ventas.push(v);
+            });
+
+            const claveEsta = claveSemana(new Date());
+            const semanas = [...porSemana.entries()]
+                .sort((a, b) => b[0].localeCompare(a[0]))
+                .slice(0, 8);
+
+            cont.innerHTML = semanas.map(([clave, datos]) => {
+                const t = calcularTotalesPorMoneda(datos.ventas);
+                const esActual = clave === claveEsta;
+                const piezas = t.piezasBs + t.piezasUsd;
+                return `
+                    <div class="sub-panel px-4 py-3 flex items-center justify-between gap-3" ${esActual ? 'style="border-color: rgba(255,45,135,0.45); background: rgba(255,45,135,0.07)"' : ''}>
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold">${escapeHTML(etiquetaSemana(datos.inicio))}</p>
+                            <p class="text-[11px] mt-0.5" style="color: var(--tenue)">${escapeHTML(rangoSemana(datos.inicio))} · ${piezas} ${piezas === 1 ? 'prenda' : 'prendas'}</p>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <span class="cifra text-sm font-bold block" style="color: var(--cyan)">Bs ${t.totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span class="cifra text-sm font-bold block" style="color: #6EE7B7">$${t.totalUsd.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            cont.classList.toggle('hidden', !semanasVisibles);
+        }
+
+        function toggleSemanas() {
+            semanasVisibles = !semanasVisibles;
+            const cont = document.getElementById('listaSemanas');
+            const btn = document.getElementById('btnToggleSemanas');
+            if (cont) cont.classList.toggle('hidden', !semanasVisibles);
+            if (btn) btn.textContent = semanasVisibles ? 'Ocultar' : 'Ver';
         }
 
         // Etiqueta legible para cada grupo de fecha en Ventas (Hoy / Ayer / día completo)
