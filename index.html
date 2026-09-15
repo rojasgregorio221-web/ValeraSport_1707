@@ -4,6 +4,7 @@
     <link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#140F2E">
     <title>Valera Sport | Tienda Oficial</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,228 +12,655 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
+    <script>
+        // Marca que el JS esta vivo. Todo lo que empieza escondido para animarse
+        // depende de esta clase: si el JS falla, la pagina se ve completa igual.
+        document.documentElement.classList.add('con-animacion');
+    </script>
+
     <style>
-        html, body { overflow-x: hidden; max-width: 100vw; width: 100%; }
-        html { scroll-behavior: smooth; }
+        :root {
+            --noche: #140F2E;
+            --brasa: #FF5A1F;
+            --fucsia: #FF2D87;
+            --violeta: #7C4DFF;
+            --cyan: #22D3EE;
+            --hueso: #F6F3EC;
+            --tinta: #16131F;
+            --suave: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { -webkit-tap-highlight-color: transparent; }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 88px;
+            overflow-x: hidden;
+            overflow-x: clip;
+        }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #ffffff;
-            color: #111111;
+            background: var(--hueso);
+            color: var(--tinta);
+            overflow-x: hidden;
+            overflow-x: clip;
             width: 100%;
         }
-        h1, h2, h3, .font-brand { font-family: 'Outfit', sans-serif; }
-        section, footer {
-            will-change: transform, opacity, filter;
-        }
-        .reveal-panel {
-            opacity: 0;
-            transform: translate3d(0, 80px, 0) scale(0.985);
-            filter: blur(4px);
-            transition: opacity 1.3s cubic-bezier(0.22, 1, 0.36, 1),
-                        transform 1.6s cubic-bezier(0.22, 1, 0.36, 1),
-                        filter 1.3s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        .reveal-panel.visible {
-            opacity: 1;
-            transform: translate3d(0, 0, 0) scale(1);
-            filter: blur(0);
-        }
-        .font-editorial { font-family: 'Fraunces', serif; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #fff; }
-        ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 4px; }
 
-        .nav-link { position: relative; }
-        .nav-link::after {
-            content: ""; position: absolute; left: 0; bottom: -4px; width: 0; height: 1px;
-            background: #111; transition: width 0.25s ease;
+        .display {
+            font-family: 'Big Shoulders Display', 'Inter', sans-serif;
+            font-weight: 900;
+            line-height: 0.82;
+            letter-spacing: -0.01em;
+            text-transform: uppercase;
         }
-        .nav-link:hover::after { width: 100%; }
 
-        .tab-btn { position: relative; padding-bottom: 10px; color: #9ca3af; }
-        .tab-btn.activa { color: #111; }
-        .tab-btn::after {
+        ::selection { background: var(--fucsia); color: #fff; }
+        ::-webkit-scrollbar { width: 9px; height: 9px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cfc9bd; border-radius: 9999px; }
+
+        /* ====== HEADER ====== */
+        .barra {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            transition: transform 0.45s var(--suave), background-color 0.35s ease, border-color 0.35s ease;
+            border-bottom: 1px solid transparent;
+        }
+        .barra.oculta { transform: translateY(-101%); }
+        .barra.pegada {
+            background: rgba(246, 243, 236, 0.82);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom-color: rgba(22, 19, 31, 0.08);
+        }
+        .barra.pegada .marca, .barra.pegada .enlace-nav, .barra.pegada .boton-icono { color: var(--tinta); }
+        .marca, .enlace-nav, .boton-icono { color: #fff; transition: color 0.3s ease, opacity 0.2s ease; }
+        .enlace-nav { position: relative; }
+        .enlace-nav::after {
+            content: ""; position: absolute; left: 0; bottom: -5px; height: 2px; width: 0;
+            background: var(--fucsia); transition: width 0.3s var(--suave);
+        }
+        .enlace-nav:hover::after { width: 100%; }
+        .boton-icono:hover { opacity: 0.55; }
+        .progreso {
+            position: absolute; left: 0; bottom: -1px; height: 2px; width: 0;
+            background: linear-gradient(90deg, var(--brasa), var(--fucsia), var(--violeta));
+        }
+
+        /* ====== HERO ====== */
+        .hero { position: relative; min-height: 100vh; min-height: 100svh; overflow: hidden; background: var(--noche); }
+        .hero-foto {
+            position: absolute; inset: -8% 0 -8% 0;
+            width: 100%; height: 116%;
+            object-fit: cover; object-position: center 30%;
+            transform: scale(1.14);
+            will-change: transform;
+        }
+        .hero-capa {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(120% 80% at 15% 8%, rgba(255, 90, 31, 0.45), transparent 58%),
+                radial-gradient(100% 70% at 92% 22%, rgba(255, 45, 135, 0.42), transparent 60%),
+                linear-gradient(180deg, rgba(20, 15, 46, 0.35) 0%, rgba(20, 15, 46, 0.62) 46%, var(--noche) 99%);
+        }
+        .hero-grano {
+            position: absolute; inset: 0; opacity: 0.16; mix-blend-mode: overlay; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        .hero-contenido { position: relative; z-index: 2; }
+
+        .linea-mascara { overflow: hidden; display: block; padding-bottom: 0.06em; }
+        .letra { display: inline-block; will-change: transform; }
+        .con-animacion .titulo-hero .letra { transform: translateY(105%) rotate(7deg); opacity: 0; }
+        .titulo-hero.entra .letra { animation: subeLetra 1s var(--suave) forwards; }
+        @keyframes subeLetra {
+            to { transform: translateY(0) rotate(0); opacity: 1; }
+        }
+
+        .con-animacion .hero-tardio { opacity: 0; transform: translateY(24px); }
+        .hero-tardio.entra {
+            opacity: 1; transform: none;
+            transition: opacity 0.9s var(--suave), transform 0.9s var(--suave);
+        }
+
+        .btn-primario {
+            position: relative; overflow: hidden; isolation: isolate;
+            background: #fff; color: var(--tinta);
+            transition: color 0.35s var(--suave);
+        }
+        .btn-primario::before {
+            content: ""; position: absolute; inset: 0; z-index: -1;
+            background: linear-gradient(120deg, var(--brasa), var(--fucsia));
+            transform: translateY(101%); transition: transform 0.45s var(--suave);
+        }
+        .btn-primario:hover { color: #fff; }
+        .btn-primario:hover::before { transform: translateY(0); }
+        .btn-borde {
+            border: 1px solid rgba(255, 255, 255, 0.4); color: #fff;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .btn-borde:hover { background: rgba(255, 255, 255, 0.12); border-color: #fff; }
+
+        .senal-scroll span {
+            display: block; width: 1px; height: 46px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.7), transparent);
+            animation: caeLinea 2.2s ease-in-out infinite;
+            transform-origin: top;
+        }
+        @keyframes caeLinea {
+            0% { transform: scaleY(0); opacity: 0; }
+            35% { transform: scaleY(1); opacity: 1; }
+            100% { transform: scaleY(1) translateY(46px); opacity: 0; }
+        }
+
+        /* ====== TICKER ====== */
+        .ticker { background: var(--tinta); color: var(--hueso); overflow: hidden; }
+        .ticker-pista { display: flex; width: max-content; animation: corre 32s linear infinite; }
+        .ticker:hover .ticker-pista { animation-play-state: paused; }
+        .ticker-grupo { display: flex; align-items: center; flex-shrink: 0; }
+        .ticker-item {
+            display: inline-flex; align-items: center; gap: 14px;
+            padding: 0 26px; white-space: nowrap;
+            font-size: 13px; font-weight: 700; letter-spacing: 0.14em;
+        }
+        .ticker-punto { width: 6px; height: 6px; border-radius: 9999px; background: var(--fucsia); flex-shrink: 0; }
+        @keyframes corre { to { transform: translateX(-50%); } }
+
+        /* ====== REVELADO ====== */
+        .con-animacion .aparece { opacity: 0; transform: translateY(30px); }
+        .aparece.dentro {
+            opacity: 1; transform: none;
+            transition: opacity 0.85s var(--suave), transform 0.95s var(--suave);
+            transition-delay: var(--retraso, 0s);
+        }
+        .con-animacion .corta { clip-path: inset(0 0 100% 0); }
+        .corta.dentro {
+            clip-path: inset(0 0 0 0);
+            transition: clip-path 1.1s var(--suave);
+            transition-delay: var(--retraso, 0s);
+        }
+
+        /* ====== DESTACADOS ====== */
+        .pestana {
+            position: relative; padding: 10px 0; color: #9a948a;
+            font-weight: 700; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
+            transition: color 0.25s ease;
+        }
+        .pestana.activa { color: var(--tinta); }
+        .pestana::after {
             content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
-            background: #06b6d4; transform: scaleX(0); transition: transform 0.25s ease;
+            background: var(--tinta); transform: scaleX(0); transform-origin: left;
+            transition: transform 0.35s var(--suave);
         }
-        .tab-btn.activa::after { transform: scaleX(1); }
+        .pestana.activa::after { transform: scaleX(1); }
 
-        .hero-blob {
-            position: absolute; inset: 0; overflow: hidden; filter: blur(60px) saturate(140%);
-            opacity: 0.55;
+        .pista {
+            display: flex; gap: 20px; overflow-x: auto;
+            scroll-snap-type: x proximity; padding-bottom: 8px;
+            scrollbar-width: none;
         }
-        .hero-blob span { position: absolute; border-radius: 9999px; }
-        .blob-1 { width: 50vw; height: 50vw; background: #fde68a; top: -10%; left: -5%; }
-        .blob-2 { width: 45vw; height: 45vw; background: #67e8f9; top: 10%; right: -5%; }
-        .blob-3 { width: 40vw; height: 40vw; background: #c4b5fd; bottom: -15%; left: 20%; }
+        .pista::-webkit-scrollbar { display: none; }
+        .ficha { scroll-snap-align: start; flex-shrink: 0; width: 72vw; max-width: 300px; }
+        @media (min-width: 768px) { .ficha { width: 300px; } }
+        .ficha-marco {
+            position: relative; overflow: hidden; border-radius: 20px;
+            background: #ece7dc; aspect-ratio: 4 / 5;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ficha-marco img {
+            max-width: 84%; max-height: 84%; object-fit: contain;
+            transition: transform 0.7s var(--suave);
+        }
+        .ficha:hover .ficha-marco img { transform: scale(1.07) rotate(-1.2deg); }
+        .ficha-marco::after {
+            content: ""; position: absolute; inset: 0; border-radius: 20px;
+            background: linear-gradient(140deg, rgba(255,90,31,0.18), rgba(124,77,255,0.18));
+            opacity: 0; transition: opacity 0.5s ease; pointer-events: none;
+        }
+        .ficha:hover .ficha-marco::after { opacity: 1; }
+        .etiqueta-agotado {
+            position: absolute; top: 12px; left: 12px; z-index: 2;
+            background: rgba(22,19,31,0.85); color: #fff;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+            padding: 5px 10px; border-radius: 9999px;
+        }
+        .flecha {
+            width: 44px; height: 44px; border-radius: 9999px;
+            border: 1px solid rgba(22,19,31,0.15); background: rgba(246,243,236,0.9);
+            display: flex; align-items: center; justify-content: center;
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+        }
+        .flecha:hover { background: var(--tinta); color: var(--hueso); border-color: var(--tinta); }
 
-        .carrusel { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-        .carrusel::-webkit-scrollbar { display: none; }
+        /* ====== BLOQUE DESCUENTO ====== */
+        .descuento { background: var(--noche); color: #fff; position: relative; overflow: hidden; }
+        .descuento::before {
+            content: ""; position: absolute; width: 70vw; height: 70vw; border-radius: 9999px;
+            background: radial-gradient(circle, rgba(124,77,255,0.5), transparent 62%);
+            top: -25%; right: -22%; pointer-events: none;
+        }
+        .descuento::after {
+            content: ""; position: absolute; width: 55vw; height: 55vw; border-radius: 9999px;
+            background: radial-gradient(circle, rgba(255,90,31,0.38), transparent 62%);
+            bottom: -28%; left: -18%; pointer-events: none;
+        }
+        .tres {
+            font-family: 'Big Shoulders Display', sans-serif; font-weight: 900; line-height: 0.7;
+            background: linear-gradient(140deg, var(--brasa), var(--fucsia) 55%, var(--violeta));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .deslizador {
+            -webkit-appearance: none; appearance: none; width: 100%; height: 3px;
+            background: rgba(255,255,255,0.22); border-radius: 9999px; outline: none;
+        }
+        .deslizador::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 26px; height: 26px; border-radius: 9999px;
+            background: #fff; cursor: pointer; border: 5px solid var(--fucsia);
+            transition: transform 0.2s ease;
+        }
+        .deslizador::-webkit-slider-thumb:active { transform: scale(1.18); }
+        .deslizador::-moz-range-thumb {
+            width: 26px; height: 26px; border-radius: 9999px; background: #fff;
+            cursor: pointer; border: 5px solid var(--fucsia);
+        }
+        .cifra { font-variant-numeric: tabular-nums; }
 
-        .icon-btn { transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease; }
+        /* ====== ACORDEON ====== */
+        .acordeon { border-bottom: 1px solid rgba(22,19,31,0.12); }
+        .acordeon-boton { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 26px 0; text-align: left; }
+        .acordeon-contenido { max-height: 0; overflow: hidden; transition: max-height 0.45s var(--suave); }
+        .acordeon-cruz { position: relative; width: 15px; height: 15px; flex-shrink: 0; }
+        .acordeon-cruz::before, .acordeon-cruz::after {
+            content: ""; position: absolute; background: var(--tinta); transition: transform 0.35s var(--suave);
+        }
+        .acordeon-cruz::before { top: 7px; left: 0; width: 15px; height: 1.5px; }
+        .acordeon-cruz::after { left: 7px; top: 0; width: 1.5px; height: 15px; }
+        .acordeon.abierto .acordeon-cruz::after { transform: rotate(90deg); }
+        .acordeon.abierto .acordeon-boton { color: var(--fucsia); }
+
+        /* ====== MAPA / FOOTER ====== */
+        .marco-mapa { position: relative; overflow: hidden; border-radius: 24px; background: #ece7dc; }
+        .pie { background: var(--tinta); color: var(--hueso); }
+        .pie a { transition: color 0.25s ease; }
+        .pie a:hover { color: var(--fucsia); }
+        .palabra-pie {
+            font-family: 'Big Shoulders Display', sans-serif; font-weight: 900;
+            line-height: 0.78; letter-spacing: -0.015em; text-transform: uppercase;
+            color: transparent; -webkit-text-stroke: 1px rgba(246,243,236,0.35);
+        }
 
         #sinResultados { display: none; }
-        #estadoCarga { text-align: center; color: #9ca3af; font-size: 13px; margin-bottom: 24px; }
 
-        .acordeon-contenido { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
-        .acordeon-icono { transition: transform 0.3s ease; }
-        .acordeon.abierto .acordeon-icono { transform: rotate(45deg); }
-        /* Scrollbar mas fina y transparente dentro del modal de producto -- la
-           gris/blanca de siempre se veia como una barra recta cortando la
-           esquina redondeada del modal. */
+        /* ====== MODAL DE PRODUCTO (scrollbar fina) ====== */
         #detalleModalContainer::-webkit-scrollbar { width: 5px; }
         #detalleModalContainer::-webkit-scrollbar-track { background: transparent; }
         #detalleModalContainer::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 9999px; }
         #detalleModalContainer { scrollbar-width: thin; scrollbar-color: #e5e7eb transparent; }
 
-        .envios-pista { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-        .envios-banner {
-            position: relative;
-            z-index: 1;
-            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
-        }
-        .envios-carrito {
-            position: absolute;
-            bottom: 8px;
-            left: -40px;
-            font-size: 22px;
-            color: #67e8f9;
-            animation: envios-correr 5.5s linear infinite, envios-botar 0.25s ease-in-out infinite alternate;
-        }
-        #acerca {
-            margin-top: -1px;
-            position: relative;
-            z-index: 2;
-        }
-        @keyframes envios-correr {
-            0% { left: -40px; }
-            100% { left: 105%; }
-        }
-        @keyframes envios-botar {
-            from { transform: translateY(0); }
-            to { transform: translateY(-4px); }
+        /* ====== MOVIMIENTO REDUCIDO ====== */
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .con-animacion .aparece,
+            .con-animacion .corta,
+            .con-animacion .hero-tardio,
+            .con-animacion .titulo-hero .letra {
+                opacity: 1 !important; transform: none !important; clip-path: none !important; animation: none !important;
+            }
+            .ticker-pista, .senal-scroll span { animation: none !important; }
+            .hero-foto { transform: scale(1.05) !important; }
         }
     </style>
 </head>
-<body class="antialiased min-h-screen">
+<body class="antialiased">
 
-    <!-- HEADER -->
-    <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <a href="/" class="font-brand font-extrabold text-xl tracking-tight text-gray-900">
-                VALERA<span class="text-cyan-500">SPORT</span>
+    <!-- ================= HEADER ================= -->
+    <header id="barra" class="barra">
+        <div class="max-w-[1400px] mx-auto px-5 md:px-8 h-[72px] md:h-[88px] flex items-center justify-between">
+            <a href="/" class="marca display text-[26px] md:text-[32px] tracking-tight">
+                Valera<span style="color: var(--fucsia)">Sport</span>
             </a>
-            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-800">
-                <a href="/catalogo" class="nav-link">Catálogo</a>
-                <a href="/catalogo?categoria=Damas" class="nav-link">Damas</a>
-                <a href="/catalogo?categoria=Caballeros" class="nav-link">Caballeros</a>
-                <a href="/catalogo?categoria=Niños" class="nav-link">Niños</a>
-                <a href="#contacto" class="nav-link">Ubicación</a>
+
+            <nav class="hidden lg:flex items-center gap-9 text-[13px] font-semibold tracking-wide">
+                <a href="/catalogo" class="enlace-nav">Catálogo</a>
+                <a href="/catalogo?categoria=Damas" class="enlace-nav">Damas</a>
+                <a href="/catalogo?categoria=Caballeros" class="enlace-nav">Caballeros</a>
+                <a href="/catalogo?categoria=Niños" class="enlace-nav">Niños</a>
+                <a href="#contacto" class="enlace-nav">Tienda</a>
             </nav>
+
             <div class="flex items-center gap-1">
-                <button id="btnEscanear" onclick="abrirScanner()" title="Escanear código QR" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
-                    <i class="fa-solid fa-qrcode text-sm"></i>
+                <button id="btnEscanear" onclick="abrirScanner()" title="Escanear código QR" class="boton-icono w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-qrcode text-[15px]"></i>
                 </button>
-                <button onclick="location.href='/carrito'" title="Carrito" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
-                    <i class="fa-solid fa-bag-shopping text-sm"></i>
-                    <span id="contadorCarrito" class="hidden absolute top-1 right-1.5 bg-cyan-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">0</span>
+                <button onclick="location.href='/carrito'" title="Carrito" class="boton-icono relative w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-bag-shopping text-[15px]"></i>
+                    <span id="contadorCarrito" class="hidden absolute top-0.5 right-0.5 text-white text-[9px] font-bold rounded-full min-w-[17px] h-[17px] px-1 flex items-center justify-center" style="background: var(--fucsia)">0</span>
                 </button>
-                <button id="btnMiPedido" onclick="location.href='/pedido'" title="Estado de mi pedido" class="icon-btn relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
-                    <i class="fa-solid fa-receipt text-sm"></i>
-                    <span id="puntoMiPedido" class="hidden absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full"></span>
+                <button id="btnMiPedido" onclick="location.href='/pedido'" title="Estado de mi pedido" class="boton-icono relative w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-receipt text-[15px]"></i>
+                    <span id="puntoMiPedido" class="hidden absolute top-2 right-2 w-2 h-2 rounded-full" style="background: var(--brasa)"></span>
                 </button>
-                <button id="btnCuenta" onclick="clicBotonCuenta()" title="Mi cuenta" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900">
-                    <i class="fa-solid fa-user text-sm"></i>
+                <button id="btnCuenta" onclick="clicBotonCuenta()" title="Mi cuenta" class="boton-icono w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-user text-[15px]"></i>
                 </button>
-                <a href="https://wa.me/584245939407" target="_blank" title="WhatsApp" class="icon-btn w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:text-emerald-500">
-                    <i class="fa-brands fa-whatsapp text-base"></i>
+                <a href="https://wa.me/584245939407" target="_blank" title="WhatsApp" class="boton-icono w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-brands fa-whatsapp text-[17px]"></i>
                 </a>
             </div>
         </div>
+        <div id="progreso" class="progreso"></div>
     </header>
 
-    <!-- HERO: FOTO -->
-    <section class="reveal-panel visible relative w-full h-[60vh] md:h-[78vh] overflow-hidden bg-gray-100 mt-20">
-        <img
-            src="imagenes/hero-banner.jpg"
-            alt="Ropa deportiva Valera Sport"
-            class="w-full h-full object-cover md:object-top"
-        >
-    </section>
+    <!-- ================= HERO ================= -->
+    <section class="hero flex flex-col justify-end">
+        <img id="heroFoto" class="hero-foto" src="imagenes/hero-banner.jpg" alt="Ropa deportiva Valera Sport">
+        <div class="hero-capa"></div>
+        <div class="hero-grano"></div>
 
-    <!-- HERO: TEXTO -->
-    <section class="reveal-panel relative overflow-hidden bg-gradient-to-br from-amber-100 via-cyan-50 to-violet-100">
-        <div class="hero-blob"><span class="blob-1"></span><span class="blob-2"></span><span class="blob-3"></span></div>
-        <div class="relative max-w-7xl mx-auto px-6 py-12 md:py-32 text-center">
-            <h1 class="font-brand font-extrabold text-4xl md:text-6xl tracking-tight text-gray-900">
-                RENDIMIENTO<br>SIN LÍMITES
-            </h1>
-            <div class="w-12 h-[2px] bg-cyan-500 mx-auto mt-6"></div>
-            <p class="mt-5 text-gray-600 max-w-md mx-auto">
-                Ropa deportiva para toda la familia, directo desde Barquisimeto.
+        <div id="heroContenido" class="hero-contenido max-w-[1400px] mx-auto w-full px-5 md:px-8 pb-16 md:pb-24 pt-32">
+            <p class="hero-tardio text-white/70 text-[12px] font-semibold tracking-[0.3em] mb-5" style="transition-delay: 0.9s">
+                BARQUISIMETO · VENEZUELA
             </p>
-            <a href="/catalogo" class="inline-block mt-8 bg-gray-900 hover:bg-gray-700 text-white font-semibold px-8 py-3.5 rounded-full text-sm tracking-wide transition">
-                Explora
-            </a>
+
+            <h1 class="titulo-hero display text-white text-[17vw] md:text-[10.5vw]" id="tituloHero">
+                <span class="linea-mascara" data-texto="Rendimiento"></span>
+                <span class="linea-mascara" data-texto="sin límites"></span>
+            </h1>
+
+            <div class="mt-8 md:mt-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
+                <p class="hero-tardio text-white/80 text-[15px] md:text-base max-w-sm leading-relaxed" style="transition-delay: 1.05s">
+                    Ropa y calzado deportivo para toda la familia. Más de 3 años vistiendo Barquisimeto, ahora también en línea.
+                </p>
+                <div class="hero-tardio flex flex-wrap items-center gap-3" style="transition-delay: 1.2s">
+                    <a href="/catalogo" class="btn-primario font-semibold text-sm px-8 py-4 rounded-full">
+                        Ver catálogo
+                    </a>
+                    <button onclick="abrirScanner()" class="btn-borde font-semibold text-sm px-7 py-4 rounded-full flex items-center gap-2.5">
+                        <i class="fa-solid fa-qrcode"></i> Escanear prenda
+                    </button>
+                </div>
+            </div>
+
+            <div class="hero-tardio senal-scroll mt-12 hidden md:block" style="transition-delay: 1.35s"><span></span></div>
         </div>
     </section>
 
-    <!-- DESTACADOS -->
-    <section id="productos" class="reveal-panel bg-gradient-to-br from-amber-200 via-cyan-100 to-violet-200">
-    <div class="max-w-7xl mx-auto px-6 py-8 md:py-24">
-        <h2 class="font-brand font-bold text-3xl text-center text-gray-900 mb-8">Destacados</h2>
-
-        <div class="flex items-center justify-center gap-4 sm:gap-8 border-b border-gray-100 mb-10">
-            <button class="tab-btn activa font-semibold text-sm" data-tab="Damas" onclick="cambiarTab('Damas')">Damas</button>
-            <button class="tab-btn font-semibold text-sm" data-tab="Caballeros" onclick="cambiarTab('Caballeros')">Caballeros</button>
-            <button class="tab-btn font-semibold text-sm" data-tab="Niños" onclick="cambiarTab('Niños')">Niños</button>
+    <!-- ================= TICKER EN VIVO ================= -->
+    <div class="ticker py-4">
+        <div class="ticker-pista">
+            <div class="ticker-grupo" id="tickerGrupo"></div>
+            <div class="ticker-grupo" id="tickerGrupoCopia"></div>
         </div>
-
-        <p id="estadoCarga">Cargando catálogo...</p>
-
-        <div class="relative">
-            <button onclick="deslizarCarrusel(-1)" class="flex absolute -left-2 md:-left-5 top-1/3 z-10 w-9 h-9 md:w-10 md:h-10 rounded-full bg-white border border-gray-200 shadow-md items-center justify-center text-gray-500 hover:text-gray-900">
-                <i class="fa-solid fa-chevron-left text-xs"></i>
-            </button>
-            <div id="carruselDestacados" class="carrusel flex gap-6 overflow-x-auto pb-2"></div>
-            <button onclick="deslizarCarrusel(1)" class="flex absolute -right-2 md:-right-5 top-1/3 z-10 w-9 h-9 md:w-10 md:h-10 rounded-full bg-white border border-gray-200 shadow-md items-center justify-center text-gray-500 hover:text-gray-900">
-                <i class="fa-solid fa-chevron-right text-xs"></i>
-            </button>
-        </div>
-
-        <p id="sinResultados" class="text-center text-gray-400 text-sm py-10">No hay productos en esta categoría todavía.</p>
     </div>
+
+    <!-- ================= DESTACADOS ================= -->
+    <section id="productos" class="py-20 md:py-32">
+        <div class="max-w-[1400px] mx-auto px-5 md:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+                <div>
+                    <p class="aparece text-[11px] font-bold tracking-[0.28em] mb-4" style="color: var(--fucsia)">LO QUE ESTÁ SALIENDO</p>
+                    <h2 class="corta display text-[16vw] md:text-[7vw]" style="--retraso: 0.08s">Destacados</h2>
+                </div>
+                <a href="/catalogo" class="aparece group inline-flex items-center gap-3 text-sm font-semibold shrink-0" style="--retraso: 0.16s">
+                    Ver el catálogo completo
+                    <span class="w-9 h-9 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1" style="background: var(--tinta); color: var(--hueso)">
+                        <i class="fa-solid fa-arrow-right text-[11px]"></i>
+                    </span>
+                </a>
+            </div>
+
+            <div class="aparece flex items-center gap-7 sm:gap-10 border-b mb-10" style="border-color: rgba(22,19,31,0.12)">
+                <button class="pestana activa" data-tab="Damas" onclick="cambiarTab('Damas')">Damas</button>
+                <button class="pestana" data-tab="Caballeros" onclick="cambiarTab('Caballeros')">Caballeros</button>
+                <button class="pestana" data-tab="Niños" onclick="cambiarTab('Niños')">Niños</button>
+            </div>
+
+            <p id="estadoCarga" class="text-sm text-center py-6" style="color: #9a948a">Cargando catálogo...</p>
+
+            <div class="relative aparece" style="--retraso: 0.1s">
+                <div id="carruselDestacados" class="pista"></div>
+
+                <div class="hidden md:flex items-center gap-2.5 mt-10">
+                    <button onclick="deslizarCarrusel(-1)" class="flecha" aria-label="Anterior"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+                    <button onclick="deslizarCarrusel(1)" class="flecha" aria-label="Siguiente"><i class="fa-solid fa-arrow-right text-xs"></i></button>
+                </div>
+            </div>
+
+            <p id="sinResultados" class="text-center text-sm py-14" style="color: #9a948a">No hay prendas en esta categoría todavía.</p>
+        </div>
     </section>
 
-    <!-- MODAL ESCÁNER QR -->
+    <!-- ================= DESCUENTO POR 3 PIEZAS ================= -->
+    <section class="descuento py-20 md:py-32">
+        <div class="relative z-10 max-w-[1400px] mx-auto px-5 md:px-8 grid md:grid-cols-2 gap-14 md:gap-20 items-center">
+
+            <div>
+                <p class="aparece text-[11px] font-bold tracking-[0.28em] text-white/60 mb-6">VENTAS AL MAYOR</p>
+                <div class="flex items-start gap-5 md:gap-7">
+                    <span class="tres aparece text-[30vw] md:text-[15vw]">3</span>
+                    <div class="pt-3 md:pt-6">
+                        <h2 class="aparece display text-[10vw] md:text-[4vw] text-white" style="--retraso: 0.08s">
+                            piezas o más,<br>$1 menos<br>en cada una
+                        </h2>
+                    </div>
+                </div>
+                <p class="aparece text-white/65 text-sm leading-relaxed max-w-md mt-8" style="--retraso: 0.16s">
+                    Puedes combinar modelos distintos. Aplica igual en la web y en la tienda física. Para docenas o gran volumen, escríbenos por WhatsApp.
+                </p>
+            </div>
+
+            <div class="aparece rounded-[28px] p-7 md:p-10" style="background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.12); --retraso: 0.12s">
+                <p class="text-white/55 text-[11px] font-bold tracking-[0.2em] mb-7">CALCULA TU AHORRO</p>
+
+                <div class="flex items-baseline gap-3 mb-2">
+                    <span id="calcCantidad" class="cifra display text-white text-[72px] md:text-[86px]">3</span>
+                    <span class="text-white/60 text-sm font-medium">prendas</span>
+                </div>
+
+                <input id="calcRango" class="deslizador mt-6 mb-9" type="range" min="1" max="12" value="3" step="1" oninput="actualizarCalculadora()">
+
+                <div class="space-y-4 pt-7" style="border-top: 1px solid rgba(255,255,255,0.12)">
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/55 text-sm">Precio normal</span>
+                        <span id="calcNormal" class="cifra text-white/45 text-base line-through">$0.00</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80 text-sm font-medium">Pagas</span>
+                        <span id="calcPagas" class="cifra text-white text-3xl font-extrabold">$0.00</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium" style="color: var(--cyan)">Te ahorras</span>
+                        <span id="calcAhorro" class="cifra text-lg font-bold" style="color: var(--cyan)">$0.00</span>
+                    </div>
+                    <p id="calcBs" class="text-right text-white/45 text-xs pt-1"></p>
+                </div>
+
+                <p id="calcNota" class="text-white/35 text-[11px] leading-relaxed mt-7">
+                    Cálculo sobre el precio promedio del catálogo.
+                </p>
+
+                <a href="/catalogo" class="btn-primario w-full mt-7 font-semibold text-sm py-4 rounded-full flex items-center justify-center gap-2">
+                    Armar mi pedido
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= ACERCA ================= -->
+    <section id="acerca" class="py-20 md:py-32">
+        <div class="max-w-[1400px] mx-auto px-5 md:px-8 grid md:grid-cols-[0.85fr_1.15fr] gap-12 md:gap-20">
+            <div>
+                <p class="aparece text-[11px] font-bold tracking-[0.28em] mb-4" style="color: var(--fucsia)">QUIÉNES SOMOS</p>
+                <h2 class="corta display text-[14vw] md:text-[5.5vw]" style="--retraso: 0.08s">La tienda<br>de los<br>Valera</h2>
+                <p class="aparece text-sm leading-relaxed mt-7 max-w-xs" style="color: #6b665d; --retraso: 0.16s">
+                    Valera es nuestro apellido. Somos una tienda física familiar en Barquisimeto, y esto de aquí es la misma tienda, abierta a toda Venezuela.
+                </p>
+            </div>
+
+            <div class="aparece" style="--retraso: 0.1s">
+                <div class="acordeon">
+                    <button type="button" class="acordeon-boton" onclick="toggleAcordeon(this)">
+                        <span class="display text-[32px] md:text-[40px]">Sobre nosotros</span>
+                        <span class="acordeon-cruz"></span>
+                    </button>
+                    <div class="acordeon-contenido">
+                        <div class="pb-7 text-sm leading-relaxed max-w-lg" style="color: #6b665d">
+                            Más de 3 años ofreciendo la mejor calidad en ropa y calzado deportivo en Barquisimeto. Tienda física familiar, comprometida con atención personalizada, confianza y los mejores precios del mercado.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="acordeon">
+                    <button type="button" class="acordeon-boton" onclick="toggleAcordeon(this)">
+                        <span class="display text-[32px] md:text-[40px]">Ventas al mayor</span>
+                        <span class="acordeon-cruz"></span>
+                    </button>
+                    <div class="acordeon-contenido">
+                        <div class="pb-7 text-sm leading-relaxed max-w-lg space-y-3" style="color: #6b665d">
+                            <p>A partir de 3 piezas de cualquier modelo obtienes <strong style="color: var(--tinta)">$1 de descuento en cada prenda</strong>, tanto en la web como en la tienda física.</p>
+                            <p>Para pedidos por docenas o gran volumen, escríbenos a <a href="https://wa.me/584245939407" target="_blank" class="font-semibold" style="color: var(--fucsia)">WhatsApp</a> o visítanos en Barquisimeto.</p>
+                            <p class="text-xs italic" style="color: #9a948a">Todos los pagos en Bs. están sujetos a la tasa oficial del BCV del día.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="acordeon">
+                    <button type="button" class="acordeon-boton" onclick="toggleAcordeon(this)">
+                        <span class="display text-[32px] md:text-[40px]">Envíos y garantía</span>
+                        <span class="acordeon-cruz"></span>
+                    </button>
+                    <div class="acordeon-contenido">
+                        <div class="pb-7 text-sm leading-relaxed max-w-lg space-y-3" style="color: #6b665d">
+                            <p><strong style="color: var(--tinta)">Atención:</strong> lunes a sábado, 9:00 a.m. – 5:30 p.m.</p>
+                            <p><strong style="color: var(--tinta)">Envíos:</strong> nacionales y entregas personales.</p>
+                            <p><strong style="color: var(--tinta)">Cambios:</strong> tienes 72 horas después de tu compra para solicitar un cambio, siempre que la prenda conserve su etiqueta original y no haya sido usada. Aplica por daños de fábrica, no por daños ocasionados por el cliente o por terceros.</p>
+                            <p><strong style="color: var(--tinta)">Pagos:</strong> Pago Móvil, Zelle, Binance, Efectivo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="acordeon">
+                    <button type="button" class="acordeon-boton" onclick="toggleAcordeon(this)">
+                        <span class="display text-[32px] md:text-[40px]">Información fiscal</span>
+                        <span class="acordeon-cruz"></span>
+                    </button>
+                    <div class="acordeon-contenido">
+                        <div class="pb-7 text-sm" style="color: #6b665d">
+                            RIF: <span class="font-mono" style="color: var(--tinta)">V221943100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= TIENDA / MAPA ================= -->
+    <section id="contacto" class="pb-20 md:pb-32">
+        <div class="max-w-[1400px] mx-auto px-5 md:px-8">
+            <div class="grid md:grid-cols-[1fr_1.4fr] gap-10 md:gap-16 items-end mb-10">
+                <div>
+                    <p class="aparece text-[11px] font-bold tracking-[0.28em] mb-4" style="color: var(--fucsia)">VEN A PROBARTE</p>
+                    <h2 class="corta display text-[14vw] md:text-[6vw]" style="--retraso: 0.08s">Visítanos<br>en tienda</h2>
+                </div>
+                <div class="aparece grid grid-cols-2 gap-6 text-sm" style="--retraso: 0.14s">
+                    <div>
+                        <p class="text-[11px] font-bold tracking-[0.2em] mb-2" style="color: #9a948a">HORARIO</p>
+                        <p class="font-medium">Lunes a sábado<br>9:00 a.m. – 5:30 p.m.</p>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-bold tracking-[0.2em] mb-2" style="color: #9a948a">ESCRÍBENOS</p>
+                        <a href="https://wa.me/584245939407" target="_blank" class="font-medium inline-flex items-center gap-2" style="color: var(--fucsia)">
+                            <i class="fa-brands fa-whatsapp"></i> 0424-5939407
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mapa-contenedor" class="aparece marco-mapa h-72 md:h-[460px]" style="--retraso: 0.08s">
+                <button id="mapa-toggle" type="button" class="w-full h-full flex flex-col items-center justify-center gap-4 group">
+                    <span class="w-16 h-16 rounded-full flex items-center justify-center transition-transform duration-500 group-hover:scale-110" style="background: var(--tinta); color: var(--hueso)">
+                        <i class="fa-solid fa-location-dot text-xl"></i>
+                    </span>
+                    <span class="text-center">
+                        <span class="block display text-[30px]">Ver el mapa</span>
+                        <span class="block text-sm" style="color: #6b665d">Toca para desplegar Google Maps</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="pie pt-20 pb-10">
+        <div class="max-w-[1400px] mx-auto px-5 md:px-8">
+            <p class="palabra-pie text-[19vw] mb-14 select-none">Valera Sport</p>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm pb-14" style="border-bottom: 1px solid rgba(246,243,236,0.12)">
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">TIENDA</p>
+                    <div class="flex flex-col gap-2.5">
+                        <a href="/catalogo">Catálogo</a>
+                        <a href="/carrito">Carrito</a>
+                        <a href="/pedido">Mi pedido</a>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">CATEGORÍAS</p>
+                    <div class="flex flex-col gap-2.5">
+                        <a href="/catalogo?categoria=Damas">Damas</a>
+                        <a href="/catalogo?categoria=Caballeros">Caballeros</a>
+                        <a href="/catalogo?categoria=Niños">Niños</a>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">CONTACTO</p>
+                    <div class="flex flex-col gap-2.5">
+                        <a href="https://wa.me/584245939407" target="_blank">WhatsApp</a>
+                        <a href="#contacto">Ubicación</a>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">LEGAL</p>
+                    <p class="text-white/60">RIF V221943100</p>
+                    <p class="text-white/60 mt-2.5">Envíos a toda Venezuela</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row items-center justify-between gap-3 pt-8 text-xs text-white/35">
+                <p>© 2026 Valera Sport. Todos los derechos reservados.</p>
+                <p>Sitio desarrollado por <span class="font-semibold" style="color: var(--fucsia)">Gregorio Yépez</span> · Ingeniería en Sistemas</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ================= MODAL ESCÁNER QR ================= -->
     <div id="scannerModal" class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
-        <button onclick="cerrarScanner()" class="icon-btn absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full text-white/80 hover:text-white text-base z-10">
-            <i class="fa-solid fa-xmark"></i>
+        <button onclick="cerrarScanner()" class="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full text-white/70 hover:text-white z-10">
+            <i class="fa-solid fa-xmark text-lg"></i>
         </button>
         <div class="w-full max-w-sm">
-            <div class="relative rounded-2xl overflow-hidden border border-white/20 bg-black aspect-square">
+            <div class="relative rounded-[24px] overflow-hidden border border-white/20 bg-black aspect-square">
                 <video id="scannerVideo" class="w-full h-full object-cover" playsinline autoplay muted></video>
-                <div class="absolute inset-0 pointer-events-none border-[3px] border-cyan-400/70 m-10 rounded-xl"></div>
+                <div class="absolute inset-0 pointer-events-none m-10 rounded-2xl" style="border: 3px solid var(--fucsia)"></div>
             </div>
             <canvas id="scannerCanvas" class="hidden"></canvas>
-            <p id="scannerEstado" class="text-white/70 text-sm mt-4 text-center">Apunta la cámara al código QR de la prenda</p>
+            <p id="scannerEstado" class="text-white/70 text-sm mt-5 text-center">Apunta la cámara al código QR de la prenda</p>
         </div>
     </div>
 
-    <!-- MODAL DETALLE / AGREGAR AL CARRITO -->
-    <div id="detalleModal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <!-- ================= MODAL DETALLE / CARRITO ================= -->
+    <div id="detalleModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-[2rem] w-full max-w-3xl relative shadow-xl scale-95 opacity-0 max-h-[90vh] overflow-y-auto overscroll-y-contain transition-all duration-200 grid grid-cols-1 md:grid-cols-2" id="detalleModalContainer">
             <div class="sticky top-0 z-10 col-span-1 md:col-span-2 flex justify-end -mb-10 pointer-events-none">
-                <button onclick="cerrarDetalle()" class="icon-btn pointer-events-auto flex items-center gap-1.5 pl-3 pr-2.5 py-2 rounded-full bg-white/90 shadow-sm text-gray-600 hover:text-gray-900 text-xs font-semibold">
+                <button onclick="cerrarDetalle()" class="pointer-events-auto flex items-center gap-1.5 pl-3 pr-2.5 py-2 rounded-full bg-white/90 shadow-sm text-gray-600 hover:text-gray-900 text-xs font-semibold">
                     Cerrar <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
-            <!-- IZQUIERDA: imagen -->
             <div class="p-6 md:p-8 bg-gray-50 md:rounded-l-2xl">
                 <div class="w-full aspect-square rounded-3xl overflow-hidden bg-white flex items-center justify-center mb-3">
                     <img id="detalleImagen" src="" alt="" class="max-w-full max-h-full object-contain">
@@ -240,9 +668,8 @@
                 <div id="detalleGaleria" class="hidden flex gap-2 overflow-x-auto pb-1"></div>
             </div>
 
-            <!-- DERECHA: info y carrito -->
             <div class="p-6 md:p-8">
-                <span id="detalleCategoria" class="text-[11px] font-semibold text-cyan-600 uppercase tracking-widest mb-1 block"></span>
+                <span id="detalleCategoria" class="text-[11px] font-semibold uppercase tracking-widest mb-1 block" style="color: var(--fucsia)"></span>
                 <h3 id="detalleNombre" class="text-2xl font-bold text-gray-900 mb-2"></h3>
                 <span class="text-2xl font-black text-gray-900" id="detallePrecio"></span>
                 <span id="detallePrecioBs" class="block text-xs text-gray-400 font-normal mt-0.5"></span>
@@ -267,10 +694,10 @@
                     <p id="detalleStock" class="text-xs text-gray-400 mt-2"></p>
                 </div>
 
-                <button id="detalleBotonCarrito" onclick="agregarAlCarritoDesdeModal()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
+                <button id="detalleBotonCarrito" onclick="agregarAlCarritoDesdeModal()" class="w-full text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2" style="background: var(--tinta)">
                     <i class="fa-solid fa-bag-shopping text-base"></i> Agregar al carrito
                 </button>
-                <a id="detalleBotonWA" href="#" target="_blank" class="w-full mt-3 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
+                <a id="detalleBotonWA" href="#" target="_blank" class="w-full mt-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3.5 rounded-full text-sm transition flex items-center justify-center gap-2">
                     <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
                 </a>
                 <p id="detalleNoDisponible" class="hidden text-center text-sm text-gray-400 py-3">Actualmente no disponible</p>
@@ -278,9 +705,8 @@
         </div>
     </div>
 
-    <!-- Aviso flotante fijo en pantalla: vive FUERA del modal (no como hijo suyo)
-         para que cerrar el modal no lo esconda a la fuerza -- así el cliente
-         puede cerrar la ficha del producto y seguir viendo su carrito. -->
+    <!-- Mini-carrito flotante: vive FUERA del modal para que cerrar la ficha del
+         producto no lo esconda a la fuerza. -->
     <div id="detalleConfirmacion" class="hidden fixed top-20 right-4 z-[70] w-[calc(100%-2rem)] max-w-sm bg-white border border-gray-200 rounded-[1.75rem] shadow-2xl overflow-hidden">
         <div class="flex items-center justify-between gap-2 px-4 py-3 bg-emerald-50 border-b border-emerald-100">
             <div class="flex items-center gap-2 min-w-0">
@@ -301,176 +727,83 @@
         </div>
     </div>
 
-    <!-- Burbuja minimizada: aparece cuando el mini-carrito se achica, para no
-         perderlo de vista ni taparle el producto al cliente. -->
     <button type="button" id="miniCarritoBurbuja" class="hidden fixed top-20 right-4 z-[70] w-14 h-14 rounded-full bg-gray-900 hover:bg-gray-700 text-white shadow-xl flex items-center justify-center transition cursor-grab active:cursor-grabbing touch-none" title="Ver carrito · mantén presionado para moverlo">
         <i class="fa-solid fa-bag-shopping text-sm"></i>
         <span id="miniCarritoBurbujaContador" class="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">0</span>
     </button>
 
-    <!-- Aviso de bienvenida: solo se muestra una vez, la primera vez que alguien entra al sitio. -->
-    <div id="bienvenidaToast" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm bg-cyan-50 border border-cyan-200 text-cyan-800 rounded-xl shadow-xl px-4 py-3 text-sm">
-        <div class="flex items-start gap-2">
+    <div id="bienvenidaToast" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm bg-white border border-gray-200 text-gray-800 rounded-2xl shadow-xl px-4 py-3 text-sm">
+        <div class="flex items-start gap-2.5">
             <span class="text-base leading-none">👋</span>
             <div class="flex-1 min-w-0">
                 <p class="font-semibold">¡Bienvenido a Valera Sport!</p>
-                <p class="text-xs text-cyan-700/80 mt-0.5">Toca cualquier prenda para elegir color, talla y cantidad. Puedes agregar varias antes de pagar.</p>
+                <p class="text-xs text-gray-500 mt-0.5">Toca cualquier prenda para elegir color, talla y cantidad. Puedes agregar varias antes de pagar.</p>
             </div>
-            <button type="button" onclick="ocultarBienvenida()" class="text-cyan-400 hover:text-cyan-700 text-xs shrink-0" title="Cerrar">✕</button>
+            <button type="button" onclick="ocultarBienvenida()" class="text-gray-300 hover:text-gray-600 text-xs shrink-0" title="Cerrar">✕</button>
         </div>
     </div>
-
-    <!-- FRANJA: ENVÍOS NACIONALES (carrito animado) -->
-    <section class="envios-banner relative overflow-hidden bg-gray-900 py-4">
-        <div class="envios-pista">
-            <i class="fa-solid fa-cart-shopping envios-carrito"></i>
-        </div>
-        <p class="relative text-center text-white font-brand font-bold text-sm md:text-base tracking-wide uppercase">
-            🚚 Hacemos envíos nacionales
-        </p>
-    </section>
-
-    <!-- ACERCA DE VALERA SPORT -->
-    <section id="acerca" class="reveal-panel py-16 md:py-24 bg-gradient-to-br from-amber-100 via-cyan-50 to-violet-100">
-        <div class="max-w-3xl mx-auto px-6">
-            <h2 class="font-brand font-bold text-3xl text-center text-gray-900 mb-3">Acerca de Valera Sport</h2>
-            <p class="text-center text-gray-500 text-sm mb-10">Toca cada pregunta para ver más.</p>
-
-            <div class="space-y-3">
-                <div class="acordeon bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                    <button type="button" class="acordeon-boton w-full flex items-center justify-between gap-4 px-6 py-5 text-left" onclick="toggleAcordeon(this)">
-                        <span class="font-brand font-bold text-gray-900">Sobre nosotros</span>
-                        <i class="fa-solid fa-plus text-cyan-500 text-sm acordeon-icono"></i>
-                    </button>
-                    <div class="acordeon-contenido">
-                        <div class="px-6 pb-6 text-sm text-gray-600 leading-relaxed space-y-3">
-                            <p>Más de 3 años ofreciendo la mejor calidad en ropa y calzado deportivo en Barquisimeto. Somos una tienda física familiar -- Valera es nuestro apellido -- comprometida con brindarte atención personalizada, confianza y los mejores precios del mercado.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="acordeon bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                    <button type="button" class="acordeon-boton w-full flex items-center justify-between gap-4 px-6 py-5 text-left" onclick="toggleAcordeon(this)">
-                        <span class="font-brand font-bold text-gray-900">Ventas al mayor</span>
-                        <i class="fa-solid fa-plus text-cyan-500 text-sm acordeon-icono"></i>
-                    </button>
-                    <div class="acordeon-contenido">
-                        <div class="px-6 pb-6 text-sm text-gray-600 leading-relaxed space-y-2">
-                            <p>A partir de 3 piezas (de cualquier modelo), obtén <strong class="text-gray-900">$1 de descuento en cada prenda</strong>, disponible tanto en nuestra web como en la tienda física.</p>
-                            <p>Para pedidos por docenas o gran volumen, escríbenos a <a href="https://wa.me/584245939407" target="_blank" class="text-cyan-600 font-semibold hover:text-cyan-500">WhatsApp</a> o visítanos en Barquisimeto.</p>
-                            <p class="text-xs text-gray-400 italic pt-1">*Todos los pagos en Bs. están sujetos a la tasa oficial del BCV del día.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="acordeon bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                    <button type="button" class="acordeon-boton w-full flex items-center justify-between gap-4 px-6 py-5 text-left" onclick="toggleAcordeon(this)">
-                        <span class="font-brand font-bold text-gray-900">Horario, envíos y garantía</span>
-                        <i class="fa-solid fa-plus text-cyan-500 text-sm acordeon-icono"></i>
-                    </button>
-                    <div class="acordeon-contenido">
-                        <div class="px-6 pb-6 text-sm text-gray-600 leading-relaxed space-y-2">
-                            <p><strong class="text-gray-900">Atención al cliente:</strong> Lunes a sábado, 9:00 a.m. – 5:30 p.m.</p>
-                            <p><strong class="text-gray-900">Envíos:</strong> nacionales y entregas personales.</p>
-                            <p><strong class="text-gray-900">Cambios y devoluciones:</strong> tienes hasta 72 horas después de tu compra para solicitar un cambio, siempre que la prenda conserve su etiqueta original y no haya sido usada. Aplica por daños de fábrica. No aplica por daños ocasionados por el cliente o por terceros.</p>
-                            <p><strong class="text-gray-900">Métodos de pago:</strong> Pago Móvil, Zelle, Binance, Efectivo.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="acordeon bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                    <button type="button" class="acordeon-boton w-full flex items-center justify-between gap-4 px-6 py-5 text-left" onclick="toggleAcordeon(this)">
-                        <span class="font-brand font-bold text-gray-900">Información fiscal (RIF)</span>
-                        <i class="fa-solid fa-plus text-cyan-500 text-sm acordeon-icono"></i>
-                    </button>
-                    <div class="acordeon-contenido">
-                        <div class="px-6 pb-6 text-sm text-gray-600">
-                            <p>RIF: <span class="font-mono text-gray-900">V221943100</span></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CONTACTO -->
-    <section id="contacto" class="reveal-panel border-t border-gray-100 py-16 md:py-24">
-        <div class="max-w-2xl mx-auto px-6 text-center">
-            <h2 class="font-brand font-bold text-3xl text-gray-900 mb-8">Visítanos en tienda</h2>
-            <div id="mapa-contenedor" class="relative h-64 md:h-80 rounded-2xl overflow-hidden border border-gray-100 bg-gray-50">
-                <button id="mapa-toggle" type="button" class="w-full h-full flex flex-col items-center justify-center gap-3 group">
-                    <div class="w-14 h-14 rounded-full bg-cyan-50 flex items-center justify-center group-hover:bg-cyan-100 transition-colors">
-                        <i class="fa-solid fa-location-dot text-cyan-600 text-xl"></i>
-                    </div>
-                    <div class="text-center">
-                        <p class="font-semibold text-gray-900">Ver ubicación en el mapa</p>
-                        <p class="text-sm text-gray-500">Toca para desplegar Google Maps</p>
-                    </div>
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <footer class="reveal-panel border-t border-gray-100 py-10 text-center space-y-3">
-        <nav class="flex items-center justify-center gap-5 text-xs font-semibold text-gray-500">
-            <a href="/catalogo" class="hover:text-gray-900 transition">Catálogo</a>
-            <a href="/catalogo?categoria=Damas" class="hover:text-gray-900 transition">Damas</a>
-            <a href="/catalogo?categoria=Caballeros" class="hover:text-gray-900 transition">Caballeros</a>
-            <a href="/catalogo?categoria=Niños" class="hover:text-gray-900 transition">Niños</a>
-        </nav>
-        <div class="space-y-1">
-            <p class="text-xs tracking-wide text-gray-400">© 2026 Valera Sport. Todos los derechos reservados. RIF: V221943100</p>
-            <p class="text-xs text-gray-300">Sitio Web desarrollado por <span class="text-cyan-500 font-semibold">Gregorio Yépez</span> | Ingeniería en Sistemas</p>
-        </div>
-    </footer>
 
     <script src="tienda-comun.js"></script>
     <script>
         let scannerStream = null;
         let scannerRAF = null;
         let tabActiva = 'Damas';
+        let precioPromedio = 0;
+
+        const reduceMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // ==================== CATÁLOGO (mismo backend de siempre) ====================
 
         async function cargarProductosDesdeSheet() {
             const estado = document.getElementById('estadoCarga');
-            if (estado) estado.textContent = "Cargando catálogo...";
+            if (estado) { estado.style.display = 'block'; estado.textContent = "Cargando catálogo..."; }
             try {
                 const respuesta = await fetch('/api/obtener-productos');
                 if (!respuesta.ok) throw new Error("El servidor respondió con error " + respuesta.status);
                 const texto = await respuesta.text();
                 productos = parseCSV(texto);
-                if (estado) estado.textContent = "";
+                if (estado) estado.style.display = 'none';
+                calcularPrecioPromedio();
                 renderizarDestacados();
-                // Los precios ya se mostraron en dólares; en cuanto llegue la tasa
-                // del día se vuelve a pintar el mismo carrusel, ahora con el
-                // equivalente en bolívares junto a cada precio.
-                obtenerTasaBcv().then(() => renderizarDestacados());
+                actualizarCalculadora();
+                // En cuanto llega la tasa del día se repinta todo lo que muestra Bs.
+                obtenerTasaBcv().then(() => {
+                    renderizarDestacados();
+                    actualizarCalculadora();
+                    construirTicker();
+                });
                 revisarParametroURL();
             } catch (error) {
                 console.error("Error al cargar el catálogo:", error);
-                if (estado) estado.textContent = "No se pudo cargar el catálogo. Si estás probando en local, recuerda usar 'wrangler pages dev .'.";
+                if (estado) {
+                    estado.style.display = 'block';
+                    estado.textContent = "No se pudo cargar el catálogo. Si estás probando en local, recuerda usar 'wrangler pages dev .'.";
+                }
             }
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            cargarProductosDesdeSheet();
-            actualizarContadorCarrito();
-            actualizarIndicadorPedido();
-            mostrarBienvenidaSiEsNuevo();
-        });
-
-        // ---------- DESTACADOS: pestañas + carrusel ----------
+        function calcularPrecioPromedio() {
+            const precios = productos
+                .map(p => parseFloat(p.precio))
+                .filter(n => !isNaN(n) && n > 0);
+            precioPromedio = precios.length
+                ? precios.reduce((a, b) => a + b, 0) / precios.length
+                : 12;
+        }
 
         function cambiarTab(cat) {
             tabActiva = cat;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
+            document.querySelectorAll('.pestana').forEach(btn => {
                 btn.classList.toggle('activa', btn.dataset.tab === cat);
             });
             renderizarDestacados();
+            const pista = document.getElementById('carruselDestacados');
+            if (pista) pista.scrollTo({ left: 0, behavior: 'smooth' });
         }
 
         function renderizarDestacados() {
             const filtrados = productos.filter(p =>
-                (p.producto || p.nombre || '').trim() && // fila vacía o a medio llenar en el Sheet -- nunca se muestra
+                (p.producto || p.nombre || '').trim() && // fila vacía o a medio llenar en el Sheet: nunca se muestra
                 (p.categoria || '').toLowerCase().includes(tabActiva.toLowerCase())
             );
             const cont = document.getElementById('carruselDestacados');
@@ -482,8 +815,35 @@
                 return;
             }
             vacio.style.display = 'none';
-            // Solo 5: el carrusel es una vitrina, el catálogo completo vive en catalogo.html
-            cont.innerHTML = filtrados.slice(0, 5).map(crearTarjetaCarrusel).join('');
+            // Solo 6: esto es una vitrina, el catálogo completo vive en catalogo.html
+            cont.innerHTML = filtrados.slice(0, 6).map(crearFicha).join('');
+        }
+
+        // Tocar una prenda lleva al catálogo filtrado por su categoría; el modal
+        // de compra vive en catalogo.html.
+        function crearFicha(p) {
+            const nombreProducto = p.producto || p.nombre || "Producto sin nombre";
+            const imagenUrl = obtenerListaImagenes(p.imagen || "")[0];
+            const precio = p.precio ? parseFloat(p.precio) : 0;
+            const precioFormateado = precio.toFixed(2);
+            const disponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
+            const categoriaLabel = normalizarCategoria(p.categoria) || "Variados";
+            const enlace = '/catalogo?categoria=' + encodeURIComponent(categoriaLabel);
+
+            return `
+                <a href="${enlace}" class="ficha group block">
+                    <div class="ficha-marco">
+                        ${!disponible ? '<span class="etiqueta-agotado">AGOTADO</span>' : ''}
+                        <img src="${escapeHTML(imagenUrl)}" alt="${escapeHTML(nombreProducto)}" loading="lazy"
+                             onerror="this.src='imagenes/logo.jpg'">
+                    </div>
+                    <div class="pt-4">
+                        <p class="text-[10px] font-bold tracking-[0.18em] mb-1.5" style="color: #9a948a">${escapeHTML(categoriaLabel.toUpperCase())}</p>
+                        <h3 class="text-[15px] font-semibold leading-snug line-clamp-1">${escapeHTML(nombreProducto)}</h3>
+                        <p class="text-[15px] font-bold mt-1.5">$${precioFormateado}<span class="font-normal text-xs" style="color: #9a948a">${textoPrecioBs(precio)}</span></p>
+                    </div>
+                </a>
+            `;
         }
 
         function deslizarCarrusel(direccion) {
@@ -491,31 +851,156 @@
             cont.scrollBy({ left: direccion * 320, behavior: 'smooth' });
         }
 
-        // Los productos de "Destacados" son solo una vitrina: al tocar uno se
-        // manda al catalogo completo (filtrado por su categoria), en vez de
-        // abrir aqui mismo el modal de compra -- ese vive solo en catalogo.html.
-        function crearTarjetaCarrusel(p) {
-            let nombreProducto = p.producto || p.nombre || "Producto sin nombre";
-            let textoImagen = p.imagen || "";
-            let imagenUrl = obtenerListaImagenes(textoImagen)[0];
-            let precioFormateado = p.precio ? parseFloat(p.precio).toFixed(2) : "0.00";
-            let estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
-            let categoriaLabel = normalizarCategoria(p.categoria) || "Variados";
-            let enlaceCatalogo = '/catalogo?categoria=' + encodeURIComponent(categoriaLabel);
+        // ==================== CALCULADORA DE AHORRO (3 piezas) ====================
 
-            return `
-                <a href="${enlaceCatalogo}" class="carrusel-item flex-shrink-0 w-44 md:w-64 cursor-pointer group block">
-                    <div class="w-full h-48 md:h-72 bg-gray-50 rounded-2xl overflow-hidden flex items-center justify-center mb-3">
-                        <img src="${escapeHTML(imagenUrl)}" alt="${escapeHTML(nombreProducto)}" class="max-w-[85%] max-h-[85%] object-contain group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=300&auto=format&fit=crop'">
-                    </div>
-                    <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5">${escapeHTML(categoriaLabel)}</span>
-                    <h3 class="text-sm text-gray-900 font-medium leading-snug line-clamp-1">${escapeHTML(nombreProducto)}</h3>
-                    <p class="text-sm font-bold text-gray-900 mt-1">$${precioFormateado}${textoPrecioBs(parseFloat(precioFormateado))}${!estaDisponible ? ' <span class="text-gray-400 font-normal">· Agotado</span>' : ''}</p>
-                </a>
-            `;
+        function actualizarCalculadora() {
+            const rango = document.getElementById('calcRango');
+            if (!rango) return;
+            const cantidad = parseInt(rango.value, 10);
+            const base = precioPromedio || 12;
+            const descuento = cantidad >= 3 ? 1 : 0;
+
+            const normal = cantidad * base;
+            const pagas = cantidad * (base - descuento);
+            const ahorro = normal - pagas;
+
+            document.getElementById('calcCantidad').textContent = cantidad;
+            document.getElementById('calcNormal').textContent = '$' + normal.toFixed(2);
+            document.getElementById('calcPagas').textContent = '$' + pagas.toFixed(2);
+            document.getElementById('calcAhorro').textContent = '$' + ahorro.toFixed(2);
+
+            const bs = document.getElementById('calcBs');
+            const textoBs = (textoPrecioBs(pagas) || '').replace(/^[\s·|-]+/, '').trim();
+            bs.innerHTML = textoBs ? 'Equivale a ' + textoBs : '';
+
+            const nota = document.getElementById('calcNota');
+            nota.textContent = cantidad < 3
+                ? 'Llevando una prenda más ya entras en el precio al mayor.'
+                : 'Cálculo sobre el precio promedio del catálogo ($' + base.toFixed(2) + '). El monto final depende de las prendas que elijas.';
         }
 
-        // ---------- ESCÁNER QR ----------
+        // ==================== TICKER ====================
+
+        function construirTicker() {
+            const mensajes = [
+                'ENVÍOS NACIONALES',
+                '3 PIEZAS · $1 MENOS EN CADA UNA',
+                'PAGO MÓVIL · ZELLE · BINANCE · EFECTIVO',
+                'LUN A SÁB · 9:00 A.M. – 5:30 P.M.'
+            ];
+
+            let tasa = '';
+            try { tasa = (textoPrecioBs(1) || '').replace(/^[\s·|-]+/, '').trim(); } catch (e) {}
+            if (tasa) mensajes.splice(1, 0, 'TASA BCV HOY · $1 = ' + tasa);
+
+            const html = mensajes.map(m =>
+                `<span class="ticker-item"><span class="ticker-punto"></span>${m}</span>`
+            ).join('');
+
+            const grupo = document.getElementById('tickerGrupo');
+            const copia = document.getElementById('tickerGrupoCopia');
+            if (grupo) grupo.innerHTML = html;
+            if (copia) copia.innerHTML = html;
+        }
+
+        // ==================== HERO: letras, parallax, barra ====================
+
+        function armarTituloHero() {
+            const titulo = document.getElementById('tituloHero');
+            if (!titulo) return;
+            let indice = 0;
+
+            titulo.querySelectorAll('.linea-mascara').forEach(linea => {
+                const texto = linea.dataset.texto || '';
+                linea.innerHTML = [...texto].map(caracter => {
+                    if (caracter === ' ') return '<span class="letra" style="width:0.28em">&nbsp;</span>';
+                    const retraso = 0.25 + (indice++ * 0.035);
+                    return `<span class="letra" style="animation-delay:${retraso.toFixed(3)}s">${caracter}</span>`;
+                }).join('');
+            });
+
+            requestAnimationFrame(() => {
+                titulo.classList.add('entra');
+                document.querySelectorAll('.hero-tardio').forEach(el => el.classList.add('entra'));
+            });
+        }
+
+        function iniciarScroll() {
+            const barra = document.getElementById('barra');
+            const progreso = document.getElementById('progreso');
+            const foto = document.getElementById('heroFoto');
+            const contenido = document.getElementById('heroContenido');
+            if (!barra) return;
+            let ultimoY = window.scrollY;
+            let pendiente = false;
+
+            const pintar = () => {
+                const y = window.scrollY;
+                const alto = document.documentElement.scrollHeight - window.innerHeight;
+
+                progreso.style.width = (alto > 0 ? (y / alto) * 100 : 0) + '%';
+
+                barra.classList.toggle('pegada', y > 40);
+                // Se esconde al bajar y reaparece apenas subes: más pantalla para el cliente.
+                if (y > 260 && y > ultimoY) barra.classList.add('oculta');
+                else barra.classList.remove('oculta');
+                ultimoY = y;
+
+                if (!reduceMovimiento && y < window.innerHeight * 1.2) {
+                    foto.style.transform = 'scale(1.14) translate3d(0,' + (y * 0.16) + 'px,0)';
+                    contenido.style.transform = 'translate3d(0,' + (y * 0.24) + 'px,0)';
+                    contenido.style.opacity = Math.max(0, 1 - y / (window.innerHeight * 0.75));
+                }
+                pendiente = false;
+            };
+
+            window.addEventListener('scroll', () => {
+                if (!pendiente) { pendiente = true; requestAnimationFrame(pintar); }
+            }, { passive: true });
+
+            pintar();
+        }
+
+        // ==================== REVELADO DE SECCIONES ====================
+
+        function iniciarRevelado() {
+            const elementos = document.querySelectorAll('.aparece, .corta');
+            if (!elementos.length) return;
+
+            if (!('IntersectionObserver' in window)) {
+                elementos.forEach(el => el.classList.add('dentro'));
+                return;
+            }
+
+            const observador = new IntersectionObserver((entradas, obs) => {
+                entradas.forEach(entrada => {
+                    if (!entrada.isIntersecting) return;
+                    entrada.target.classList.add('dentro');
+                    obs.unobserve(entrada.target); // se revela una sola vez
+                });
+            }, { threshold: 0.08, rootMargin: '0px 0px -8% 0px' });
+
+            elementos.forEach(el => observador.observe(el));
+
+            // Red de seguridad: nada se queda invisible si algo falla.
+            setTimeout(() => {
+                elementos.forEach(el => {
+                    const caja = el.getBoundingClientRect();
+                    if (caja.top < window.innerHeight && caja.bottom > 0) el.classList.add('dentro');
+                });
+            }, 1400);
+        }
+
+        // ==================== ACORDEÓN ====================
+
+        function toggleAcordeon(boton) {
+            const contenedor = boton.closest('.acordeon');
+            const contenido = contenedor.querySelector('.acordeon-contenido');
+            const abierto = contenedor.classList.toggle('abierto');
+            contenido.style.maxHeight = abierto ? contenido.scrollHeight + 'px' : '0px';
+        }
+
+        // ==================== ESCÁNER QR ====================
 
         async function abrirScanner() {
             const modal = document.getElementById('scannerModal');
@@ -570,10 +1055,10 @@
             const coincidencia = productos.find(p => (p.codigo || '').toLowerCase().trim() === buscado)
                 || productos.find(p => (p.producto || p.nombre || '').toLowerCase().trim() === buscado);
             if (coincidencia) {
-                let nombreProducto = coincidencia.producto || coincidencia.nombre;
-                let textoImagen = coincidencia.imagen || '';
-                let precioFormateado = coincidencia.precio ? parseFloat(coincidencia.precio).toFixed(2) : '0.00';
-                let estaDisponible = (coincidencia.disponible && coincidencia.disponible.toLowerCase().trim() === 'si');
+                const nombreProducto = coincidencia.producto || coincidencia.nombre;
+                const textoImagen = coincidencia.imagen || '';
+                const precioFormateado = coincidencia.precio ? parseFloat(coincidencia.precio).toFixed(2) : '0.00';
+                const estaDisponible = (coincidencia.disponible && coincidencia.disponible.toLowerCase().trim() === 'si');
                 let stockCoincidencia = parseInt(coincidencia.stock, 10);
                 if (isNaN(stockCoincidencia)) stockCoincidencia = 99;
                 abrirDetalle(nombreProducto, textoImagen, precioFormateado, normalizarCategoria(coincidencia.categoria) || 'Variados', coincidencia.colores || '', estaDisponible, stockCoincidencia, coincidencia.stock_colores || '', coincidencia.tallas || '', coincidencia.stock_variantes || '');
@@ -588,32 +1073,7 @@
             if (productoParam) procesarCodigoQR(productoParam);
         }
 
-        const panels = document.querySelectorAll('.reveal-panel');
-        if (panels.length) {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, {
-                threshold: 0.15,
-                rootMargin: '-10% 0px -12% 0px'
-            });
-
-            panels.forEach((panel) => observer.observe(panel));
-        }
-
-        // ---------- ACERCA DE VALERA SPORT (acordeon con "+") ----------
-
-        function toggleAcordeon(boton) {
-            const contenedor = boton.closest('.acordeon');
-            const contenido = contenedor.querySelector('.acordeon-contenido');
-            const abierto = contenedor.classList.toggle('abierto');
-            contenido.style.maxHeight = abierto ? contenido.scrollHeight + 'px' : '0px';
-        }
-
-        // ---------- MAPA (desplegar solo al hacer clic) ----------
+        // ==================== MAPA ====================
 
         const btnMapa = document.getElementById('mapa-toggle');
         if (btnMapa) {
@@ -622,6 +1082,21 @@
                 contenedor.innerHTML = '<iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d204.28465606686223!2d-69.31918688527836!3d10.0659839430056!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1ses-419!2sus!4v1787254528866!5m2!1ses-419!2sus" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>';
             }, { once: true });
         }
+
+        // ==================== ARRANQUE ====================
+
+        document.addEventListener("DOMContentLoaded", () => {
+            armarTituloHero();
+            iniciarScroll();
+            iniciarRevelado();
+            construirTicker();
+            actualizarCalculadora();
+
+            cargarProductosDesdeSheet();
+            actualizarContadorCarrito();
+            actualizarIndicadorPedido();
+            mostrarBienvenidaSiEsNuevo();
+        });
     </script>
 </body>
 </html>
