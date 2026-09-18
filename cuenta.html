@@ -147,7 +147,7 @@
         }
 
         window.addEventListener('firebase-auth-changed', (e) => {
-            usuarioActual = e.detail.user;
+            usuarioActual = e.detail && e.detail.user ? e.detail.user : null;
             actualizarVista();
         });
 
@@ -158,7 +158,7 @@
             if (usuarioActual) {
                 sinSesion.classList.add('hidden');
                 panel.classList.remove('hidden');
-                document.getElementById('textoCorreo').textContent = usuarioActual.email;
+                document.getElementById('textoCorreo').textContent = usuarioActual.email || '';
                 cargarHistorial();
             } else {
                 sinSesion.classList.remove('hidden');
@@ -191,12 +191,12 @@
 
                 cargando.classList.add('hidden');
 
-                if (!datos.ok) {
-                    lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-10">' + escapeHTML(datos.error || 'No se pudo cargar tu historial') + '</p>';
+                if (!datos || !datos.ok) {
+                    lista.innerHTML = '<p class="text-rose-400 text-sm text-center py-10">' + escapeHTML(datos && datos.error ? datos.error : 'No se pudo cargar tu historial') + '</p>';
                     return;
                 }
 
-                todasLasCompras = datos.compras || [];
+                todasLasCompras = Array.isArray(datos.compras) ? datos.compras : [];
                 actualizarResumen();
                 renderizarFilas();
 
@@ -208,14 +208,16 @@
 
         function actualizarResumen() {
             let total = 0;
-            todasLasCompras.forEach(c => total += parseFloat(c.precio) || 0);
+            if (Array.isArray(todasLasCompras)) {
+                todasLasCompras.forEach(c => total += parseFloat(c.precio) || 0);
+            }
 
             document.getElementById('totalGastado').textContent = '$' + total.toFixed(2);
             document.getElementById('cantidadCompras').textContent = todasLasCompras.length;
 
-            if (todasLasCompras.length) {
+            if (todasLasCompras.length > 0 && todasLasCompras[0].fecha) {
                 const fechaMasReciente = new Date(todasLasCompras[0].fecha);
-                document.getElementById('ultimaCompra').textContent = fechaMasReciente.toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' });
+                document.getElementById('ultimaCompra').textContent = !isNaN(fechaMasReciente) ? fechaMasReciente.toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
             } else {
                 document.getElementById('ultimaCompra').textContent = '—';
             }
@@ -246,7 +248,7 @@
                 filtradas = todasLasCompras.filter(c => esFisica(c.canal));
             }
 
-            if (!filtradas.length) {
+            if (!filtradas || filtradas.length === 0) {
                 lista.innerHTML = '';
                 sinCompras.classList.remove('hidden');
                 return;
@@ -262,7 +264,8 @@
         }
 
         function filaCompra(c) {
-            const fecha = c.fecha ? new Date(c.fecha).toLocaleString('es-VE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+            const fechaValida = c.fecha ? new Date(c.fecha) : null;
+            const fecha = fechaValida && !isNaN(fechaValida) ? fechaValida.toLocaleString('es-VE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
             const precio = Number(c.precio || 0).toFixed(2);
             const fisica = esFisica(c.canal);
 
@@ -273,7 +276,7 @@
             return `
                 <div class="fila-tabla grid grid-cols-1 sm:grid-cols-[1fr_auto_auto_auto] gap-2 sm:gap-4 items-center px-6 py-4 border-b border-white/5 last:border-0 transition">
                     <div>
-                        <p class="text-white font-semibold text-sm">${escapeHTML(c.producto)}</p>
+                        <p class="text-white font-semibold text-sm">${escapeHTML(c.producto || 'Producto sin nombre')}</p>
                         <p class="text-xs text-slate-500 mt-0.5">${escapeHTML(fecha)}</p>
                     </div>
                     <span class="text-xs text-slate-400">${escapeHTML(c.categoria || 'Variados')}</span>
