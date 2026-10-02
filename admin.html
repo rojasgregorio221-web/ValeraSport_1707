@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#0D0920">
+    <meta name="theme-color" content="#08140F">
     <title>Panel | Valera Sport</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,14 +18,14 @@
 
     <style>
         :root {
-            --noche: #140F2E;
+            --noche: #0F211C;
             --brasa: #FF5A1F;
-            --fucsia: #FF2D87;
-            --violeta: #7C4DFF;
-            --cyan: #22D3EE;
+            --fucsia: #FF8A1F;
+            --violeta: #FFC21A;
+            --cyan: #2DD4BF;
             --hueso: #F6F3EC;
             --tinta: #16131F;
-            --fondo: #0D0920;
+            --fondo: #08140F;
             --panel: rgba(255, 255, 255, 0.045);
             --panel-alto: rgba(255, 255, 255, 0.075);
             --linea: rgba(255, 255, 255, 0.10);
@@ -50,9 +50,9 @@
             content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
             background:
                 radial-gradient(58% 42% at 10% 0%, rgba(255, 90, 31, 0.30), transparent 60%),
-                radial-gradient(52% 38% at 94% 6%, rgba(255, 45, 135, 0.26), transparent 62%),
-                radial-gradient(72% 52% at 50% 108%, rgba(124, 77, 255, 0.32), transparent 62%),
-                linear-gradient(180deg, #170F36 0%, #0D0920 55%, #0A0717 100%);
+                radial-gradient(52% 38% at 94% 6%, rgba(255, 138, 31, 0.26), transparent 62%),
+                radial-gradient(72% 52% at 50% 108%, rgba(16, 185, 129, 0.30), transparent 62%),
+                linear-gradient(180deg, #0F2420 0%, #08140F 55%, #050D0A 100%);
         }
         body::after {
             content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
@@ -108,7 +108,7 @@
             position: relative; overflow: hidden; isolation: isolate;
             background: linear-gradient(120deg, var(--brasa), var(--fucsia) 58%, var(--violeta));
             color: #fff; font-weight: 800;
-            box-shadow: 0 14px 34px -14px rgba(255, 45, 135, 0.85);
+            box-shadow: 0 14px 34px -14px rgba(255, 138, 31, 0.85);
             transition: transform 0.2s var(--suave), box-shadow 0.3s ease;
         }
         .btn-marca::before {
@@ -139,16 +139,16 @@
         /* ============ FORMULARIOS ============ */
         .campo {
             width: 100%;
-            background: rgba(10, 7, 23, 0.55);
+            background: rgba(4, 12, 9, 0.55);
             border: 1px solid var(--linea);
             border-radius: 14px;
             padding: 11px 14px;
             font-size: 14px; color: var(--hueso); outline: none;
             transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
         }
-        .campo:focus { border-color: var(--fucsia); box-shadow: 0 0 0 3px rgba(255, 45, 135, 0.16); }
+        .campo:focus { border-color: var(--fucsia); box-shadow: 0 0 0 3px rgba(255, 138, 31, 0.16); }
         .campo::placeholder { color: rgba(246, 243, 236, 0.28); }
-        .campo option { background: #16112F; color: var(--hueso); }
+        .campo option { background: #10241E; color: var(--hueso); }
         .etiqueta {
             display: block; margin-bottom: 7px;
             font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
@@ -204,7 +204,7 @@
         .liquid-glider {
             position: absolute; top: 5px; bottom: 5px; border-radius: 9999px;
             background: linear-gradient(120deg, var(--brasa), var(--fucsia) 55%, var(--violeta));
-            box-shadow: 0 10px 26px -8px rgba(255, 45, 135, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            box-shadow: 0 10px 26px -8px rgba(255, 138, 31, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
             pointer-events: none; z-index: 1;
             transition: left 0.38s var(--suave), width 0.38s var(--suave), opacity 0.25s ease;
         }
@@ -228,7 +228,7 @@
         }
         .accion-rapida:hover { border-color: var(--linea-fuerte); background: var(--panel-alto); }
         .accion-rapida:active { transform: scale(0.98); }
-        .accion-rapida.activa { border-color: rgba(255, 45, 135, 0.55); background: rgba(255, 45, 135, 0.10); }
+        .accion-rapida.activa { border-color: rgba(255, 138, 31, 0.55); background: rgba(255, 138, 31, 0.10); }
         .accion-icono {
             width: 42px; height: 42px; border-radius: 9999px;
             display: flex; align-items: center; justify-content: center;
@@ -250,7 +250,7 @@
         /* Hilo que agrupa las ventas de un mismo día */
         .hilo-fecha {
             width: 2px; border-radius: 9999px;
-            background: linear-gradient(180deg, var(--fucsia), rgba(124, 77, 255, 0.35) 60%, transparent);
+            background: linear-gradient(180deg, var(--fucsia), rgba(255, 194, 26, 0.35) 60%, transparent);
         }
 
         .precio-editable-input { transition: color 0.15s ease; }
@@ -265,14 +265,14 @@
 
         /* ============ LOGIN + MASCOTA ============ */
         .tarjeta-acceso {
-            background: rgba(20, 15, 46, 0.72);
+            background: rgba(12, 28, 23, 0.72);
             border: 1px solid var(--linea);
             border-radius: 30px;
             backdrop-filter: blur(22px) saturate(160%);
             -webkit-backdrop-filter: blur(22px) saturate(160%);
             box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.10);
         }
-        #escenaMascota { filter: drop-shadow(0 26px 40px rgba(124, 77, 255, 0.35)); }
+        #escenaMascota { filter: drop-shadow(0 26px 40px rgba(255, 194, 26, 0.35)); }
         #mascotaFlota { animation: flotar 4.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
         @keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 
@@ -336,16 +336,16 @@
                     <defs>
                         <linearGradient id="gCabeza" x1="0" y1="0" x2="1" y2="1">
                             <stop offset="0%" stop-color="#FF5A1F"/>
-                            <stop offset="55%" stop-color="#FF2D87"/>
-                            <stop offset="100%" stop-color="#7C4DFF"/>
+                            <stop offset="55%" stop-color="#FF8A1F"/>
+                            <stop offset="100%" stop-color="#FFC21A"/>
                         </linearGradient>
                         <linearGradient id="gMano" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stop-color="#FF2D87"/>
-                            <stop offset="100%" stop-color="#7C4DFF"/>
+                            <stop offset="0%" stop-color="#FF8A1F"/>
+                            <stop offset="100%" stop-color="#FFC21A"/>
                         </linearGradient>
                         <radialGradient id="gAura" cx="50%" cy="50%">
-                            <stop offset="0%" stop-color="#7C4DFF" stop-opacity="0.55"/>
-                            <stop offset="100%" stop-color="#7C4DFF" stop-opacity="0"/>
+                            <stop offset="0%" stop-color="#FFC21A" stop-opacity="0.55"/>
+                            <stop offset="100%" stop-color="#FFC21A" stop-opacity="0"/>
                         </radialGradient>
                         <filter id="brillo" x="-60%" y="-60%" width="220%" height="220%">
                             <feGaussianBlur stdDeviation="3.2" result="b"/>
@@ -357,8 +357,8 @@
 
                     <g id="mascotaFlota">
                         <!-- cuerpo -->
-                        <rect x="74" y="132" width="72" height="40" rx="20" fill="#241A4E" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
-                        <rect x="92" y="146" width="36" height="8" rx="4" fill="rgba(34,211,238,0.35)"/>
+                        <rect x="74" y="132" width="72" height="40" rx="20" fill="#17372F" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
+                        <rect x="92" y="146" width="36" height="8" rx="4" fill="rgba(45, 212, 191,0.35)"/>
 
                         <!-- antena -->
                         <path d="M110 46 V28" stroke="rgba(246,243,236,0.45)" stroke-width="3" stroke-linecap="round"/>
@@ -370,17 +370,17 @@
                         <rect x="46" y="42" width="128" height="98" rx="36" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
 
                         <!-- orejas -->
-                        <rect x="34" y="78" width="14" height="30" rx="7" fill="#7C4DFF"/>
+                        <rect x="34" y="78" width="14" height="30" rx="7" fill="#FFC21A"/>
                         <rect x="172" y="78" width="14" height="30" rx="7" fill="#FF5A1F"/>
 
                         <!-- visor -->
-                        <rect x="60" y="64" width="100" height="54" rx="27" fill="#0B0820"/>
-                        <rect x="60" y="64" width="100" height="54" rx="27" fill="none" stroke="rgba(34,211,238,0.30)" stroke-width="2"/>
+                        <rect x="60" y="64" width="100" height="54" rx="27" fill="#06120E"/>
+                        <rect x="60" y="64" width="100" height="54" rx="27" fill="none" stroke="rgba(45, 212, 191,0.30)" stroke-width="2"/>
 
                         <g id="mirada">
                             <g id="parpadeo">
-                                <ellipse cx="88" cy="91" rx="9" ry="11" fill="#22D3EE" filter="url(#brillo)"/>
-                                <ellipse cx="132" cy="91" rx="9" ry="11" fill="#22D3EE" filter="url(#brillo)"/>
+                                <ellipse cx="88" cy="91" rx="9" ry="11" fill="#2DD4BF" filter="url(#brillo)"/>
+                                <ellipse cx="132" cy="91" rx="9" ry="11" fill="#2DD4BF" filter="url(#brillo)"/>
                                 <circle cx="91" cy="87" r="3" fill="#EAFEFF"/>
                                 <circle cx="135" cy="87" r="3" fill="#EAFEFF"/>
                             </g>
@@ -395,8 +395,8 @@
                         </g>
 
                         <!-- cachetes y boca -->
-                        <ellipse cx="66" cy="120" rx="8" ry="5" fill="rgba(255,45,135,0.55)"/>
-                        <ellipse cx="154" cy="120" rx="8" ry="5" fill="rgba(255,45,135,0.55)"/>
+                        <ellipse cx="66" cy="120" rx="8" ry="5" fill="rgba(255, 138, 31,0.55)"/>
+                        <ellipse cx="154" cy="120" rx="8" ry="5" fill="rgba(255, 138, 31,0.55)"/>
                         <path id="boca" d="M100 128 q10 8 20 0" stroke="rgba(255,255,255,0.65)" stroke-width="4" fill="none" stroke-linecap="round"/>
 
                         <!-- manos -->
@@ -469,8 +469,8 @@
 
         <!-- Vendido hoy -->
         <section class="entra panel relative overflow-hidden p-6 md:p-7 mb-4">
-            <div class="absolute -right-16 -top-20 w-56 h-56 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(255,45,135,0.35), transparent 62%)"></div>
-            <div class="absolute -left-14 -bottom-20 w-48 h-48 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(34,211,238,0.22), transparent 62%)"></div>
+            <div class="absolute -right-16 -top-20 w-56 h-56 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(255, 138, 31,0.35), transparent 62%)"></div>
+            <div class="absolute -left-14 -bottom-20 w-48 h-48 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(45, 212, 191,0.22), transparent 62%)"></div>
 
             <div class="relative">
                 <p class="rotulo mb-5 flex items-center gap-2">
@@ -662,7 +662,7 @@
         </section>
 
         <!-- ===================== ESCÁNER ===================== -->
-        <div id="scannerModalVenta" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center p-4" style="background: rgba(8,5,20,0.94); backdrop-filter: blur(10px)">
+        <div id="scannerModalVenta" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center p-4" style="background: rgba(4, 10, 8,0.94); backdrop-filter: blur(10px)">
             <button onclick="cerrarScannerVenta()" class="icon-btn absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full z-10" style="color: var(--gris)">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
@@ -671,7 +671,7 @@
                     <video id="scannerVideoVenta" class="w-full h-full object-cover" playsinline autoplay muted></video>
                     <div id="scannerMarcoVenta" class="absolute inset-0 pointer-events-none m-10 rounded-2xl transition-colors duration-150" style="border: 3px solid var(--fucsia)"></div>
 
-                    <div id="scannerConfirmacionRepetido" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center p-6 text-center" style="background: rgba(8,5,20,0.95); backdrop-filter: blur(8px)">
+                    <div id="scannerConfirmacionRepetido" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center p-6 text-center" style="background: rgba(4, 10, 8,0.95); backdrop-filter: blur(8px)">
                         <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl mb-3" style="background: rgba(245,158,11,0.18); color: #FCD34D">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
@@ -1700,7 +1700,7 @@
                 const esActual = clave === claveEsta;
                 const piezas = t.piezasBs + t.piezasUsd;
                 return `
-                    <div class="sub-panel px-4 py-3 flex items-center justify-between gap-3" ${esActual ? 'style="border-color: rgba(255,45,135,0.45); background: rgba(255,45,135,0.07)"' : ''}>
+                    <div class="sub-panel px-4 py-3 flex items-center justify-between gap-3" ${esActual ? 'style="border-color: rgba(255, 138, 31,0.45); background: rgba(255, 138, 31,0.07)"' : ''}>
                         <div class="min-w-0">
                             <p class="text-xs font-bold">${escapeHTML(etiquetaSemana(datos.inicio))}</p>
                             <p class="text-[11px] mt-0.5" style="color: var(--tenue)">${escapeHTML(rangoSemana(datos.inicio))} · ${piezas} ${piezas === 1 ? 'prenda' : 'prendas'}</p>
@@ -2868,7 +2868,7 @@
                             <p class="text-xs font-bold truncate">${escapeHTML(item.producto)}</p>
                             <div class="flex flex-wrap items-center gap-2 mt-1.5">
                                 <span class="text-[10px] uppercase tracking-wide" style="color: var(--tenue)">${escapeHTML(item.categoria || 'Variados')}</span>
-                                <span class="inline-flex items-center gap-1 rounded-lg pl-2 pr-1.5 py-0.5" style="background: rgba(10,7,23,0.55); border: 1px solid var(--linea)">
+                                <span class="inline-flex items-center gap-1 rounded-lg pl-2 pr-1.5 py-0.5" style="background: rgba(4, 12, 9,0.55); border: 1px solid var(--linea)">
                                     <span class="text-[10px] cifra" style="color: var(--tenue)">$</span>
                                     <input
                                         type="number"
@@ -2889,7 +2889,7 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <div class="flex items-center rounded-lg" style="background: rgba(10,7,23,0.55); border: 1px solid var(--linea)">
+                            <div class="flex items-center rounded-lg" style="background: rgba(4, 12, 9,0.55); border: 1px solid var(--linea)">
                                 <button type="button" onclick="modificarCantidadItem(${indice}, -1)" title="Restar" class="w-7 h-7 flex items-center justify-center rounded-l-lg active:scale-95 transition" style="color: var(--gris)">
                                     <i class="fa-solid fa-minus text-[10px]"></i>
                                 </button>
