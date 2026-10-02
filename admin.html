@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#0D0920">
+    <meta name="theme-color" content="#FFFFFF">
     <title>Panel | Valera Sport</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,10 +19,10 @@
     <style>
         :root {
             --noche: #140F2E;
-            --brasa: #FF5A1F;
-            --fucsia: #FF2D87;
-            --violeta: #7C4DFF;
-            --cyan: #22D3EE;
+            --brasa: #22AEE6;
+            --fucsia: #1599D0;
+            --violeta: #046BA8;
+            --cyan: #38BDF8;
             --hueso: #F6F3EC;
             --tinta: #16131F;
             --fondo: #0D0920;
@@ -49,9 +49,9 @@
         body::before {
             content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
             background:
-                radial-gradient(58% 42% at 10% 0%, rgba(255, 90, 31, 0.30), transparent 60%),
-                radial-gradient(52% 38% at 94% 6%, rgba(255, 45, 135, 0.26), transparent 62%),
-                radial-gradient(72% 52% at 50% 108%, rgba(124, 77, 255, 0.32), transparent 62%),
+                radial-gradient(58% 42% at 10% 0%, rgba(34, 174, 230, 0.30), transparent 60%),
+                radial-gradient(52% 38% at 94% 6%, rgba(21, 153, 208, 0.26), transparent 62%),
+                radial-gradient(72% 52% at 50% 108%, rgba(4, 107, 168, 0.32), transparent 62%),
                 linear-gradient(180deg, #170F36 0%, #0D0920 55%, #0A0717 100%);
         }
         body::after {
@@ -108,7 +108,7 @@
             position: relative; overflow: hidden; isolation: isolate;
             background: linear-gradient(120deg, var(--brasa), var(--fucsia) 58%, var(--violeta));
             color: #fff; font-weight: 800;
-            box-shadow: 0 14px 34px -14px rgba(255, 45, 135, 0.85);
+            box-shadow: 0 14px 34px -14px rgba(21, 153, 208, 0.85);
             transition: transform 0.2s var(--suave), box-shadow 0.3s ease;
         }
         .btn-marca::before {
@@ -146,7 +146,7 @@
             font-size: 14px; color: var(--hueso); outline: none;
             transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
         }
-        .campo:focus { border-color: var(--fucsia); box-shadow: 0 0 0 3px rgba(255, 45, 135, 0.16); }
+        .campo:focus { border-color: var(--fucsia); box-shadow: 0 0 0 3px rgba(21, 153, 208, 0.16); }
         .campo::placeholder { color: rgba(246, 243, 236, 0.28); }
         .campo option { background: #16112F; color: var(--hueso); }
         .etiqueta {
@@ -204,7 +204,7 @@
         .liquid-glider {
             position: absolute; top: 5px; bottom: 5px; border-radius: 9999px;
             background: linear-gradient(120deg, var(--brasa), var(--fucsia) 55%, var(--violeta));
-            box-shadow: 0 10px 26px -8px rgba(255, 45, 135, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            box-shadow: 0 10px 26px -8px rgba(21, 153, 208, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
             pointer-events: none; z-index: 1;
             transition: left 0.38s var(--suave), width 0.38s var(--suave), opacity 0.25s ease;
         }
@@ -228,7 +228,7 @@
         }
         .accion-rapida:hover { border-color: var(--linea-fuerte); background: var(--panel-alto); }
         .accion-rapida:active { transform: scale(0.98); }
-        .accion-rapida.activa { border-color: rgba(255, 45, 135, 0.55); background: rgba(255, 45, 135, 0.10); }
+        .accion-rapida.activa { border-color: rgba(21, 153, 208, 0.55); background: rgba(21, 153, 208, 0.10); }
         .accion-icono {
             width: 42px; height: 42px; border-radius: 9999px;
             display: flex; align-items: center; justify-content: center;
@@ -250,7 +250,7 @@
         /* Hilo que agrupa las ventas de un mismo día */
         .hilo-fecha {
             width: 2px; border-radius: 9999px;
-            background: linear-gradient(180deg, var(--fucsia), rgba(124, 77, 255, 0.35) 60%, transparent);
+            background: linear-gradient(180deg, var(--fucsia), rgba(4, 107, 168, 0.35) 60%, transparent);
         }
 
         .precio-editable-input { transition: color 0.15s ease; }
@@ -272,7 +272,7 @@
             -webkit-backdrop-filter: blur(22px) saturate(160%);
             box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.10);
         }
-        #escenaMascota { filter: drop-shadow(0 26px 40px rgba(124, 77, 255, 0.35)); }
+        #escenaMascota { filter: drop-shadow(0 26px 40px rgba(4, 107, 168, 0.35)); }
         #mascotaFlota { animation: flotar 4.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
         @keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 
@@ -324,44 +324,44 @@
             html { scroll-behavior: auto; }
         }
     
-/*TEMA-CLARO*/
+/*TEMA-AZUL*/
 :root{
-  --noche:#FFFFFF; --fondo:#F7F5F0; --hueso:#1B2420; --tinta:#FFFFFF;
-  --cyan:#0F9F8F;
-  --panel:rgba(255,255,255,.88); --panel-alto:#FFFFFF;
-  --linea:rgba(20,40,30,.12); --linea-fuerte:rgba(20,40,30,.24);
-  --gris:rgba(27,36,32,.68); --tenue:rgba(27,36,32,.46);
+  --noche:#FFFFFF; --fondo:#F6F9FC; --hueso:#0E1116; --tinta:#FFFFFF;
+  --cyan:#0B7DB8;
+  --panel:rgba(255,255,255,.90); --panel-alto:#FFFFFF;
+  --linea:rgba(20,40,60,.12); --linea-fuerte:rgba(20,40,60,.24);
+  --gris:rgba(14,17,22,.68); --tenue:rgba(14,17,22,.46);
 }
 body::before{background:
-  radial-gradient(58% 42% at 8% 0%,rgba(255,138,31,.22),transparent 60%),
-  radial-gradient(52% 38% at 96% 6%,rgba(255,194,26,.20),transparent 62%),
-  radial-gradient(72% 52% at 50% 108%,rgba(16,185,129,.16),transparent 62%),
-  linear-gradient(180deg,#FBF9F4 0%,#F7F5F0 55%,#F1EFE8 100%) !important}
-body::after{opacity:.025 !important}
-.panel,.tarjeta{box-shadow:0 14px 34px -24px rgba(20,40,30,.35)}
-.sub-panel{background:rgba(20,40,30,.04);border-color:rgba(20,40,30,.09)}
-.campo{background:#FFFFFF;color:#1B2420}
-.campo::placeholder{color:rgba(27,36,32,.35)}
-.campo option{background:#FFFFFF;color:#1B2420}
+  radial-gradient(58% 42% at 8% 0%,rgba(34,174,230,.20),transparent 60%),
+  radial-gradient(52% 38% at 96% 6%,rgba(4,107,168,.14),transparent 62%),
+  radial-gradient(72% 52% at 50% 108%,rgba(21,153,208,.14),transparent 62%),
+  linear-gradient(180deg,#FBFDFF 0%,#F6F9FC 55%,#EEF3F8 100%) !important}
+body::after{opacity:.02 !important}
+.panel,.tarjeta{box-shadow:0 14px 34px -24px rgba(4,60,100,.35)}
+.sub-panel{background:rgba(20,40,60,.04);border-color:rgba(20,40,60,.09)}
+.campo{background:#FFFFFF;color:#0E1116}
+.campo:focus{border-color:#1599D0;box-shadow:0 0 0 3px rgba(21,153,208,.18)}
+.campo::placeholder{color:rgba(14,17,22,.35)}
+.campo option{background:#FFFFFF;color:#0E1116}
 input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
-.btn-fantasma{background:rgba(20,40,30,.05);color:#1B2420}
-.btn-fantasma:hover{background:rgba(20,40,30,.10)}
-.seg{background:rgba(20,40,30,.05)}
-.glass-nav-container{background:rgba(255,255,255,.75);box-shadow:0 18px 36px -26px rgba(20,40,30,.45), inset 0 1px 0 #fff}
-.accion-icono{background:rgba(20,40,30,.06)}
-.tarjeta-acceso{background:rgba(255,255,255,.88);box-shadow:0 40px 90px -45px rgba(20,40,30,.5), inset 0 1px 0 #fff}
-::-webkit-scrollbar-thumb{background:rgba(20,40,30,.22)}
+.btn-fantasma{background:rgba(20,40,60,.05);color:#0E1116}
+.btn-fantasma:hover{background:rgba(20,40,60,.10)}
+.seg{background:rgba(20,40,60,.05)}
+.glass-nav-container{background:rgba(255,255,255,.78);box-shadow:0 18px 36px -26px rgba(4,60,100,.45), inset 0 1px 0 #fff}
+.accion-icono{background:rgba(20,40,60,.06)}
+.tarjeta-acceso{background:rgba(255,255,255,.92);box-shadow:0 40px 90px -45px rgba(4,60,100,.5), inset 0 1px 0 #fff}
+::-webkit-scrollbar-thumb{background:rgba(20,40,60,.22)}
 .msg-ok,.chip-ok,.txt-ok{color:#047857}
 .msg-error,.chip-danger,.txt-danger,.aviso-error{color:#BE123C}
 .msg-warn,.chip-warn,.txt-warn{color:#B45309}
 [style*="#6EE7B7"]{color:#059669 !important}
 [style*="#FDA4AF"]{color:#BE123C !important}
 [style*="#FCD34D"]{color:#B45309 !important}
-[style*="rgba(4, 12, 9"]{background:#FFFFFF !important}
+[style*="rgba(4, 12, 9"],[style*="rgba(10, 7, 23"]{background:#FFFFFF !important}
 #fisicaPrecioBs{overflow-wrap:anywhere}
-/* El escáner de cámara se queda oscuro para que se vea bien */
 #scannerModalVenta{
-  --hueso:#F6F3EC; --tinta:#16131F; --cyan:#2DD4BF;
+  --hueso:#F6F3EC; --tinta:#16131F; --cyan:#38BDF8;
   --linea:rgba(255,255,255,.10); --gris:rgba(246,243,236,.55); --tenue:rgba(246,243,236,.32);
 }
 #scannerModalVenta [style*="#6EE7B7"]{color:#6EE7B7 !important}
@@ -376,89 +376,12 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
         <div class="w-full max-w-[400px]">
 
             <div class="flex justify-center mb-[-26px] relative z-10">
-                <svg id="escenaMascota" viewBox="0 0 220 200" class="w-[210px] h-[190px]" role="img" aria-label="Valerín, el asistente del panel">
-                    <defs>
-                        <linearGradient id="gCabeza" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stop-color="#FF5A1F"/>
-                            <stop offset="55%" stop-color="#FF2D87"/>
-                            <stop offset="100%" stop-color="#7C4DFF"/>
-                        </linearGradient>
-                        <linearGradient id="gMano" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stop-color="#FF2D87"/>
-                            <stop offset="100%" stop-color="#7C4DFF"/>
-                        </linearGradient>
-                        <radialGradient id="gAura" cx="50%" cy="50%">
-                            <stop offset="0%" stop-color="#7C4DFF" stop-opacity="0.55"/>
-                            <stop offset="100%" stop-color="#7C4DFF" stop-opacity="0"/>
-                        </radialGradient>
-                        <filter id="brillo" x="-60%" y="-60%" width="220%" height="220%">
-                            <feGaussianBlur stdDeviation="3.2" result="b"/>
-                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                    </defs>
-
-                    <ellipse cx="110" cy="176" rx="62" ry="16" fill="url(#gAura)"/>
-
-                    <g id="mascotaFlota">
-                        <!-- cuerpo -->
-                        <rect x="74" y="132" width="72" height="40" rx="20" fill="#241A4E" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
-                        <rect x="92" y="146" width="36" height="8" rx="4" fill="rgba(34,211,238,0.35)"/>
-
-                        <!-- antena -->
-                        <path d="M110 46 V28" stroke="rgba(246,243,236,0.45)" stroke-width="3" stroke-linecap="round"/>
-                        <circle class="antena-luz" cx="110" cy="22" r="6" filter="url(#brillo)"/>
-
-                        <!-- cabeza -->
-                        <rect x="46" y="42" width="128" height="98" rx="36" fill="url(#gCabeza)"/>
-                        <rect x="56" y="50" width="108" height="34" rx="17" fill="rgba(255,255,255,0.16)"/>
-                        <rect x="46" y="42" width="128" height="98" rx="36" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
-
-                        <!-- orejas -->
-                        <rect x="34" y="78" width="14" height="30" rx="7" fill="#7C4DFF"/>
-                        <rect x="172" y="78" width="14" height="30" rx="7" fill="#FF5A1F"/>
-
-                        <!-- visor -->
-                        <rect x="60" y="64" width="100" height="54" rx="27" fill="#0B0820"/>
-                        <rect x="60" y="64" width="100" height="54" rx="27" fill="none" stroke="rgba(34,211,238,0.30)" stroke-width="2"/>
-
-                        <g id="mirada">
-                            <g id="parpadeo">
-                                <ellipse cx="88" cy="91" rx="9" ry="11" fill="#22D3EE" filter="url(#brillo)"/>
-                                <ellipse cx="132" cy="91" rx="9" ry="11" fill="#22D3EE" filter="url(#brillo)"/>
-                                <circle cx="91" cy="87" r="3" fill="#EAFEFF"/>
-                                <circle cx="135" cy="87" r="3" fill="#EAFEFF"/>
-                            </g>
-                            <g id="ojosFeliz">
-                                <path d="M78 94 q10 -13 20 0" stroke="#34D399" stroke-width="5" fill="none" stroke-linecap="round"/>
-                                <path d="M122 94 q10 -13 20 0" stroke="#34D399" stroke-width="5" fill="none" stroke-linecap="round"/>
-                            </g>
-                            <g id="ojosError">
-                                <path d="M81 85 l13 13 M94 85 l-13 13" stroke="#FB7185" stroke-width="5" stroke-linecap="round"/>
-                                <path d="M125 85 l13 13 M138 85 l-13 13" stroke="#FB7185" stroke-width="5" stroke-linecap="round"/>
-                            </g>
-                        </g>
-
-                        <!-- cachetes y boca -->
-                        <ellipse cx="66" cy="120" rx="8" ry="5" fill="rgba(255,45,135,0.55)"/>
-                        <ellipse cx="154" cy="120" rx="8" ry="5" fill="rgba(255,45,135,0.55)"/>
-                        <path id="boca" d="M100 128 q10 8 20 0" stroke="rgba(255,255,255,0.65)" stroke-width="4" fill="none" stroke-linecap="round"/>
-
-                        <!-- manos -->
-                        <g id="manoIzq">
-                            <rect x="40" y="136" width="44" height="32" rx="16" fill="url(#gMano)" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
-                            <path d="M52 144 v16 M62 142 v20 M72 144 v16" stroke="rgba(11,8,32,0.30)" stroke-width="3" stroke-linecap="round"/>
-                        </g>
-                        <g id="manoDer">
-                            <rect x="136" y="136" width="44" height="32" rx="16" fill="url(#gMano)" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
-                            <path d="M148 144 v16 M158 142 v20 M168 144 v16" stroke="rgba(11,8,32,0.30)" stroke-width="3" stroke-linecap="round"/>
-                        </g>
-                    </g>
-                </svg>
+                <div class="flex items-center justify-center rounded-[28px]" style="width:112px;height:112px;background:#fff;border:1px solid rgba(20,40,60,.08);box-shadow:0 18px 40px -18px rgba(4,107,168,.5)"><img src="data:image/webp;base64,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" alt="ValeraSport" style="width:84px;height:auto"></div>
             </div>
 
             <div class="tarjeta-acceso px-6 pt-10 pb-7">
                 <div class="text-center mb-1">
-                    <p id="mascotaFrase" class="text-[13px] font-medium" style="color: var(--gris)">Hola, soy Valerín. Yo cuido la caja.</p>
+                    <p id="mascotaFrase" class="text-[13px] font-medium" style="color: var(--gris)">Bienvenido de vuelta</p>
                 </div>
 
                 <div class="text-center mb-7 mt-5">
@@ -513,8 +436,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
 
         <!-- Vendido hoy -->
         <section class="entra panel relative overflow-hidden p-6 md:p-7 mb-4">
-            <div class="absolute -right-16 -top-20 w-56 h-56 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(255,45,135,0.35), transparent 62%)"></div>
-            <div class="absolute -left-14 -bottom-20 w-48 h-48 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(34,211,238,0.22), transparent 62%)"></div>
+            <div class="absolute -right-16 -top-20 w-56 h-56 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(21, 153, 208,0.35), transparent 62%)"></div>
+            <div class="absolute -left-14 -bottom-20 w-48 h-48 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(56, 189, 248,0.22), transparent 62%)"></div>
 
             <div class="relative">
                 <p class="rotulo mb-5 flex items-center gap-2">
@@ -706,7 +629,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
         </section>
 
         <!-- ===================== ESCÁNER ===================== -->
-        <div id="scannerModalVenta" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center p-4" style="background: rgba(8,5,20,0.94); backdrop-filter: blur(10px)">
+        <div id="scannerModalVenta" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center p-4" style="background: rgba(6, 12, 20,0.94); backdrop-filter: blur(10px)">
             <button onclick="cerrarScannerVenta()" class="icon-btn absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full z-10" style="color: var(--gris)">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
@@ -715,7 +638,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                     <video id="scannerVideoVenta" class="w-full h-full object-cover" playsinline autoplay muted></video>
                     <div id="scannerMarcoVenta" class="absolute inset-0 pointer-events-none m-10 rounded-2xl transition-colors duration-150" style="border: 3px solid var(--fucsia)"></div>
 
-                    <div id="scannerConfirmacionRepetido" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center p-6 text-center" style="background: rgba(8,5,20,0.95); backdrop-filter: blur(8px)">
+                    <div id="scannerConfirmacionRepetido" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center p-6 text-center" style="background: rgba(6, 12, 20,0.95); backdrop-filter: blur(8px)">
                         <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl mb-3" style="background: rgba(245,158,11,0.18); color: #FCD34D">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
@@ -1744,7 +1667,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                 const esActual = clave === claveEsta;
                 const piezas = t.piezasBs + t.piezasUsd;
                 return `
-                    <div class="sub-panel px-4 py-3 flex items-center justify-between gap-3" ${esActual ? 'style="border-color: rgba(255,45,135,0.45); background: rgba(255,45,135,0.07)"' : ''}>
+                    <div class="sub-panel px-4 py-3 flex items-center justify-between gap-3" ${esActual ? 'style="border-color: rgba(21, 153, 208,0.45); background: rgba(21, 153, 208,0.07)"' : ''}>
                         <div class="min-w-0">
                             <p class="text-xs font-bold">${escapeHTML(etiquetaSemana(datos.inicio))}</p>
                             <p class="text-[11px] mt-0.5" style="color: var(--tenue)">${escapeHTML(rangoSemana(datos.inicio))} · ${piezas} ${piezas === 1 ? 'prenda' : 'prendas'}</p>
