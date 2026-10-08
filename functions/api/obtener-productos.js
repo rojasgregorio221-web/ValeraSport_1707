@@ -13,6 +13,7 @@
 // (la primera fila). Solo las columnas que escribas aquí se enviarán.
 // No importan mayúsculas ni espacios al inicio/final.
 const COLUMNAS_PUBLICAS = [
+  "imagen",
   "foto",
   "producto",
   "categoria",
