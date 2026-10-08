@@ -1,4 +1,13 @@
 # Local Cloudflare folder
-.wrangler
+.wrangler/
 .env
 .dev.vars
+
+# Dependencias y carpetas que no deben subir
+node_modules/
+ValeraSport_1707/
+admin_backup_*.html
+
+# Android
+android/app/build/
+.gradle/
