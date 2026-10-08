@@ -1,26 +1,44 @@
 // GET /api/obtener-productos
-// Descarga el CSV del catálogo desde Google Sheets y devuelve al navegador
-// SOLO las columnas públicas. Cualquier otra columna (costos, ganancias,
-// proveedor, notas) se descarta aquí en el servidor y nunca llega al navegador.
+// Descarga el CSV del catálogo desde Google Sheets y lo devuelve al navegador,
+// quitando las columnas privadas (costos, ganancias, proveedor, etc.).
+//
+// Funciona al revés que un filtro de "solo estas columnas": aquí pasa TODO lo
+// que la tienda ya usa (imagen, colores, tallas, stock...) y solo se descartan
+// las columnas cuyo encabezado contenga alguna de las palabras de abajo.
+// Así, si agregas una columna nueva para la tienda, funciona sin tocar este
+// archivo; y si agregas una de costos, queda bloqueada automáticamente.
 //
 // El link del Sheet queda oculto como variable de entorno (SHEET_CSV_URL).
-//
-// CACHÉ: se mantiene corta a propósito para que los cambios de stock se vean
-// rápido. Google ya tiene su propia caché, por eso se agrega un parámetro
-// rompe-caché (_t) a la URL.
 
-// ⚠️ EDITA ESTA LISTA con los nombres EXACTOS de las columnas de tu Sheet
-// (la primera fila). Solo las columnas que escribas aquí se enviarán.
-// No importan mayúsculas ni espacios al inicio/final.
-const COLUMNAS_PUBLICAS = [
-  "imagen",
-  "foto",
-  "producto",
-  "categoria",
-  "precio",
-  "color",
-  "disponible",
+// Si el encabezado de una columna CONTIENE alguna de estas palabras
+// (sin importar mayúsculas ni tildes), esa columna NO se envía al navegador.
+// Ejemplos que quedarían bloqueados: "costo", "Precio costo", "% ganancia",
+// "Proveedor", "Margen", "Utilidad", "Notas internas".
+const PALABRAS_PRIVADAS = [
+  "costo",
+  "ganancia",
+  "margen",
+  "utilidad",
+  "proveedor",
+  "porcentaje",
+  "%",
+  "interno",
+  "privado",
+  "compra",
 ];
+
+function normalizar(texto) {
+  return String(texto || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, ""); // quita tildes
+}
+
+function esColumnaPrivada(encabezado) {
+  const h = normalizar(encabezado);
+  return PALABRAS_PRIVADAS.some((p) => h.includes(normalizar(p)));
+}
 
 // Convierte texto CSV en filas (maneja comillas, comas y saltos de línea dentro de celdas)
 function parsearCSV(texto) {
@@ -90,6 +108,7 @@ export async function onRequestGet(context) {
   }
 
   try {
+    // Rompe-caché: parámetro único para que el CDN de Google no devuelva una copia vieja.
     const separador = SHEET_CSV_URL.includes("?") ? "&" : "?";
     const urlSinCache = SHEET_CSV_URL + separador + "_t=" + Date.now();
 
@@ -103,28 +122,23 @@ export async function onRequestGet(context) {
 
     if (filas.length === 0) throw new Error("El Sheet llegó vacío");
 
-    // Buscar qué posiciones (índices) corresponden a las columnas permitidas
-    const permitidas = COLUMNAS_PUBLICAS.map((n) => n.trim().toLowerCase());
-    const encabezados = filas[0].map((h) => h.trim().toLowerCase());
-    const indices = [];
-    encabezados.forEach((h, i) => {
-      if (permitidas.includes(h)) indices.push(i);
+    // Posiciones de las columnas que SÍ se pueden enviar
+    const indicesPublicos = [];
+    filas[0].forEach((encabezado, i) => {
+      if (!esColumnaPrivada(encabezado)) indicesPublicos.push(i);
     });
 
-    if (indices.length === 0) {
-      throw new Error("Ninguna columna de COLUMNAS_PUBLICAS coincide con el Sheet");
-    }
+    // Quitar columnas privadas y filas completamente vacías
+    const filasLimpias = filas
+      .map((fila) => indicesPublicos.map((i) => fila[i] ?? ""))
+      .filter((fila, n) => n === 0 || fila.some((celda) => String(celda).trim() !== ""));
 
-    // Conservar solo esas columnas en cada fila
-    const filasFiltradas = filas.map((fila) => indices.map((i) => fila[i] ?? ""));
-
-    return new Response(aCSV(filasFiltradas), {
+    return new Response(aCSV(filasLimpias), {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        // max-age=5: navegador. s-maxage=30: caché de Cloudflare.
-        // Corta para que los cambios de stock se vean rápido.
-        "Cache-Control": "public, max-age=5, s-maxage=30",
+        // Caché corta para que los cambios de stock se vean rápido.
+        "Cache-Control": "public, max-age=5",
       },
     });
   } catch (error) {
