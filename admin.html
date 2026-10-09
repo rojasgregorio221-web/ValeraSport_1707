@@ -494,128 +494,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             </button>
         </div>
 
-        <!-- ===================== CALCULADORA DE VUELTO ===================== -->
-        <button type="button" onclick="toggleFormularioVuelto()" id="btnToggleVuelto" class="accion-rapida w-full px-2 py-4 flex items-center justify-center gap-2.5 mb-4">
-            <span class="accion-icono"><i class="fa-solid fa-calculator text-sm"></i></span>
-            <span class="text-[11px] font-bold leading-tight">Calcular el vuelto</span>
-            <i class="fa-solid fa-chevron-down text-[9px]" style="color: var(--tenue)" id="iconoToggleVuelto"></i>
-        </button>
-
-        <section id="formularioVuelto" class="hidden panel p-5 md:p-6 mb-5 space-y-4">
-            <div class="grid grid-cols-2 gap-2.5">
-                <div>
-                    <label class="etiqueta">Total de la compra ($)</label>
-                    <input type="text" inputmode="decimal" id="vueltoTotal" placeholder="0.00" oninput="vueltoCambioTotal()" class="campo cifra">
-                    <p id="vueltoTotalBs" class="text-[10px] mt-1.5 cifra" style="color: var(--cyan)"></p>
-                </div>
-                <div>
-                    <label class="etiqueta">Cómo pagó</label>
-                    <select id="vueltoMetodo" onchange="vueltoCambioMetodo()" class="campo font-medium">
-                        <option value="Efectivo USD">Efectivo USD ($)</option>
-                        <option value="Efectivo Bs">Efectivo Bs</option>
-                        <option value="Pago Móvil">Pago Móvil (Bs)</option>
-                        <option value="Punto de venta">Punto de venta (Bs)</option>
-                        <option value="Transferencia">Transferencia (Bs)</option>
-                        <option value="Zelle">Zelle ($)</option>
-                        <option value="Binance">Binance ($)</option>
-                    </select>
-                </div>
-            </div>
-
-            <p id="vueltoPista" class="text-[11px]" style="color: var(--tenue)">Toca el billete que te dio el cliente, o escribe el monto.</p>
-
-            <button type="button" onclick="vueltoTraerTotalVenta()" class="btn-fantasma w-full py-2.5 rounded-xl text-xs">
-                <i class="fa-solid fa-bag-shopping mr-1.5"></i> Traer el total de la venta en curso
-            </button>
-
-            <div>
-                <label class="etiqueta">Me dio en dólares ($)</label>
-                <input type="text" inputmode="decimal" id="vueltoRecUsd" placeholder="0.00" oninput="vueltoCalcular()" class="campo cifra">
-                <div class="flex flex-wrap gap-1.5 mt-2">
-                    <button type="button" onclick="vueltoPonerUsd(1)" class="btn-fantasma px-3 py-1.5 rounded-xl text-xs cifra">$1</button>
-                    <button type="button" onclick="vueltoPonerUsd(5)" class="btn-fantasma px-3 py-1.5 rounded-xl text-xs cifra">$5</button>
-                    <button type="button" onclick="vueltoPonerUsd(10)" class="btn-fantasma px-3 py-1.5 rounded-xl text-xs cifra">$10</button>
-                    <button type="button" onclick="vueltoPonerUsd(20)" class="btn-fantasma px-3 py-1.5 rounded-xl text-xs cifra">$20</button>
-                    <button type="button" onclick="vueltoPonerUsd(50)" class="btn-fantasma px-3 py-1.5 rounded-xl text-xs cifra">$50</button>
-                    <button type="button" onclick="vueltoPonerUsd(100)" class="btn-fantasma px-3 py-1.5 rounded-xl text-xs cifra">$100</button>
-                    <button type="button" onclick="vueltoPonerUsd('exacto')" class="btn-fantasma px-3 py-1.5 rounded-xl text-xs">Exacto</button>
-                </div>
-            </div>
-
-            <div>
-                <label class="etiqueta">Me dio en bolívares (Bs)</label>
-                <input type="text" inputmode="decimal" id="vueltoRecBs" placeholder="0.00" oninput="vueltoAutoBs = false; vueltoCalcular()" class="campo cifra">
-                <div id="vueltoAtajosBs" class="flex flex-wrap gap-1.5 mt-2"></div>
-            </div>
-
-            <p id="vueltoTasaInfo" class="text-[11px]" style="color: var(--tenue)"></p>
-
-            <details class="group sub-panel p-3.5">
-                <summary class="text-xs font-semibold cursor-pointer list-none flex items-center justify-between select-none" style="color: var(--gris)">
-                    <span>Cambiar la tasa</span>
-                    <i class="fa-solid fa-chevron-down text-[10px] group-open:rotate-180 transition-transform"></i>
-                </summary>
-                <div class="pt-4 mt-3" style="border-top: 1px solid var(--linea)">
-                    <label class="etiqueta">Tasa (Bs por $)</label>
-                    <input type="text" inputmode="decimal" id="vueltoTasaManual" placeholder="Vacío = usar la tasa BCV" oninput="vueltoCambioTotal()" class="campo cifra">
-                </div>
-            </details>
-
-            <p id="vueltoAviso" class="hidden msg"></p>
-
-            <!-- Resultado -->
-            <div id="vueltoResultado" class="hidden space-y-3 pt-1">
-                <div class="sub-panel p-4 space-y-2 text-xs" style="color: var(--gris)">
-                    <div class="flex justify-between items-baseline">
-                        <span>Total a cobrar</span>
-                        <span id="vueltoResTotal" class="cifra font-bold text-right" style="color: var(--hueso)"></span>
-                    </div>
-                    <div class="flex justify-between items-baseline">
-                        <span>El cliente te dio</span>
-                        <span id="vueltoResRecibido" class="cifra font-bold text-right" style="color: var(--hueso)"></span>
-                    </div>
-                </div>
-
-                <div id="vueltoCajaCambio" class="rounded-2xl p-4 text-center">
-                    <p id="vueltoCambioRotulo" class="rotulo mb-1.5"></p>
-                    <p id="vueltoCambioUsd" class="cifra-grande text-[30px]"></p>
-                    <p id="vueltoCambioBs" class="text-xs font-bold cifra mt-1.5" style="color: var(--cyan)"></p>
-                </div>
-
-                <div id="vueltoSplit" class="hidden space-y-3">
-                    <div id="vueltoSplitControles" class="space-y-3">
-                        <p class="rotulo">¿Cómo le das el vuelto?</p>
-                        <div class="seg overflow-x-auto no-scrollbar">
-                            <button type="button" id="vueltoModoUsd" onclick="vueltoSetModo('usd')" class="seg-btn">Todo en $</button>
-                            <button type="button" id="vueltoModoEnteros" onclick="vueltoSetModo('enteros')" class="seg-btn">$ enteros y Bs</button>
-                            <button type="button" id="vueltoModoBs" onclick="vueltoSetModo('bs')" class="seg-btn">Todo en Bs</button>
-                        </div>
-                        <div>
-                            <label class="etiqueta">O escribe cuántos dólares le das</label>
-                            <input type="text" inputmode="decimal" id="vueltoDarUsd" placeholder="0.00" oninput="vueltoModo = 'manual'; vueltoCalcular()" class="campo cifra">
-                        </div>
-                    </div>
-
-                    <div class="sub-panel p-4 space-y-3">
-                        <div id="vueltoOutUsdBloque">
-                            <p class="rotulo mb-1.5">Dale en dólares (efectivo)</p>
-                            <p id="vueltoOutUsd" class="cifra-grande text-[26px]"></p>
-                            <p id="vueltoOutBilletes" class="text-[11px] mt-1.5 cifra" style="color: var(--gris)"></p>
-                        </div>
-                        <div id="vueltoOutBsBloque" style="border-top: 1px solid var(--linea); padding-top: 12px">
-                            <p class="rotulo mb-1.5">Dale en bolívares</p>
-                            <p id="vueltoOutBs" class="cifra-grande text-[26px]" style="color: var(--cyan)"></p>
-                            <p class="text-[11px] mt-1.5" style="color: var(--gris)">En efectivo o por Pago Móvil</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <button type="button" onclick="vueltoLimpiar()" class="btn-fantasma w-full py-2.5 rounded-xl text-xs">
-                <i class="fa-solid fa-rotate-left mr-1.5"></i> Limpiar y empezar otra cuenta
-            </button>
-        </section>
-
         <!-- Venta en tienda -->
         <section id="formularioFisica" class="hidden panel p-5 md:p-6 mb-5 space-y-4">
             <button type="button" onclick="abrirScannerVenta()" class="btn-marca w-full py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2.5">
@@ -668,7 +546,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
 
                 <div class="space-y-2 text-xs pt-3" style="color: var(--gris); border-top: 1px solid var(--linea)">
                     <div class="flex justify-between items-baseline">
-                        <span>Subtotal (<span id="carritoFisicaCantidadSub">0</span> prendas)</span>
+                        <span>Subtotal (<span id="carritoFisicaCantidadSub">0</span> <span id="carritoFisicaPluralSub">prendas</span>)</span>
                         <div class="text-right">
                             <span id="carritoFisicaSubtotal" class="cifra font-bold" style="color: var(--hueso)">$0.00</span>
                             <span id="carritoFisicaSubtotalBs" class="block text-[11px] cifra" style="color: var(--cyan)"></span>
@@ -714,6 +592,86 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                     <input type="email" id="fisicaCorreo" placeholder="Opcional" class="campo">
                 </div>
             </div>
+
+                <!-- ===================== VUELTO (integrado en la venta) ===================== -->
+                <style>
+                    .vv-switch { -webkit-appearance: none; appearance: none; width: 42px; height: 24px; border-radius: 999px; background: var(--linea); position: relative; cursor: pointer; transition: background .2s; flex: none; border: 0; outline: 0; margin: 0; }
+                    .vv-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.35); transition: transform .2s; }
+                    .vv-switch:checked { background: var(--cyan); }
+                    .vv-switch:checked::after { transform: translateX(18px); }
+                    .vv-switch:focus-visible { box-shadow: 0 0 0 3px rgba(21,153,208,0.35); }
+                </style>
+                <div id="bloqueVuelto" class="hidden sub-panel p-4 space-y-3">
+                    <label class="flex items-center justify-between gap-3 cursor-pointer select-none">
+                        <span class="text-xs font-bold">¿El cliente paga con vuelto?</span>
+                        <input type="checkbox" id="vvActivo" class="vv-switch" onchange="vvAlActivar()">
+                    </label>
+
+                    <div id="vvCuerpo" class="hidden space-y-3">
+                        <div class="flex justify-between items-baseline text-xs" style="color: var(--gris)">
+                            <span>Total a cobrar</span>
+                            <span class="cifra font-bold" style="color: var(--hueso)">
+                                <span id="vvTotalUsd"></span>
+                                <span id="vvTotalBs" style="color: var(--cyan)"></span>
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="space-y-2">
+                                <div>
+                                    <label class="etiqueta">Me dio en $</label>
+                                    <input type="text" inputmode="decimal" id="vvRecUsd" placeholder="0.00" oninput="vvAlEscribirUsd()" class="campo cifra">
+                                </div>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <button type="button" onclick="vvPonerUsd(1)" class="btn-fantasma px-2.5 py-1 rounded-xl text-xs cifra">$1</button>
+                                    <button type="button" onclick="vvPonerUsd(5)" class="btn-fantasma px-2.5 py-1 rounded-xl text-xs cifra">$5</button>
+                                    <button type="button" onclick="vvPonerUsd(10)" class="btn-fantasma px-2.5 py-1 rounded-xl text-xs cifra">$10</button>
+                                    <button type="button" onclick="vvPonerUsd(20)" class="btn-fantasma px-2.5 py-1 rounded-xl text-xs cifra">$20</button>
+                                    <button type="button" onclick="vvPonerUsd(50)" class="btn-fantasma px-2.5 py-1 rounded-xl text-xs cifra">$50</button>
+                                    <button type="button" onclick="vvPonerUsd(100)" class="btn-fantasma px-2.5 py-1 rounded-xl text-xs cifra">$100</button>
+                                    <button type="button" onclick="vvPonerUsd('exacto')" class="btn-fantasma px-2.5 py-1 rounded-xl text-xs">Exacto</button>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <div>
+                                    <label class="etiqueta">Me dio en Bs</label>
+                                    <input type="text" inputmode="decimal" id="vvRecBs" placeholder="0.00" oninput="vvAlEscribirBs()" class="campo cifra">
+                                </div>
+                                <div id="vvAtajosBs" class="flex flex-wrap gap-1.5"></div>
+                            </div>
+                        </div>
+
+                        <p id="vvAviso" class="hidden msg"></p>
+
+                        <div id="vvResultado" class="hidden space-y-3">
+                            <div id="vvCaja" class="rounded-2xl p-4 text-center">
+                                <p id="vvRotulo" class="rotulo mb-1.5"></p>
+                                <p id="vvPrincipal" class="cifra-grande text-[30px]"></p>
+                                <p id="vvSecundario" class="text-xs font-bold cifra mt-1.5" style="color: var(--cyan)"></p>
+                            </div>
+
+                            <div id="vvSplit" class="hidden space-y-2.5">
+                                <div id="vvSplitControles" class="seg overflow-x-auto no-scrollbar">
+                                    <button type="button" id="vvModoUsd" onclick="vvSetModo('usd')" class="seg-btn">Todo en $</button>
+                                    <button type="button" id="vvModoEnteros" onclick="vvSetModo('enteros')" class="seg-btn">$ enteros y Bs</button>
+                                    <button type="button" id="vvModoBs" onclick="vvSetModo('bs')" class="seg-btn">Todo en Bs</button>
+                                </div>
+                                <p id="vvDesglose" class="text-xs font-bold cifra text-center" style="color: var(--hueso)"></p>
+                            </div>
+                        </div>
+
+                        <details class="group">
+                            <summary class="text-[11px] font-semibold cursor-pointer list-none flex items-center justify-between select-none" style="color: var(--gris)">
+                                <span id="vvTasaInfo">Cambiar la tasa</span>
+                                <i class="fa-solid fa-chevron-down text-[10px] group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div class="pt-3 mt-2" style="border-top: 1px solid var(--linea)">
+                                <label class="etiqueta">Tasa (Bs por $)</label>
+                                <input type="text" inputmode="decimal" id="vvTasaManual" placeholder="Vacío = usar la tasa BCV" oninput="vvCambioTasa()" class="campo cifra">
+                            </div>
+                        </details>
+                    </div>
+                </div>
 
             <div id="camposFiadoFisica" class="hidden grid grid-cols-1 md:grid-cols-2 gap-3 rounded-2xl p-4" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.28)">
                 <div>
@@ -2182,6 +2140,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
         // FIADO: QUIÉN DEBE, CUÁNTO Y DESDE CUÁNDO
         // ===================================================================
         function alCambiarMetodoPagoFisica() {
+            setTimeout(function () { try { vvCambioMetodo(); } catch (e) { console.error(e); } }, 0);
             const metodo = document.getElementById('fisicaMetodoPago').value;
             const campos = document.getElementById('camposFiadoFisica');
             campos.classList.toggle('hidden', metodo !== 'Fiado');
@@ -2604,6 +2563,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             renderizarHeroVendidoHoy();
             renderizarListaVentas();
             renderizarCarritoFisica();
+            try { vvCalcular(); } catch (e) { console.error(e); }
         }
 
         function actualizarPrecioBsFisica() {
@@ -2850,6 +2810,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
         }
 
         function renderizarCarritoFisica() {
+            setTimeout(function () { try { vvCalcular(); } catch (e) { console.error(e); } }, 0);
             const contenedor = document.getElementById('carritoFisicaContenedor');
             const lista = document.getElementById('carritoFisicaLista');
             const cantidadEl = document.getElementById('carritoFisicaCantidad');
@@ -2880,6 +2841,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             contenedor.classList.remove('hidden');
             cantidadEl.textContent = String(resumen.totalPiezas);
             cantidadSubEl.textContent = String(resumen.totalPiezas);
+            const plSub = document.getElementById('carritoFisicaPluralSub');
+            if (plSub) plSub.textContent = resumen.totalPiezas === 1 ? 'prenda' : 'prendas';
             subtotalEl.textContent = '$' + resumen.subtotal.toFixed(2);
             if (subtotalBsEl) {
                 subtotalBsEl.textContent = (tasaBcvAdmin && resumen.subtotal > 0)
@@ -2970,7 +2933,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                             <p class="text-xs font-bold truncate">${escapeHTML(item.producto)}</p>
                             <div class="flex flex-wrap items-center gap-2 mt-1.5">
                                 <span class="text-[10px] uppercase tracking-wide" style="color: var(--tenue)">${escapeHTML(item.categoria || 'Variados')}</span>
-                                <span class="inline-flex items-center gap-1 rounded-lg pl-2 pr-1.5 py-0.5" style="background: rgba(10,7,23,0.55); border: 1px solid var(--linea)">
+                                <span class="inline-flex items-center gap-1 rounded-lg pl-2 pr-1.5 py-0.5" style="background: var(--panel-alto); border: 1px solid var(--linea); color: var(--hueso)">
                                     <span class="text-[10px] cifra" style="color: var(--tenue)">$</span>
                                     <input
                                         type="number"
@@ -2991,7 +2954,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
-                            <div class="flex items-center rounded-lg" style="background: rgba(10,7,23,0.55); border: 1px solid var(--linea)">
+                            <div class="flex items-center rounded-lg" style="background: var(--panel-alto); border: 1px solid var(--linea); color: var(--hueso)">
                                 <button type="button" onclick="modificarCantidadItem(${indice}, -1)" title="Restar" class="w-7 h-7 flex items-center justify-center rounded-l-lg active:scale-95 transition" style="color: var(--gris)">
                                     <i class="fa-solid fa-minus text-[10px]"></i>
                                 </button>
@@ -3250,7 +3213,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
         const PANELES_ACCION = {
             fisica: { form: 'formularioFisica', boton: 'btnToggleFisica', icono: 'iconoToggleFisica' },
             qr: { form: 'formularioQR', boton: 'btnToggleQR', icono: 'iconoToggleQR' },
-            vuelto: { form: 'formularioVuelto', boton: 'btnToggleVuelto', icono: 'iconoToggleVuelto' },
         };
 
         function togglePanelAccion(nombre) {
@@ -3278,121 +3240,129 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
         function toggleFormularioQR() { togglePanelAccion('qr'); }
 
         // ===================================================================
-        // CALCULADORA DE VUELTO
-        // Total de la compra, lo que dio el cliente (en $ y/o Bs) y cómo
-        // repartir el vuelto. No guarda nada: es solo para sacar la cuenta.
+        // VUELTO INTEGRADO EN LA VENTA EN TIENDA
+        // Usa el total del carrito y el método de pago que ya están en pantalla.
+        // No guarda nada por sí solo: solo saca la cuenta (y deja una línea en la nota).
         // ===================================================================
-        let vueltoModo = null;      // null = automático según el método de pago
-        let vueltoAutoBs = false;   // true = el monto en Bs se llenó solo (pago exacto)
+        let vvModo = null;       // null = automático según el método de pago
+        let vvAutoBs = false;    // true = el monto en Bs se llenó solo (pago exacto)
+        let vvUltimaTasa = null; // para detectar cuando llega la tasa BCV
+        const VV_ELECTRONICOS = ['Pago Móvil', 'Punto de venta', 'Transferencia'];
 
-        const VUELTO_METODOS_ELECTRONICOS = ['Pago Móvil', 'Punto de venta', 'Transferencia'];
+        function vvEl(id) { return document.getElementById(id); }
 
-        function vueltoEl(id) { return document.getElementById(id); }
+        function vvActivo() {
+            const el = vvEl('vvActivo');
+            return !!(el && el.checked);
+        }
 
-        function vueltoNumero(id) {
-            const el = vueltoEl(id);
+        function vvNum(id) {
+            const el = vvEl(id);
             if (!el) return 0;
             const n = parseFloat(String(el.value).replace(',', '.'));
             return (isNaN(n) || n < 0) ? 0 : n;
         }
 
-        function vueltoFmtBs(n) {
+        function vvFmtBs(n) {
             return 'Bs ' + n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        function vueltoFmtUsd(n) { return '$' + n.toFixed(2); }
+        function vvFmtUsd(n) { return '$' + n.toFixed(2); }
 
-        // Tasa que se usa: la que el dueño escribió, o si no la BCV de hoy.
-        function vueltoTasa() {
-            const manual = vueltoNumero('vueltoTasaManual');
-            return manual > 0 ? manual : (tasaBcvAdmin || 0);
+        function vvTasa() {
+            const manual = vvNum('vvTasaManual');
+            if (manual > 0) return manual;
+            return (typeof tasaBcvAdmin !== 'undefined' && tasaBcvAdmin) ? tasaBcvAdmin : 0;
         }
 
-        function toggleFormularioVuelto() {
-            togglePanelAccion('vuelto');
-            const abierto = !vueltoEl('formularioVuelto').classList.contains('hidden');
-            if (!abierto) return;
-            const campoTotal = vueltoEl('vueltoTotal');
-            // Si ya hay una venta en curso, trae su total para no escribirlo de nuevo
-            if (campoTotal && !campoTotal.value && carritoFisica.length) {
-                campoTotal.value = calcularResumenCarritoFisica().total.toFixed(2);
-            }
-            vueltoCalcular();
-            if (campoTotal && !campoTotal.value) campoTotal.focus();
+        function vvMetodo() {
+            const sel = vvEl('fisicaMetodoPago');
+            return sel ? sel.value : '';
         }
 
-        function vueltoTraerTotalVenta() {
-            const aviso = vueltoEl('vueltoAviso');
-            if (!carritoFisica.length) {
-                aviso.textContent = 'No hay ninguna venta en curso. Escanea o agrega prendas primero, o escribe el total.';
-                aviso.className = 'msg msg-warn';
-                return;
-            }
-            vueltoEl('vueltoTotal').value = calcularResumenCarritoFisica().total.toFixed(2);
-            vueltoCambioTotal();
+        function vvTotal() {
+            return carritoFisica.length ? calcularResumenCarritoFisica().total : 0;
         }
 
-        function vueltoRellenarBsExacto() {
-            const total = vueltoNumero('vueltoTotal');
-            const tasa = vueltoTasa();
-            vueltoEl('vueltoRecBs').value = (total > 0 && tasa) ? (total * tasa).toFixed(2) : '';
-            vueltoEl('vueltoRecUsd').value = '';
+        function vvRellenarBsExacto() {
+            const total = vvTotal();
+            const tasa = vvTasa();
+            vvEl('vvRecBs').value = (total > 0 && tasa) ? (total * tasa).toFixed(2) : '';
+            vvEl('vvRecUsd').value = '';
         }
 
-        // Cambió el total o la tasa: si el pago en Bs es "exacto automático", se ajusta solo.
-        function vueltoCambioTotal() {
-            if (vueltoAutoBs) vueltoRellenarBsExacto();
-            vueltoCalcular();
-        }
-
-        function vueltoCambioMetodo() {
-            const metodo = vueltoEl('vueltoMetodo').value;
-            const pista = vueltoEl('vueltoPista');
-            vueltoModo = null;
-            vueltoAutoBs = VUELTO_METODOS_ELECTRONICOS.includes(metodo);
-
-            if (vueltoAutoBs) {
-                vueltoRellenarBsExacto();
-                pista.textContent = 'Pago electrónico: se llenó el monto exacto en Bs. Cámbialo si el cliente pagó de más.';
-            } else if (esMetodoUsd(metodo)) {
-                pista.textContent = metodo === 'Efectivo USD'
-                    ? 'Toca el billete que te dio el cliente, o escribe el monto.'
-                    : 'Se recibe en dólares. Normalmente es el monto exacto.';
+        // Se prendió o apagó el interruptor
+        function vvAlActivar() {
+            if (vvActivo()) {
+                if (VV_ELECTRONICOS.includes(vvMetodo())) {
+                    vvAutoBs = true;
+                    vvRellenarBsExacto();
+                }
             } else {
-                pista.textContent = 'Escribe cuántos bolívares en efectivo te dio el cliente.';
+                vvLimpiar(true);
             }
-            vueltoCalcular();
+            vvCalcular();
         }
 
-        function vueltoPonerUsd(valor) {
-            vueltoEl('vueltoRecUsd').value = (valor === 'exacto') ? vueltoNumero('vueltoTotal').toFixed(2) : String(valor);
-            if (valor === 'exacto' && !vueltoNumero('vueltoTotal')) vueltoEl('vueltoRecUsd').value = '';
-            vueltoCalcular();
+        // Cambió "Cómo pagó" en el formulario de la venta
+        function vvCambioMetodo() {
+            const estabaAuto = vvAutoBs;
+            vvModo = null;
+            vvAutoBs = vvActivo() && VV_ELECTRONICOS.includes(vvMetodo());
+            if (vvAutoBs) vvRellenarBsExacto();
+            else if (estabaAuto) vvEl('vvRecBs').value = '';
+            vvCalcular();
         }
 
-        function vueltoPonerBs(valor) {
-            vueltoAutoBs = false;
-            vueltoEl('vueltoRecBs').value = String(valor);
-            vueltoCalcular();
+        function vvCambioTasa() {
+            if (vvAutoBs) vvRellenarBsExacto();
+            vvCalcular();
         }
 
-        function vueltoSetModo(modo) {
-            vueltoModo = modo;
-            vueltoCalcular();
+        function vvAlEscribirUsd() {
+            if (vvAutoBs && vvEl('vvRecUsd').value) { vvAutoBs = false; vvEl('vvRecBs').value = ''; }
+            vvCalcular();
         }
 
-        function vueltoLimpiar() {
-            ['vueltoTotal', 'vueltoRecUsd', 'vueltoRecBs', 'vueltoDarUsd'].forEach(id => { vueltoEl(id).value = ''; });
-            vueltoModo = null;
-            vueltoAutoBs = false;
-            vueltoEl('vueltoAviso').classList.add('hidden');
-            vueltoCalcular();
-            vueltoEl('vueltoTotal').focus();
+        function vvAlEscribirBs() {
+            vvAutoBs = false;
+            vvCalcular();
         }
 
-        // Atajos de bolívares: monto exacto y redondeos hacia arriba
-        function vueltoRenderAtajosBs(total, tasa) {
-            const cont = vueltoEl('vueltoAtajosBs');
+        function vvPonerUsd(valor) {
+            if (vvAutoBs) { vvAutoBs = false; vvEl('vvRecBs').value = ''; }
+            const total = vvTotal();
+            vvEl('vvRecUsd').value = (valor === 'exacto') ? (total > 0 ? total.toFixed(2) : '') : String(valor);
+            vvCalcular();
+        }
+
+        function vvPonerBs(valor) {
+            vvAutoBs = false;
+            vvEl('vvRecBs').value = String(valor);
+            vvCalcular();
+        }
+
+        function vvSetModo(modo) {
+            vvModo = modo;
+            vvCalcular();
+        }
+
+        // todo = true: apaga el interruptor y borra también la tasa que se escribió a mano
+        function vvLimpiar(todo) {
+            ['vvRecUsd', 'vvRecBs'].forEach(id => { const el = vvEl(id); if (el) el.value = ''; });
+            vvModo = null;
+            vvAutoBs = false;
+            if (todo === true) {
+                const sw = vvEl('vvActivo');
+                if (sw) sw.checked = false;
+                const t = vvEl('vvTasaManual');
+                if (t) t.value = '';
+            }
+            vvCalcular();
+        }
+
+        function vvRenderAtajosBs(total, tasa) {
+            const cont = vvEl('vvAtajosBs');
             if (!cont) return;
             if (!total || !tasa) { cont.innerHTML = ''; return; }
             const debido = Math.round(total * tasa * 100) / 100;
@@ -3402,51 +3372,33 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                 if (redondeado > debido && !opciones.includes(redondeado)) opciones.push(redondeado);
             });
             cont.innerHTML = opciones.map((v, i) =>
-                '<button type="button" onclick="vueltoPonerBs(' + v + ')" class="btn-fantasma px-3 py-1.5 rounded-xl text-xs cifra">' +
-                (i === 0 ? 'Exacto' : vueltoFmtBs(v).replace('Bs ', '').replace(',00', '')) + '</button>'
+                '<button type="button" onclick="vvPonerBs(' + v + ')" class="btn-fantasma px-2.5 py-1 rounded-xl text-xs cifra">' +
+                (i === 0 ? 'Exacto' : vvFmtBs(v).replace(',00', '')) + '</button>'
             ).join('');
         }
 
-        // Billetes de dólar para una cantidad entera
-        function vueltoBilletes(montoEntero) {
+        function vvBilletes(montoEntero) {
             let resto = montoEntero;
             const partes = [];
             [100, 50, 20, 10, 5, 1].forEach(d => {
                 const n = Math.floor(resto / d);
                 if (n > 0) { partes.push(n + ' × $' + d); resto -= n * d; }
             });
-            return partes.join(' · ');
+            return partes.join(' + ');
         }
 
-        function vueltoCalcular() {
-            const metodo = vueltoEl('vueltoMetodo').value;
-            const total = Math.min(vueltoNumero('vueltoTotal'), 99999);
-            const recUsd = Math.min(vueltoNumero('vueltoRecUsd'), 99999);
-            const recBs = Math.min(vueltoNumero('vueltoRecBs'), 99999999);
-            const tasa = vueltoTasa();
-            const resultado = vueltoEl('vueltoResultado');
-            const aviso = vueltoEl('vueltoAviso');
+        // La cuenta pura: no toca la pantalla. Se hace en centavos para evitar errores de decimales.
+        function vvCuenta() {
+            const metodo = vvMetodo();
+            const total = Math.min(vvTotal(), 99999);
+            const recUsd = Math.min(vvNum('vvRecUsd'), 99999);
+            const recBs = Math.min(vvNum('vvRecBs'), 99999999);
+            const tasa = vvTasa();
+            const r = { metodo: metodo, total: total, recUsd: recUsd, recBs: recBs, tasa: tasa, estado: 'vacio' };
+            if (!total) return r;
+            if (recBs > 0 && !tasa) { r.estado = 'sinTasa'; return r; }
+            if (recUsd === 0 && recBs === 0) return r;
 
-            // Textos de apoyo
-            const tasaManual = vueltoNumero('vueltoTasaManual') > 0;
-            vueltoEl('vueltoTasaInfo').textContent = tasa
-                ? 'Tasa: Bs ' + tasa.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' por dólar' + (tasaManual ? ' (la que escribiste)' : ' (BCV de hoy)')
-                : 'Todavía no hay tasa BCV. Escríbela abajo para ver los bolívares.';
-            vueltoEl('vueltoTotalBs').textContent = (tasa && total) ? '≈ ' + vueltoFmtBs(total * tasa) : '';
-            vueltoRenderAtajosBs(total, tasa);
-
-            aviso.classList.add('hidden');
-            resultado.classList.add('hidden');
-
-            if (recBs > 0 && !tasa) {
-                aviso.textContent = 'Para recibir bolívares hace falta la tasa. Escríbela en "Cambiar la tasa".';
-                aviso.className = 'msg msg-warn';
-                return;
-            }
-            if (!total || (recUsd === 0 && recBs === 0)) return;
-
-            // Cuenta en centavos para evitar errores de decimales.
-            // Si pagó en dólares la cuenta base es en $; si pagó en Bs, en Bs.
             const baseUsd = esMetodoUsd(metodo) || !tasa;
             let cambioUsd, cambioBs;
             if (baseUsd) {
@@ -3458,40 +3410,87 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                 cambioBs = centavos / 100;
                 cambioUsd = cambioBs / tasa;
             }
-
-            // Resumen de lo cobrado y lo recibido
-            vueltoEl('vueltoResTotal').textContent = vueltoFmtUsd(total) + (tasa ? ' · ' + vueltoFmtBs(total * tasa) : '');
-            const recibido = [];
-            if (recUsd > 0) recibido.push(vueltoFmtUsd(recUsd));
-            if (recBs > 0) recibido.push(vueltoFmtBs(recBs));
-            vueltoEl('vueltoResRecibido').textContent = recibido.join(' + ');
-
-            const caja = vueltoEl('vueltoCajaCambio');
-            const rotulo = vueltoEl('vueltoCambioRotulo');
-            const principal = vueltoEl('vueltoCambioUsd');
-            const secundario = vueltoEl('vueltoCambioBs');
-            const split = vueltoEl('vueltoSplit');
             const diferencia = baseUsd ? cambioUsd : cambioBs;
+            r.baseUsd = baseUsd;
+            r.cambioUsd = cambioUsd;
+            r.cambioBs = cambioBs;
+            r.estado = diferencia < -0.004 ? 'falta' : (Math.abs(diferencia) < 0.005 ? 'exacto' : 'vuelto');
+            return r;
+        }
 
+        // Línea que se agrega a la nota de la venta (solo si hay vuelto)
+        function vvTextoVuelto() {
+            if (!vvActivo() || vvMetodo() === 'Fiado') return '';
+            const c = vvCuenta();
+            if (c.estado !== 'vuelto') return '';
+            const rec = [];
+            if (c.recUsd > 0) rec.push(vvFmtUsd(c.recUsd));
+            if (c.recBs > 0) rec.push(vvFmtBs(c.recBs));
+            const vuelto = c.baseUsd ? vvFmtUsd(c.cambioUsd) : vvFmtBs(c.cambioBs);
+            return 'Pagó ' + rec.join(' + ') + ', vuelto ' + vuelto;
+        }
+
+        function vvCalcular() {
+            const bloque = vvEl('bloqueVuelto');
+            if (!bloque) return;
+
+            const visible = carritoFisica.length > 0 && vvMetodo() !== 'Fiado';
+            bloque.classList.toggle('hidden', !visible);
+            if (!visible) return;
+
+            const activo = vvActivo();
+            vvEl('vvCuerpo').classList.toggle('hidden', !activo);
+            if (!activo) return;
+
+            // El Bs exacto de los pagos electrónicos sigue al total de la venta
+            if (vvAutoBs) vvRellenarBsExacto();
+
+            const c = vvCuenta();
+            const tasa = c.tasa;
+            vvUltimaTasa = tasa;
+            const tasaManual = vvNum('vvTasaManual') > 0;
+
+            vvEl('vvTotalUsd').textContent = vvFmtUsd(c.total);
+            vvEl('vvTotalBs').textContent = tasa ? ' · ' + vvFmtBs(c.total * tasa) : '';
+            vvEl('vvTasaInfo').textContent = tasa
+                ? 'Tasa: Bs ' + tasa.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + (tasaManual ? ' (manual)' : ' (BCV)') + ' · cambiar'
+                : 'Sin tasa BCV · escríbela aquí';
+            vvRenderAtajosBs(c.total, tasa);
+
+            const aviso = vvEl('vvAviso');
+            const resultado = vvEl('vvResultado');
+            aviso.classList.add('hidden');
+            resultado.classList.add('hidden');
+
+            if (c.estado === 'sinTasa') {
+                aviso.textContent = 'Para recibir bolívares hace falta la tasa. Escríbela en "Cambiar la tasa".';
+                aviso.className = 'msg msg-warn';
+                return;
+            }
+            if (c.estado === 'vacio') return;
+
+            const caja = vvEl('vvCaja');
+            const rotulo = vvEl('vvRotulo');
+            const principal = vvEl('vvPrincipal');
+            const secundario = vvEl('vvSecundario');
+            const split = vvEl('vvSplit');
             resultado.classList.remove('hidden');
 
-            // Todavía falta plata
-            if (diferencia < -0.004) {
+            if (c.estado === 'falta') {
                 rotulo.textContent = 'Todavía falta por cobrar';
-                principal.textContent = baseUsd ? vueltoFmtUsd(-cambioUsd) : vueltoFmtBs(-cambioBs);
-                principal.style.color = '#FDA4AF';
-                secundario.textContent = (baseUsd ? (tasa ? vueltoFmtBs(-cambioBs) : '') : vueltoFmtUsd(-cambioUsd));
+                principal.textContent = c.baseUsd ? vvFmtUsd(-c.cambioUsd) : vvFmtBs(-c.cambioBs);
+                principal.className = 'cifra-grande text-[30px] txt-danger';
+                secundario.textContent = c.baseUsd ? (tasa ? vvFmtBs(-c.cambioBs) : '') : vvFmtUsd(-c.cambioUsd);
                 caja.style.background = 'rgba(244,63,94,0.10)';
                 caja.style.border = '1px solid rgba(244,63,94,0.30)';
                 split.classList.add('hidden');
                 return;
             }
 
-            // Pago exacto
-            if (Math.abs(diferencia) < 0.005) {
+            if (c.estado === 'exacto') {
                 rotulo.textContent = 'Pago exacto';
                 principal.textContent = 'Sin vuelto';
-                principal.style.color = '#6EE7B7';
+                principal.className = 'cifra-grande text-[30px] txt-ok';
                 secundario.textContent = '';
                 caja.style.background = 'rgba(16,185,129,0.10)';
                 caja.style.border = '1px solid rgba(16,185,129,0.30)';
@@ -3500,56 +3499,49 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             }
 
             // Hay vuelto
-            rotulo.textContent = 'Vuelto para el cliente';
-            principal.textContent = baseUsd ? vueltoFmtUsd(cambioUsd) : vueltoFmtBs(cambioBs);
-            principal.style.color = '';
-            secundario.textContent = baseUsd ? (tasa ? '≈ ' + vueltoFmtBs(cambioBs) : '') : '≈ ' + vueltoFmtUsd(cambioUsd);
-            caja.style.background = 'rgba(255,255,255,0.04)';
+            rotulo.textContent = 'Vuelto';
+            principal.textContent = c.baseUsd ? vvFmtUsd(c.cambioUsd) : vvFmtBs(c.cambioBs);
+            principal.className = 'cifra-grande text-[30px]';
+            secundario.textContent = c.baseUsd ? (tasa ? '≈ ' + vvFmtBs(c.cambioBs) : '') : '≈ ' + vvFmtUsd(c.cambioUsd);
+            caja.style.background = 'rgba(21,153,208,0.08)';
             caja.style.border = '1px solid var(--linea)';
+
+            // Desglose: solo si hay tasa (si no, todo es en dólares y no hay nada que repartir)
+            if (!tasa) { split.classList.add('hidden'); return; }
             split.classList.remove('hidden');
 
-            // Cómo repartirlo
-            let modo = vueltoModo || (baseUsd ? 'enteros' : 'bs');
-            if (!tasa) modo = 'usd';
-            vueltoEl('vueltoSplitControles').classList.toggle('hidden', !tasa);
-
+            const modo = vvModo || (c.baseUsd ? 'enteros' : 'bs');
             let darUsd;
-            if (modo === 'usd') darUsd = cambioUsd;
+            if (modo === 'usd') darUsd = c.cambioUsd;
             else if (modo === 'bs') darUsd = 0;
-            else if (modo === 'enteros') darUsd = Math.floor(cambioUsd + 1e-9);
-            else darUsd = Math.min(vueltoNumero('vueltoDarUsd'), cambioUsd);
+            else darUsd = Math.floor(c.cambioUsd + 1e-9);
 
-            let restoBs = 0;
-            if (tasa) {
-                restoBs = (modo === 'bs' && !baseUsd) ? cambioBs : (cambioUsd - darUsd) * tasa;
-                restoBs = Math.round(restoBs * 100) / 100;
-                if (restoBs < 0) restoBs = 0;
-            }
+            let restoBs = (modo === 'bs' && !c.baseUsd) ? c.cambioBs : (c.cambioUsd - darUsd) * tasa;
+            restoBs = Math.round(restoBs * 100) / 100;
+            if (restoBs < 0) restoBs = 0;
 
-            ['usd', 'enteros', 'bs'].forEach(m => {
-                const idBtn = { usd: 'vueltoModoUsd', enteros: 'vueltoModoEnteros', bs: 'vueltoModoBs' }[m];
-                vueltoEl(idBtn).className = (m === modo) ? 'seg-btn on' : 'seg-btn';
+            const idsModo = { usd: 'vvModoUsd', enteros: 'vvModoEnteros', bs: 'vvModoBs' };
+            Object.keys(idsModo).forEach(m => {
+                vvEl(idsModo[m]).className = (m === modo) ? 'seg-btn on' : 'seg-btn';
             });
-            const campoDar = vueltoEl('vueltoDarUsd');
-            if (campoDar && modo !== 'manual' && document.activeElement !== campoDar) {
-                campoDar.value = darUsd > 0 ? darUsd.toFixed(2) : '0';
-            }
 
-            // Bloque de dólares
-            const bloqueUsd = vueltoEl('vueltoOutUsdBloque');
-            bloqueUsd.classList.toggle('hidden', darUsd < 0.005);
-            vueltoEl('vueltoOutUsd').textContent = vueltoFmtUsd(darUsd);
             const enteros = Math.floor(darUsd + 1e-9);
             const centavosSueltos = Math.round((darUsd - enteros) * 100);
-            const billetes = vueltoBilletes(enteros);
-            vueltoEl('vueltoOutBilletes').textContent = (billetes ? billetes : '') +
-                (centavosSueltos > 0 ? (billetes ? ' · ' : '') + centavosSueltos + '¢ en monedas' : '');
-
-            // Bloque de bolívares
-            const bloqueBs = vueltoEl('vueltoOutBsBloque');
-            bloqueBs.classList.toggle('hidden', restoBs < 0.005);
-            vueltoEl('vueltoOutBs').textContent = vueltoFmtBs(restoBs);
+            const billetes = vvBilletes(enteros);
+            const detalle = [billetes, centavosSueltos > 0 ? centavosSueltos + '¢' : ''].filter(Boolean).join(' + ');
+            const partes = [];
+            if (darUsd >= 0.005) partes.push('Dale ' + vvFmtUsd(darUsd) + (detalle ? ' (' + detalle + ')' : ''));
+            if (restoBs >= 0.005) partes.push((partes.length ? '' : 'Dale ') + vvFmtBs(restoBs));
+            vvEl('vvDesglose').textContent = partes.join(' + ');
         }
+
+        // Cuando llega la tasa BCV (o cambia) se recalcula solo
+        setInterval(function () {
+            try {
+                const t = (typeof tasaBcvAdmin !== 'undefined') ? tasaBcvAdmin : null;
+                if (t !== vvUltimaTasa && vvEl('bloqueVuelto')) { vvUltimaTasa = t; vvCalcular(); }
+            } catch (e) { /* nada */ }
+        }, 1000);
 
         function generarQRNuevo() {
             const codigo = document.getElementById('qrCodigo').value.trim();
@@ -3678,6 +3670,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
 
             const nombrePrincipal = itemsAEnviar.map(i => i.nombre + (i.cantidad > 1 ? ' (x' + i.cantidad + ')' : '')).join(', ');
 
+            const vvTextoNota = (function () { try { return vvTextoVuelto(); } catch (e) { return ''; } })();
+
             // Se muestra el resultado de una vez y se limpia el formulario
             const totalBsTexto = tasaBcvAdmin ? ' (Bs ' + (resumen.total * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')' : '';
             mensaje.textContent = esFiado
@@ -3689,6 +3683,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             aplicarDescuentoMayor = null;
             ultimoIndiceEscaneado = -1;
             renderizarCarritoFisica();
+            try { vvLimpiar(true); } catch (err) { console.error(err); }
             document.getElementById('fisicaCorreo').value = '';
             document.getElementById('fisicaNota').value = '';
             document.getElementById('fisicaProducto').value = '';
@@ -3718,7 +3713,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                         items: itemsAEnviar,
                         metodoPago: metodoPago,
                         correoCliente: correo,
-                        nota: notaFinal,
+                        nota: [notaFinal, vvTextoNota].filter(Boolean).join(' · '),
                         esFiado: esFiado,
                         clienteNombre: fiadoNombreCliente,
                         fechaPago: fiadoFechaPago,
