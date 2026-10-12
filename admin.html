@@ -385,20 +385,28 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
 }
 @keyframes av-gira { to { transform: rotate(360deg); } }
 
-.av-v { transform-box: view-box; transform-origin: 32px 46px; transition: transform .5s ease; }
-.av-brazo { transform-box: view-box; transform-origin: 32px 46px; transition: transform .6s var(--suave); }
-.av-brazo line { fill: none; stroke-linecap: butt; }
-.av-brazo-der line { stroke: var(--hueso); }
-.av-brazo-izq { transform: rotate(-24deg) scale(1, 1); }
-.av-brazo-der { transform: rotate(24deg) scale(1, 1); }
-.av-disparador:hover .av-brazo-izq { transform: rotate(-30deg) scale(1, 1.04); }
-.av-disparador:hover .av-brazo-der { transform: rotate(30deg) scale(1, 1.04); }
 
 /* Abierta: la V se abre hasta volverse una línea horizontal */
 .acciones-v.abierto .av-aro { opacity: 0; transform: scale(.55) rotate(90deg); }
-.acciones-v.abierto .av-v { transform: translateY(-14px); transition: transform .9s var(--suave); }
-.acciones-v.abierto .av-brazo-izq { transform: rotate(-90deg) scale(.36, 1.75); transition: transform .95s var(--suave) .05s; }
-.acciones-v.abierto .av-brazo-der { transform: rotate(90deg) scale(.36, 1.75); transition: transform .95s var(--suave) .05s; }
+
+/* El logo del inicio, partido en dos: al abrir, las dos mitades se separan */
+@keyframes av-flota { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+.av-logo-pos { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; animation: av-flota 4s ease-in-out infinite; }
+.av-logo { position: relative; width: 46px; aspect-ratio: 240 / 140; filter: drop-shadow(0 6px 6px rgba(4, 107, 168, .32)); transition: transform .7s var(--suave); }
+.av-disparador:hover .av-logo { transform: scale(1.1); }
+.av-mitad { position: absolute; inset: 0; background: var(--logo-url) center / contain no-repeat; transform-origin: 50% 50%; transition: transform .9s var(--suave) .12s, opacity .5s ease .12s; }
+.av-mitad-izq { clip-path: inset(0 49.5% 0 0); }
+.av-mitad-der { clip-path: inset(0 0 0 49.5%); }
+
+/* Al desplegar, el logo se aplasta y se vuelve una línea; al tocarlo otra vez vuelve a ser logo */
+.av-disparador::after { content: ""; position: absolute; left: -12px; right: -12px; top: 0; bottom: 0; }
+.acciones-v.abierto .av-mitad { transform: scale(1.7, .03); opacity: 0; transition: transform .75s var(--suave), opacity .45s ease .15s; }
+.av-linea { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.av-linea-izq, .av-linea-der { flex: none; height: 2px; width: 0; border-radius: 2px; transition: width .3s ease, height .3s ease; }
+.av-linea-izq { background: linear-gradient(90deg, #22AEE6, #046BA8); }
+.av-linea-der { background: var(--hueso); }
+.acciones-v.abierto .av-linea-izq, .acciones-v.abierto .av-linea-der { width: 44px; transition: width .95s var(--suave) .22s, height .3s ease; }
+.acciones-v.abierto .av-disparador:hover .av-linea-izq, .acciones-v.abierto .av-disparador:hover .av-linea-der { height: 3px; }
 
 /* Panel que se despliega */
 .av-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s ease; }
@@ -493,6 +501,31 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
         animation: none !important; transition-duration: .01ms !important; transition-delay: 0s !important;
     }
 }
+
+/* ============ APARTADO DE VERSIÓN ============ */
+.chip-marca { color: var(--violeta); background: rgba(21, 153, 208, .12); border-color: rgba(21, 153, 208, .35); }
+.ver-hero { position: relative; overflow: hidden; padding: 26px 24px; }
+.ver-hero::before { content: ""; position: absolute; right: -60px; top: -70px; width: 230px; height: 230px; border-radius: 50%; background: radial-gradient(circle, rgba(21, 153, 208, .30), transparent 62%); pointer-events: none; }
+.ver-hero > * { position: relative; }
+.ver-gran { font-size: 68px; }
+.ver-hero-titulo { margin-top: 10px; font-size: 15px; font-weight: 800; }
+.ver-hero-fecha { margin-top: 3px; font-size: 12px; color: var(--tenue); }
+.ver-nota { display: flex; align-items: flex-start; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--linea); font-size: 11px; line-height: 1.5; color: var(--tenue); }
+.ver-nota i { margin-top: 2px; }
+.ver-lista { position: relative; display: flex; flex-direction: column; gap: 14px; padding-left: 24px; }
+.ver-lista::before { content: ""; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; border-radius: 9999px; background: linear-gradient(180deg, var(--fucsia), rgba(4, 107, 168, .35) 60%, transparent); }
+.ver-item { position: relative; }
+.ver-item::before { content: ""; position: absolute; left: -24px; top: 22px; width: 12px; height: 12px; border-radius: 50%; background: var(--fondo); border: 2px solid var(--fucsia); }
+.ver-item.actual::before { background: var(--fucsia); box-shadow: 0 0 0 4px rgba(21, 153, 208, .18); }
+.ver-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.ver-item-num { font-size: 28px; }
+.ver-item-fecha { margin-top: 3px; font-size: 11px; color: var(--tenue); }
+.ver-chips { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.ver-item-titulo { margin-top: 10px; font-size: 13px; font-weight: 800; }
+.ver-cambios { display: flex; flex-direction: column; gap: 7px; margin: 10px 0 0; padding: 0; list-style: none; }
+.ver-cambios li { position: relative; padding-left: 16px; font-size: 12px; line-height: 1.5; color: var(--gris); }
+.ver-cambios li::before { content: ""; position: absolute; left: 2px; top: 7px; width: 5px; height: 5px; background: var(--fucsia); transform: rotate(45deg); }
+.pantalla-accion.abierta .ver-item { animation: subir .7s var(--suave) both; animation-delay: calc(var(--i, 0) * 80ms + .25s); }
     </style>
     <link rel="stylesheet" href="/tailwind.css">
 </head>
@@ -544,7 +577,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                 </form>
             </div>
 
-            <p class="text-center text-[11px] mt-5" style="color: var(--tenue)">Valera Sport · Barquisimeto, Venezuela</p>
+            <p class="text-center text-[11px] mt-5" style="color: var(--tenue)">Valera Sport · Barquisimeto, Venezuela · <span id="loginVersion"></span></p>
         </div>
     </div>
 
@@ -554,7 +587,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
         <header class="entra flex items-center justify-between mb-7">
             <div>
                 <span class="marca text-[32px] md:text-[38px] leading-none">Valera<span style="color: var(--fucsia)">Sport</span></span>
-                <p class="rotulo mt-1.5">Panel de la tienda</p>
+                <p class="rotulo mt-1.5 flex items-center gap-2">Panel de la tienda <button type="button" id="chipVersion" onclick="abrirPanelAccion('version')" class="chip chip-mute" style="padding: 3px 9px; font-size: 10px; letter-spacing: .04em; cursor: pointer" title="Ver la versión del sistema">v</button></p>
             </div>
             <button onclick="cerrarSesion()" class="icon-btn btn-fantasma text-xs px-4 py-2.5 rounded-full flex items-center gap-2">
                 Salir <i class="fa-solid fa-arrow-right-from-bracket"></i>
@@ -597,21 +630,18 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                 <span class="av-regla av-regla-izq" aria-hidden="true"></span>
                 <button type="button" id="avDisparador" class="av-disparador" onclick="avAbrir()" aria-expanded="false" aria-controls="avPanel" aria-label="Abrir acciones">
                     <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-                        <defs>
-                            <linearGradient id="avGradIzq" gradientUnits="userSpaceOnUse" x1="32" y1="16" x2="32" y2="46">
-                                <stop offset="0" stop-color="#22AEE6"/>
-                                <stop offset="1" stop-color="#046BA8"/>
-                            </linearGradient>
-                        </defs>
                         <g class="av-aro">
                             <circle class="av-aro-base" cx="32" cy="32" r="30"/>
                             <circle class="av-aro-arco" cx="32" cy="32" r="30" pathLength="1"/>
                         </g>
-                        <g class="av-v">
-                            <g class="av-brazo av-brazo-izq"><line x1="32" y1="46" x2="32" y2="16" stroke="url(#avGradIzq)" stroke-width="5"/></g>
-                            <g class="av-brazo av-brazo-der"><line x1="32" y1="46" x2="32" y2="16" stroke-width="5"/></g>
-                        </g>
                     </svg>
+                    <span class="av-logo-pos" aria-hidden="true">
+                        <span class="av-logo">
+                            <span class="av-mitad av-mitad-izq"><span class="logo-brillo"></span></span>
+                            <span class="av-mitad av-mitad-der"><span class="logo-brillo"></span></span>
+                        </span>
+                    </span>
+                    <span class="av-linea" aria-hidden="true"><span class="av-linea-izq"></span><span class="av-linea-der"></span></span>
                 </button>
                 <span class="av-regla av-regla-der" aria-hidden="true"></span>
             </div>
@@ -924,6 +954,28 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             </div><!-- /pantalla-cuerpo -->
         </section>
 
+        <!-- ===================== VERSIÓN DEL SISTEMA (pantalla completa) ===================== -->
+        <section id="pantallaVersion" class="pantalla-accion" aria-label="Versión del sistema">
+            <div class="pantalla-barra">
+                <button type="button" onclick="abrirPanelAccion(null)" class="icon-btn btn-fantasma pantalla-volver">
+                    <i class="fa-solid fa-chevron-left text-[11px]"></i> Volver
+                </button>
+                <p class="marca pantalla-titulo">Versión</p>
+                <span></span>
+            </div>
+            <div class="pantalla-cuerpo">
+                <div class="panel ver-hero">
+                    <p class="rotulo mb-4"><i class="fa-solid fa-code-branch mr-1.5" style="color: var(--fucsia)"></i> Versión del sistema</p>
+                    <p id="versionNumero" class="cifra-grande ver-gran">v</p>
+                    <p id="versionTitulo" class="ver-hero-titulo"></p>
+                    <p id="versionFecha" class="ver-hero-fecha"></p>
+                    <p class="ver-nota"><i class="fa-solid fa-circle-info"></i><span>Cada cambio que se le hace al panel sube la versión solo y queda anotado aquí abajo. <span id="versionConteo"></span></span></p>
+                </div>
+                <p class="rotulo" style="padding: 0 4px">Historial de cambios</p>
+                <div id="listaVersiones" class="ver-lista"></div>
+            </div>
+        </section>
+
         <!-- ===================== ESCÁNER ===================== -->
         <div id="scannerModalVenta" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center p-4" style="background: rgba(6, 12, 20,0.94); backdrop-filter: blur(10px)">
             <button onclick="cerrarScannerVenta()" class="icon-btn absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full z-10" style="color: var(--gris)">
@@ -1203,6 +1255,105 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
         const PASSWORD_KEY = 'vs_admin_password';
         const INTERVALO_REFRESCO = 30000;
         const LLAVE_CACHE = 'valera_admin_datos';
+
+        // ===================================================================
+        // VERSIÓN DEL SISTEMA
+        // Cada cambio nuevo se anota ARRIBA de esta lista. La primera entrada
+        // es siempre la versión actual: se ve en el encabezado, en el pie del
+        // acceso y en el apartado "Versión".
+        // tipo: 'Novedad' | 'Mejora' | 'Arreglo' | 'Base'
+        // ===================================================================
+        const HISTORIAL_VERSIONES = [
+            {
+                numero: '1.2.1', fecha: '2026-10-12', tipo: 'Mejora',
+                titulo: 'El logo se vuelve línea',
+                cambios: [
+                    'Al desplegar el menú, el logo de la V se aplasta hasta volverse una línea.',
+                    'Al tocar la línea otra vez, vuelve a ser el logo y el menú se recoge.'
+                ]
+            },
+            {
+                numero: '1.2.0', fecha: '2026-10-12', tipo: 'Novedad',
+                titulo: 'Apartado de versión y logo en el menú',
+                cambios: [
+                    'Nuevo apartado Versión: toca el número junto a «Panel de la tienda» para verlo.',
+                    'Historial de cambios: cada mejora queda anotada con su fecha.',
+                    'La V del menú de acciones ahora es el mismo logo del inicio y se abre en dos al desplegarse.'
+                ]
+            },
+            {
+                numero: '1.1.0', fecha: '2026-10-12', tipo: 'Novedad',
+                titulo: 'Menú de acciones con la V',
+                cambios: [
+                    'Las tres tarjetas se cambiaron por una V minimalista que se despliega con animación.',
+                    'Vender en la tienda, Escanear una prenda y Crear un código QR entran cada una con su propia animación.'
+                ]
+            },
+            {
+                numero: '1.0.1', fecha: '2026-10-12', tipo: 'Arreglo',
+                titulo: 'Acceso al panel',
+                cambios: [
+                    'Se quitó la mascota antigua que dejaba el acceso trabado en «Entrando...».'
+                ]
+            },
+            {
+                numero: '1.0.0', fecha: '', tipo: 'Base',
+                titulo: 'Panel de la tienda',
+                cambios: [
+                    'Pedidos por revisar, aceptados y rechazados.',
+                    'Ventas con resumen por moneda y semana por semana, fiado y gastos.',
+                    'Venta en la tienda con escáner de QR, precio al mayor y calculadora de vuelto.'
+                ]
+            }
+        ];
+        const VERSION_SISTEMA = HISTORIAL_VERSIONES[0];
+
+        function formatearFechaVersion(iso) {
+            if (!iso) return '';
+            const d = new Date(iso + 'T00:00:00');
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function renderizarVersiones() {
+            const lista = document.getElementById('listaVersiones');
+            if (!lista) return;
+            lista.innerHTML = HISTORIAL_VERSIONES.map((v, i) => {
+                const claseTipo = v.tipo === 'Arreglo' ? 'chip-warn' : (v.tipo === 'Novedad' ? 'chip-ok' : 'chip-mute');
+                const fecha = v.fecha ? formatearFechaVersion(v.fecha) : 'Versión base';
+                const cambios = (v.cambios || []).map(c => '<li>' + escapeHTML(c) + '</li>').join('');
+                return '<article class="ver-item' + (i === 0 ? ' actual' : '') + '" style="--i:' + i + '">' +
+                    '<div class="tarjeta p-4">' +
+                        '<div class="ver-cab">' +
+                            '<div class="min-w-0">' +
+                                '<p class="cifra-grande ver-item-num">v' + escapeHTML(v.numero) + '</p>' +
+                                '<p class="ver-item-fecha">' + escapeHTML(fecha) + '</p>' +
+                            '</div>' +
+                            '<div class="ver-chips">' +
+                                (i === 0 ? '<span class="chip chip-marca">Actual</span>' : '') +
+                                '<span class="chip ' + claseTipo + '">' + escapeHTML(v.tipo || '') + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<p class="ver-item-titulo">' + escapeHTML(v.titulo || '') + '</p>' +
+                        '<ul class="ver-cambios">' + cambios + '</ul>' +
+                    '</div>' +
+                '</article>';
+            }).join('');
+        }
+
+        function pintarVersion() {
+            const v = VERSION_SISTEMA;
+            const poner = (id, texto) => { const el = document.getElementById(id); if (el) el.textContent = texto; };
+            poner('chipVersion', 'v' + v.numero);
+            poner('loginVersion', 'v' + v.numero);
+            poner('versionNumero', 'v' + v.numero);
+            poner('versionTitulo', v.titulo || '');
+            poner('versionFecha', v.fecha ? 'Puesta el ' + formatearFechaVersion(v.fecha) : 'Versión base');
+            poner('versionConteo', HISTORIAL_VERSIONES.length + (HISTORIAL_VERSIONES.length === 1 ? ' versión registrada.' : ' versiones registradas.'));
+            renderizarVersiones();
+        }
+        pintarVersion();
+
 
         // Métodos de pago que se cobran en dólares/divisas reales (sin pasar por Bs)
         const METODOS_USD = ['efectivo usd', 'zelle', 'binance'];
@@ -3301,6 +3452,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
         const PANELES_ACCION = {
             fisica: { form: 'formularioFisica' },
             qr: { form: 'formularioQR' },
+            version: { form: 'pantallaVersion' },
         };
         let pantallaAccionAbierta = null;
 
