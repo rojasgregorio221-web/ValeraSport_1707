@@ -1052,8 +1052,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                 if (estadoCargandoLogin) estadoCargandoLogin.classList.remove('hidden');
                 if (textoEstadoCargando && texto) textoEstadoCargando.textContent = texto;
                 if (errorLogin) errorLogin.classList.add('hidden');
-                mascota.estado('cargando');
-                mascota.decir('Déjame revisar...');
             } else {
                 if (inputPassword) inputPassword.disabled = false;
                 if (btnSubmitLogin) btnSubmitLogin.disabled = false;
@@ -1067,9 +1065,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             e.preventDefault();
             const clave = inputPassword.value.trim();
             if (!clave) {
-                mascota.estado('error');
-                mascota.decir('Primero escribe algo.');
-                setTimeout(() => mascota.estado(''), 1400);
                 return;
             }
 
@@ -1077,8 +1072,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             const resultado = await probarPassword(clave);
             if (resultado.valida) {
                 if (textoEstadoCargando) textoEstadoCargando.textContent = 'Todo bien, abriendo el panel...';
-                mascota.estado('feliz');
-                mascota.decir('¡Esa es! Pasa adelante.');
                 sessionStorage.setItem(PASSWORD_KEY, clave);
                 setTimeout(() => {
                     setEstadoCargaLogin(false);
@@ -1086,11 +1079,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                 }, 650);
             } else {
                 setEstadoCargaLogin(false);
-                mascota.estado('error');
-                mascota.decir('Esa no es. Inténtalo otra vez.');
                 errorLogin.textContent = resultado.mensaje || 'Esa clave no es. Revísala e inténtalo de nuevo.';
                 errorLogin.className = 'msg msg-error';
-                setTimeout(() => { mascota.estado(''); mascota.centrar(); }, 1800);
             }
         });
 
@@ -1156,8 +1146,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             panelPrincipal.classList.add('hidden');
             pantallaLogin.classList.remove('hidden');
             inputPassword.value = '';
-            mascota.estado('');
-            mascota.decir('Hasta luego. Aquí te espero.');
         }
 
         function obtenerPassword() {
