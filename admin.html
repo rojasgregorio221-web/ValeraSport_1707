@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#FFFFFF">
     <title>Panel | Valera Sport</title>
 
-
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
@@ -377,8 +377,43 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
 .logo-brillo::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 65% at 30% 0%,rgba(255,255,255,.55),transparent 60%)}
 .logo-brillo::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 25%,rgba(255,255,255,.9) 48%,transparent 62%);background-size:250% 100%;background-position:140% 0;animation:brilloLiquido 5s ease-in-out infinite}
 @media (prefers-reduced-motion: reduce){.logo-cristal,.logo-brillo::after{animation:none}}
-    </style>
-    <link rel="stylesheet" href="/tailwind.css">
+
+   /* ============ PANTALLAS DE ACCIÓN (estilo app) ============ */
+.pantalla-accion{
+    position: fixed; inset: 0; z-index: 50;
+    overflow-y: auto; overscroll-behavior: contain;
+    background:
+        radial-gradient(58% 34% at 8% 0%, rgba(34,174,230,.20), transparent 60%),
+        radial-gradient(52% 30% at 96% 4%, rgba(4,107,168,.14), transparent 62%),
+        linear-gradient(180deg, #FBFDFF 0%, #F6F9FC 55%, #EEF3F8 100%);
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform .38s var(--suave), visibility 0s linear .38s;
+}
+.pantalla-accion.abierta{
+    transform: none; visibility: visible;
+    transition: transform .38s var(--suave), visibility 0s;
+}
+.pantalla-barra{
+    position: sticky; top: 0; z-index: 2;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+    padding: 12px 16px;
+    background: rgba(255,255,255,.82);
+    backdrop-filter: blur(18px) saturate(170%);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    border-bottom: 1px solid var(--linea);
+}
+.pantalla-volver{
+    justify-self: start; display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 16px 9px 13px; border-radius: 9999px; font-size: 12px;
+}
+.pantalla-titulo{ font-size: 22px; line-height: 1; text-align: center; }
+.pantalla-cuerpo{
+    max-width: 48rem; margin: 0 auto; padding: 20px 16px 48px;
+    display: flex; flex-direction: column; gap: 16px;
+}
+@media (min-width: 768px){ .pantalla-cuerpo{ padding: 28px 24px 64px; } }
+   </style>
 </head>
 <body class="antialiased min-h-screen">
 
@@ -480,7 +515,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             <button onclick="toggleFormularioFisica()" id="btnToggleFisica" class="accion-rapida px-2 py-4 flex flex-col items-center justify-center gap-2.5 text-center">
                 <span class="accion-icono"><i class="fa-solid fa-store text-sm"></i></span>
                 <span class="text-[11px] font-bold leading-tight">Vender en<br>la tienda</span>
-                <i class="fa-solid fa-chevron-down text-[9px]" style="color: var(--tenue)" id="iconoToggleFisica"></i>
+               <i class="fa-solid fa-chevron-right text-[9px]" style="color: var(--tenue)" id="iconoToggleFisica"></i>
             </button>
             <button onclick="abrirScannerVenta()" id="btnEscanearRapido" class="accion-rapida px-2 py-4 flex flex-col items-center justify-center gap-2.5 text-center">
                 <span class="accion-icono"><i class="fa-solid fa-camera text-sm"></i></span>
@@ -490,12 +525,20 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             <button onclick="toggleFormularioQR()" id="btnToggleQR" class="accion-rapida px-2 py-4 flex flex-col items-center justify-center gap-2.5 text-center">
                 <span class="accion-icono"><i class="fa-solid fa-qrcode text-sm"></i></span>
                 <span class="text-[11px] font-bold leading-tight">Crear un<br>código QR</span>
-                <i class="fa-solid fa-chevron-down text-[9px]" style="color: var(--tenue)" id="iconoToggleQR"></i>
+              <i class="fa-solid fa-chevron-right text-[9px]" style="color: var(--tenue)" id="iconoToggleQR"></i>
             </button>
         </div>
 
         <!-- Venta en tienda -->
-        <section id="formularioFisica" class="hidden panel p-5 md:p-6 mb-5 space-y-4">
+     <section id="formularioFisica" class="pantalla-accion" aria-label="Vender en la tienda">
+    <div class="pantalla-barra">
+        <button type="button" onclick="abrirPanelAccion(null)" class="icon-btn btn-fantasma pantalla-volver">
+            <i class="fa-solid fa-chevron-left text-[11px]"></i> Volver
+        </button>
+        <p class="marca pantalla-titulo">Vender en la tienda</p>
+        <span></span>
+    </div>
+    <div class="pantalla-cuerpo">
             <button type="button" onclick="abrirScannerVenta()" class="btn-marca w-full py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2.5">
                 <i class="fa-solid fa-camera text-base"></i> Escanear prendas con la cámara
             </button>
@@ -693,10 +736,20 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                 <span id="textoRegistrarVentaFisica">Guardar la venta</span>
             </button>
             <p id="mensajeFisica" class="hidden msg"></p>
+            </div>
+            </div>
         </section>
 
         <!-- Generar QR -->
-        <section id="formularioQR" class="hidden panel p-5 md:p-6 mb-5 space-y-3.5">
+        <section id="formularioQR" class="pantalla-accion" aria-label="Crear un código QR">
+    <div class="pantalla-barra">
+        <button type="button" onclick="abrirPanelAccion(null)" class="icon-btn btn-fantasma pantalla-volver">
+            <i class="fa-solid fa-chevron-left text-[11px]"></i> Volver
+        </button>
+        <p class="marca pantalla-titulo">Crear un QR</p>
+        <span></span>
+    </div>
+    <div class="pantalla-cuerpo">
             <p class="text-xs leading-relaxed" style="color: var(--gris)">Escribe un código que todavía no hayas usado (por ejemplo VS-032) y pégalo en la columna <span class="font-semibold" style="color: var(--hueso)">codigo</span> de la hoja Productos.</p>
             <div>
                 <label class="etiqueta">Código</label>
@@ -3236,8 +3289,43 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             });
         }
 
-        function toggleFormularioFisica() { togglePanelAccion('fisica'); }
-        function toggleFormularioQR() { togglePanelAccion('qr'); }
+       const PANELES_ACCION = {
+    fisica: { form: 'formularioFisica' },
+    qr: { form: 'formularioQR' },
+};
+let pantallaAccionAbierta = null;
+
+function mostrarPantallaAccion(nombre) {
+    Object.keys(PANELES_ACCION).forEach((clave) => {
+        document.getElementById(PANELES_ACCION[clave].form).classList.toggle('abierta', clave === nombre);
+    });
+    document.body.style.overflow = nombre ? 'hidden' : '';
+    pantallaAccionAbierta = nombre;
+    if (nombre) document.getElementById(PANELES_ACCION[nombre].form).scrollTop = 0;
+}
+
+// abrirPanelAccion('fisica' | 'qr') abre la pantalla; abrirPanelAccion(null) vuelve al panel.
+// Usa el historial del navegador: el botón "atrás" del celular también regresa.
+function abrirPanelAccion(nombre) {
+    if (nombre) {
+        const yaHabiaUna = pantallaAccionAbierta;
+        mostrarPantallaAccion(nombre);
+        if (!yaHabiaUna) {
+            try { history.pushState({ vsPantalla: nombre }, ''); } catch (e) {}
+        }
+    } else if (pantallaAccionAbierta && history.state && history.state.vsPantalla) {
+        history.back();
+    } else {
+        mostrarPantallaAccion(null);
+    }
+}
+
+window.addEventListener('popstate', () => {
+    if (pantallaAccionAbierta) mostrarPantallaAccion(null);
+});
+
+function toggleFormularioFisica() { abrirPanelAccion('fisica'); }
+function toggleFormularioQR() { abrirPanelAccion('qr'); }
 
         // ===================================================================
         // VUELTO INTEGRADO EN LA VENTA EN TIENDA
