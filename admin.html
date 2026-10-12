@@ -263,67 +263,6 @@
         #panelPrincipal:not(.hidden) .entra:nth-child(4) { animation-delay: 0.15s; }
         @keyframes subir { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 
-        /* ============ LOGIN + MASCOTA ============ */
-        .tarjeta-acceso {
-            background: rgba(20, 15, 46, 0.72);
-            border: 1px solid var(--linea);
-            border-radius: 30px;
-            backdrop-filter: blur(22px) saturate(160%);
-            -webkit-backdrop-filter: blur(22px) saturate(160%);
-            box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.10);
-        }
-        #escenaMascota { filter: drop-shadow(0 26px 40px rgba(4, 107, 168, 0.35)); }
-        #mascotaFlota { animation: flotar 4.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-        @keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
-
-        #parpadeo { transform-box: fill-box; transform-origin: center; animation: parpadear 5.2s infinite; }
-        @keyframes parpadear {
-            0%, 92%, 100% { transform: scaleY(1); }
-            95% { transform: scaleY(0.08); }
-        }
-        #mirada { transition: transform 0.35s var(--suave); }
-        #manoIzq, #manoDer {
-            transform-box: fill-box; transform-origin: center;
-            transition: transform 0.45s var(--suave);
-        }
-        #ojosFeliz, #ojosError { opacity: 0; transition: opacity 0.2s ease; }
-        #boca { transition: d 0.3s ease, opacity 0.2s ease; }
-        .antena-luz { fill: var(--cyan); transition: fill 0.3s ease; animation: latido 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-        @keyframes latido { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.82); } }
-
-        /* Estados de la mascota */
-        .tapa #manoIzq { transform: translate(22px, -52px) rotate(-8deg); }
-        .tapa #manoDer { transform: translate(-22px, -52px) rotate(8deg); }
-        .espia #manoIzq { transform: translate(22px, -36px) rotate(-8deg); }
-        .espia #manoDer { transform: translate(-22px, -36px) rotate(8deg); }
-        .feliz #manoIzq { transform: translate(4px, -84px) rotate(-26deg); }
-        .feliz #manoDer { transform: translate(-4px, -84px) rotate(26deg); }
-        .feliz #parpadeo, .error #parpadeo { animation: none; }
-        .feliz #parpadeo, .feliz #ojosError { opacity: 0; }
-        .feliz #ojosFeliz { opacity: 1; }
-        .error #parpadeo, .error #ojosFeliz { opacity: 0; }
-        .error #ojosError { opacity: 1; }
-        .error .antena-luz { fill: #FB7185; }
-        .feliz .antena-luz { fill: #34D399; }
-        .error #escenaMascota, .error#escenaMascota { animation: negar 0.5s ease; }
-        @keyframes negar {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-9px); }
-            75% { transform: translateX(9px); }
-        }
-        .cargando #mirada { animation: buscar 1.1s ease-in-out infinite; }
-        @keyframes buscar {
-            0%, 100% { transform: translate(-5px, 2px); }
-            50% { transform: translate(5px, 2px); }
-        }
-
-        #mascotaFrase { transition: opacity 0.2s ease; min-height: 18px; }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.08s !important; }
-            html { scroll-behavior: auto; }
-        }
-
 /*TEMA-AZUL*/
 :root{
   --noche:#FFFFFF; --fondo:#F6F9FC; --hueso:#0E1116; --tinta:#FFFFFF;
@@ -1102,7 +1041,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
 
         let filtroGastos = 'hoy';
         let listaGastosMemoria = [];
-        
+
         // ===================================================================
         function setEstadoCargaLogin(cargando, texto = 'Revisando tu clave...') {
             if (cargando) {
