@@ -352,6 +352,147 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
     display: flex; flex-direction: column; gap: 16px;
 }
 @media (min-width: 768px){ .pantalla-cuerpo{ padding: 28px 24px 64px; } }
+
+/* ============ MENÚ DE ACCIONES · LA V ============ */
+.acciones-v { margin-bottom: 10px; --av-pop: cubic-bezier(.34, 1.56, .64, 1); }
+
+.av-cabecera { display: flex; align-items: center; gap: 12px; height: 76px; }
+
+/* Reglas de arquitecto a cada lado de la V */
+.av-regla { position: relative; flex: 1; height: 1px; }
+.av-regla::before, .av-regla::after { content: ""; position: absolute; inset: 0; }
+.av-regla-izq::before { background: linear-gradient(90deg, transparent, var(--linea-fuerte)); }
+.av-regla-der::before { background: linear-gradient(270deg, transparent, var(--linea-fuerte)); }
+.av-regla-izq::after { background: linear-gradient(90deg, transparent, var(--fucsia)); transform-origin: 100% 50%; transform: scaleX(0); transition: transform .35s ease; }
+.av-regla-der::after { background: linear-gradient(270deg, transparent, var(--violeta)); transform-origin: 0 50%; transform: scaleX(0); transition: transform .35s ease; }
+.acciones-v.abierto .av-regla::after { transform: scaleX(1); transition: transform 1s var(--suave) .05s; }
+
+/* La V (disparador) */
+.av-disparador {
+    position: relative; display: block; flex: none; width: 64px; height: 64px; padding: 0;
+    background: transparent; border: 0; border-radius: 9999px; cursor: pointer;
+    overflow: visible; touch-action: manipulation;
+    transition: transform .4s var(--suave);
+}
+.av-disparador:active { transform: scale(.94); }
+.av-disparador svg { display: block; width: 64px; height: 64px; overflow: visible; }
+
+.av-aro { transform-box: view-box; transform-origin: 32px 32px; transition: opacity .35s ease, transform .7s var(--suave); }
+.av-aro-base { fill: none; stroke: var(--linea-fuerte); stroke-width: 1; }
+.av-aro-arco {
+    fill: none; stroke: var(--fucsia); stroke-width: 1.7; stroke-dasharray: .16 .84;
+    transform-box: view-box; transform-origin: 32px 32px; animation: av-gira 9s linear infinite;
+}
+@keyframes av-gira { to { transform: rotate(360deg); } }
+
+.av-v { transform-box: view-box; transform-origin: 32px 46px; transition: transform .5s ease; }
+.av-brazo { transform-box: view-box; transform-origin: 32px 46px; transition: transform .6s var(--suave); }
+.av-brazo line { fill: none; stroke-linecap: butt; }
+.av-brazo-der line { stroke: var(--hueso); }
+.av-brazo-izq { transform: rotate(-24deg) scale(1, 1); }
+.av-brazo-der { transform: rotate(24deg) scale(1, 1); }
+.av-disparador:hover .av-brazo-izq { transform: rotate(-30deg) scale(1, 1.04); }
+.av-disparador:hover .av-brazo-der { transform: rotate(30deg) scale(1, 1.04); }
+
+/* Abierta: la V se abre hasta volverse una línea horizontal */
+.acciones-v.abierto .av-aro { opacity: 0; transform: scale(.55) rotate(90deg); }
+.acciones-v.abierto .av-v { transform: translateY(-14px); transition: transform .9s var(--suave); }
+.acciones-v.abierto .av-brazo-izq { transform: rotate(-90deg) scale(.36, 1.75); transition: transform .95s var(--suave) .05s; }
+.acciones-v.abierto .av-brazo-der { transform: rotate(90deg) scale(.36, 1.75); transition: transform .95s var(--suave) .05s; }
+
+/* Panel que se despliega */
+.av-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s ease; }
+.acciones-v.abierto .av-panel { grid-template-rows: 1fr; transition: grid-template-rows .9s var(--suave); }
+.av-panel-int { overflow: hidden; min-height: 0; }
+
+.av-marco { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 2px 0 6px; }
+.av-marco::before, .av-marco::after {
+    content: ""; position: absolute; left: 0; right: 0; height: 1px;
+    background: var(--linea-fuerte); transform: scaleX(0); transition: transform .3s ease;
+}
+.av-marco::before { top: 0; }
+.av-marco::after { bottom: 0; }
+.acciones-v.abierto .av-marco::before, .acciones-v.abierto .av-marco::after { transform: scaleX(1); transition: transform 1s var(--suave) .1s; }
+
+/* Marcas de esquina */
+.av-esq { position: absolute; width: 10px; height: 10px; border: 0 solid var(--fucsia); opacity: 0; transform: scale(.4); transition: opacity .2s ease, transform .3s ease; }
+.av-esq-a { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; transform-origin: 0 0; }
+.av-esq-b { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; transform-origin: 100% 0; }
+.av-esq-c { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; transform-origin: 0 100%; }
+.av-esq-d { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; transform-origin: 100% 100%; }
+.acciones-v.abierto .av-esq { opacity: 1; transform: none; transition: opacity .4s ease .55s, transform .7s var(--suave) .55s; }
+
+/* Cada opción */
+.av-op {
+    position: relative; display: flex; flex-direction: column; align-items: center;
+    padding: 20px 6px 18px; background: transparent; border: 0; color: var(--hueso);
+    font-family: inherit; text-align: center; cursor: pointer; touch-action: manipulation;
+    transition: transform .3s var(--suave);
+}
+.av-op:active { transform: scale(.97); }
+.av-op::before {
+    content: ""; position: absolute; left: 0; top: 14%; bottom: 14%; width: 1px;
+    background: var(--linea-fuerte); transform: scaleY(0); transition: transform .3s ease;
+}
+.av-op:first-child::before { display: none; }
+.acciones-v.abierto .av-op::before { transform: scaleY(1); transition: transform .9s var(--suave) .4s; }
+.av-op::after {
+    content: ""; position: absolute; left: 18%; right: 18%; bottom: -1px; height: 2px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--brasa), var(--violeta));
+    transform: scaleX(0); transition: transform .5s var(--suave);
+}
+.av-op:hover::after, .av-op:focus-visible::after { transform: scaleX(1); }
+.av-op:focus-visible { outline: 2px solid var(--cyan); outline-offset: -4px; border-radius: 6px; }
+
+.av-contenido { display: flex; flex-direction: column; align-items: center; gap: 11px; opacity: 0; transition: opacity .25s ease, transform .35s ease, clip-path .35s ease, filter .3s ease; }
+.acciones-v.abierto .av-contenido { opacity: 1; }
+
+/* Tres entradas distintas: barrido lateral · obturador · ascenso con giro */
+.av-op-1 .av-contenido { clip-path: inset(0 100% 0 0); transform: translateX(-24px); }
+.av-op-2 .av-contenido { clip-path: inset(50% 0 50% 0); transform: scale(.78); filter: blur(5px); }
+.av-op-3 .av-contenido { transform: translateY(30px) rotate(7deg); }
+.acciones-v.abierto .av-op-1 .av-contenido { clip-path: inset(-8px); transform: none; transition: opacity .5s ease .22s, clip-path 1s var(--suave) .22s, transform 1s var(--suave) .22s; }
+.acciones-v.abierto .av-op-2 .av-contenido { clip-path: inset(-8px); transform: none; filter: blur(0); transition: opacity .5s ease .32s, clip-path 1s var(--suave) .32s, transform 1s var(--suave) .32s, filter .7s ease .32s; }
+.acciones-v.abierto .av-op-3 .av-contenido { transform: none; transition: opacity .5s ease .42s, transform 1s var(--suave) .42s; }
+
+.av-icono { display: block; width: 46px; height: 46px; overflow: visible; transition: transform .5s var(--suave); }
+.av-op:hover .av-icono { transform: translateY(-3px); }
+.av-icono .av-fino { fill: none; stroke: var(--hueso); stroke-width: 1.6; stroke-linejoin: miter; stroke-linecap: butt; }
+.av-icono .av-acento { stroke: var(--fucsia); }
+.av-icono .av-relleno { fill: var(--fucsia); stroke: none; }
+
+/* 01 · Tienda: el dibujo se traza línea por línea */
+.av-trazo { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .25s ease; }
+.acciones-v.abierto .av-trazo { stroke-dashoffset: 0; transition: stroke-dashoffset 1s var(--suave) calc(.4s + var(--d, 0s)); }
+.av-toldo { transition: transform .5s var(--suave); }
+.av-op-1:hover .av-toldo { transform: translateY(-2.5px); }
+
+/* 02 · Escáner: esquinas que encuadran + barrido de luz */
+.av-esquinas { transform-box: view-box; transform-origin: 24px 24px; transform: scale(1.5); opacity: 0; transition: transform .3s ease, opacity .3s ease; }
+.acciones-v.abierto .av-esquinas { transform: scale(1); opacity: 1; transition: transform 1s var(--suave) .55s, opacity .5s ease .55s; }
+.acciones-v.abierto .av-op-2:hover .av-esquinas { transform: scale(.86); transition: transform .5s var(--suave); }
+.av-barrido { opacity: 0; }
+.acciones-v.abierto .av-barrido { animation: av-barrido 2.2s ease-in-out 1.1s infinite alternate; }
+@keyframes av-barrido {
+    from { transform: translateY(-13px); opacity: .15; }
+    50%  { opacity: 1; }
+    to   { transform: translateY(13px); opacity: .15; }
+}
+
+/* 03 · QR: las celdas aparecen una a una */
+.av-cel { transform-box: fill-box; transform-origin: center; transform: scale(0); transition: transform .25s ease; }
+.acciones-v.abierto .av-cel { transform: scale(1); transition: transform .65s var(--av-pop) calc(.6s + var(--i, 0) * 55ms); }
+
+/* Textos */
+.av-num { font-size: 9px; font-weight: 700; letter-spacing: .26em; color: var(--tenue); font-variant-numeric: tabular-nums; }
+.av-etq { font-size: 12px; font-weight: 800; line-height: 1.15; letter-spacing: -.005em; }
+.av-sub { display: block; margin-top: 3px; font-size: 10px; font-weight: 500; letter-spacing: .01em; color: var(--tenue); }
+
+@media (prefers-reduced-motion: reduce) {
+    .acciones-v *, .acciones-v *::before, .acciones-v *::after {
+        animation: none !important; transition-duration: .01ms !important; transition-delay: 0s !important;
+    }
+}
     </style>
     <link rel="stylesheet" href="/tailwind.css">
 </head>
@@ -450,24 +591,95 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             </div>
         </section>
 
-        <!-- Acciones rápidas -->
-        <div class="entra grid grid-cols-3 gap-2.5 mb-4">
-            <button onclick="toggleFormularioFisica()" id="btnToggleFisica" class="accion-rapida px-2 py-4 flex flex-col items-center justify-center gap-2.5 text-center">
-                <span class="accion-icono"><i class="fa-solid fa-store text-sm"></i></span>
-                <span class="text-[11px] font-bold leading-tight">Vender en<br>la tienda</span>
-                <i class="fa-solid fa-chevron-right text-[9px]" style="color: var(--tenue)" id="iconoToggleFisica"></i>
-            </button>
-            <button onclick="abrirScannerVenta()" id="btnEscanearRapido" class="accion-rapida px-2 py-4 flex flex-col items-center justify-center gap-2.5 text-center">
-                <span class="accion-icono"><i class="fa-solid fa-camera text-sm"></i></span>
-                <span class="text-[11px] font-bold leading-tight">Escanear<br>una prenda</span>
-                <span class="text-[9px]" style="color: var(--tenue)">abre la cámara</span>
-            </button>
-            <button onclick="toggleFormularioQR()" id="btnToggleQR" class="accion-rapida px-2 py-4 flex flex-col items-center justify-center gap-2.5 text-center">
-                <span class="accion-icono"><i class="fa-solid fa-qrcode text-sm"></i></span>
-                <span class="text-[11px] font-bold leading-tight">Crear un<br>código QR</span>
-                <i class="fa-solid fa-chevron-right text-[9px]" style="color: var(--tenue)" id="iconoToggleQR"></i>
-            </button>
-        </div>
+        <!-- Acciones: la V -->
+        <section id="accionesV" class="entra acciones-v" aria-label="Acciones rápidas">
+            <div class="av-cabecera">
+                <span class="av-regla av-regla-izq" aria-hidden="true"></span>
+                <button type="button" id="avDisparador" class="av-disparador" onclick="avAbrir()" aria-expanded="false" aria-controls="avPanel" aria-label="Abrir acciones">
+                    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+                        <defs>
+                            <linearGradient id="avGradIzq" gradientUnits="userSpaceOnUse" x1="32" y1="16" x2="32" y2="46">
+                                <stop offset="0" stop-color="#22AEE6"/>
+                                <stop offset="1" stop-color="#046BA8"/>
+                            </linearGradient>
+                        </defs>
+                        <g class="av-aro">
+                            <circle class="av-aro-base" cx="32" cy="32" r="30"/>
+                            <circle class="av-aro-arco" cx="32" cy="32" r="30" pathLength="1"/>
+                        </g>
+                        <g class="av-v">
+                            <g class="av-brazo av-brazo-izq"><line x1="32" y1="46" x2="32" y2="16" stroke="url(#avGradIzq)" stroke-width="5"/></g>
+                            <g class="av-brazo av-brazo-der"><line x1="32" y1="46" x2="32" y2="16" stroke-width="5"/></g>
+                        </g>
+                    </svg>
+                </button>
+                <span class="av-regla av-regla-der" aria-hidden="true"></span>
+            </div>
+
+            <div id="avPanel" class="av-panel" aria-hidden="true" inert>
+                <div class="av-panel-int">
+                    <div class="av-marco" role="group" aria-label="Acciones">
+
+                        <button type="button" class="av-op av-op-1" onclick="avElegir('fisica')">
+                            <span class="av-contenido">
+                                <span class="av-num">01</span>
+                                <svg class="av-icono" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+                                    <g class="av-toldo">
+                                        <path class="av-fino av-acento av-trazo" pathLength="1" style="--d:0s" d="M6 18 L10 8 H38 L42 18 Z"/>
+                                        <path class="av-fino av-acento av-trazo" pathLength="1" style="--d:.12s" d="M17 8 L15 18 M24 8 V18 M31 8 L33 18"/>
+                                    </g>
+                                    <path class="av-fino av-trazo" pathLength="1" style="--d:.22s" d="M8 18 V40 H40 V18"/>
+                                    <path class="av-fino av-trazo" pathLength="1" style="--d:.34s" d="M19 40 V26 H27 V40"/>
+                                    <path class="av-fino av-trazo" pathLength="1" style="--d:.44s" d="M31 26 H36 V32 H31 Z"/>
+                                    <path class="av-fino av-trazo" pathLength="1" style="--d:.5s" d="M3 40 H45"/>
+                                </svg>
+                                <span class="av-etq">Vender<span class="av-sub">en la tienda</span></span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="av-op av-op-2" onclick="avElegir('escanear')">
+                            <span class="av-contenido">
+                                <span class="av-num">02</span>
+                                <svg class="av-icono" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+                                    <g class="av-esquinas">
+                                        <path class="av-fino" d="M6 16 V6 H16 M32 6 H42 V16 M42 32 V42 H32 M16 42 H6 V32"/>
+                                    </g>
+                                    <rect class="av-relleno" x="21.5" y="21.5" width="5" height="5"/>
+                                    <line class="av-fino av-acento av-barrido" x1="10" y1="24" x2="38" y2="24"/>
+                                </svg>
+                                <span class="av-etq">Escanear<span class="av-sub">una prenda</span></span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="av-op av-op-3" onclick="avElegir('qr')">
+                            <span class="av-contenido">
+                                <span class="av-num">03</span>
+                                <svg class="av-icono" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+                                    <rect class="av-fino av-cel" style="--i:0" x="4" y="4" width="14" height="14"/>
+                                    <rect class="av-relleno av-cel" style="--i:1" x="8" y="8" width="6" height="6"/>
+                                    <rect class="av-fino av-cel" style="--i:2" x="30" y="4" width="14" height="14"/>
+                                    <rect class="av-relleno av-cel" style="--i:3" x="34" y="8" width="6" height="6"/>
+                                    <rect class="av-fino av-cel" style="--i:4" x="4" y="30" width="14" height="14"/>
+                                    <rect class="av-relleno av-cel" style="--i:5" x="8" y="34" width="6" height="6"/>
+                                    <rect class="av-relleno av-cel" style="--i:6; fill:var(--hueso)" x="24" y="24" width="5" height="5"/>
+                                    <rect class="av-relleno av-cel" style="--i:7; fill:var(--hueso)" x="34" y="24" width="4" height="4"/>
+                                    <rect class="av-relleno av-cel" style="--i:8; fill:var(--hueso)" x="40" y="32" width="4" height="4"/>
+                                    <rect class="av-relleno av-cel" style="--i:9; fill:var(--hueso)" x="24" y="34" width="4" height="4"/>
+                                    <rect class="av-relleno av-cel" style="--i:10; fill:var(--hueso)" x="32" y="32" width="5" height="5"/>
+                                    <rect class="av-relleno av-cel" style="--i:11; fill:var(--hueso)" x="40" y="40" width="4" height="4"/>
+                                </svg>
+                                <span class="av-etq">Crear<span class="av-sub">un código QR</span></span>
+                            </span>
+                        </button>
+
+                        <span class="av-esq av-esq-a" aria-hidden="true"></span>
+                        <span class="av-esq av-esq-b" aria-hidden="true"></span>
+                        <span class="av-esq av-esq-c" aria-hidden="true"></span>
+                        <span class="av-esq av-esq-d" aria-hidden="true"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- ===================== VENTA EN TIENDA (pantalla completa) ===================== -->
         <section id="formularioFisica" class="pantalla-accion" aria-label="Vender en la tienda">
@@ -3622,6 +3834,39 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                 mensaje.className = 'msg msg-warn';
             }
         }
+
+        // ===================================================================
+        // MENÚ DE ACCIONES (la V): se abre y se cierra con una animación
+        // ===================================================================
+        function avAbrir(abrir) {
+            const caja = document.getElementById('accionesV');
+            const boton = document.getElementById('avDisparador');
+            const panel = document.getElementById('avPanel');
+            if (!caja || !boton) return;
+            const estado = (typeof abrir === 'boolean') ? abrir : !caja.classList.contains('abierto');
+            caja.classList.toggle('abierto', estado);
+            boton.setAttribute('aria-expanded', String(estado));
+            boton.setAttribute('aria-label', estado ? 'Cerrar acciones' : 'Abrir acciones');
+            if (panel) {
+                panel.setAttribute('aria-hidden', String(!estado));
+                panel.inert = !estado;
+            }
+        }
+
+        function avElegir(accion) {
+            avAbrir(false);
+            if (accion === 'fisica') toggleFormularioFisica();
+            else if (accion === 'escanear') abrirScannerVenta();
+            else if (accion === 'qr') toggleFormularioQR();
+        }
+
+        document.addEventListener('click', (e) => {
+            const caja = document.getElementById('accionesV');
+            if (caja && caja.classList.contains('abierto') && !caja.contains(e.target)) avAbrir(false);
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') avAbrir(false);
+        });
 
         (function iniciar() {
             const claveGuardada = obtenerPassword();
