@@ -531,7 +531,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <link rel="stylesheet" href="/tailwind.css">
-<script src="https://cdn.jsdelivr.net/npm/cashea-web-checkout-sdk/dist/webcheckout-sdk.min.js"></script>
 </head>
 <body class="antialiased min-h-screen">
 
@@ -813,7 +812,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                             <option value="Efectivo USD">Efectivo USD ($)</option>
                             <option value="Zelle">Zelle ($)</option>
                             <option value="Binance">Binance ($)</option>
-                        <option value="Cashea">Cashea (cuotas SDK)</option>
                             <option value="Fiado">Fiado (queda debiendo)</option>
                         </select>
                     </div>
@@ -903,31 +901,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
                     </div>
                 </div>
 
-                                <!-- ===================== CASHEA SDK CHECKOUT ===================== -->
-                <div id="bloqueCasheaSDK" class="hidden sub-panel p-4 space-y-4">
-                    <div class="flex items-center justify-between gap-3">
-                        <span class="text-xs font-bold"><i class="fa-solid fa-bag-shopping mr-1.5" style="color: var(--cyan)"></i> Pago con Cashea SDK</span>
-                        <span class="text-[10px] cifra" style="color: var(--tenue)">Web Checkout API</span>
-                    </div>
-
-                    <div class="space-y-3">
-                        <div>
-                            <label class="etiqueta" for="chCedula">Cédula del Cliente (Obligatorio)</label>
-                            <input type="text" id="chCedula" placeholder="Ej: V-12345678" class="campo cifra" oninput="chActualizarBotonSDK()">
-                        </div>
-
-                        <div class="text-center sm:text-left space-y-1">
-                            <p class="rotulo">Monto Total a Cobrar</p>
-                            <p id="chTotalUsd" class="cifra-grande text-[28px]">$0.00</p>
-                            <p id="chTotalBs" class="text-xs font-bold cifra" style="color: var(--cyan)"></p>
-                        </div>
-                    </div>
-
-                    <!-- Contenedor donde Cashea dibuja el botón de checkout oficial -->
-                    <div id="cashea-checkout-container" class="pt-2"></div>
-                </div>
-
-<div id="camposFiadoFisica" class="hidden grid grid-cols-1 md:grid-cols-2 gap-3 rounded-2xl p-4" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.28)">
+                <div id="camposFiadoFisica" class="hidden grid grid-cols-1 md:grid-cols-2 gap-3 rounded-2xl p-4" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.28)">
                     <div>
                         <label class="etiqueta" style="color: #FCD34D">Quién queda debiendo</label>
                         <input type="text" id="fiadoNombreCliente" placeholder="Nombre del cliente" class="campo">
@@ -3920,119 +3894,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             ventana.document.close();
         }
 
-        // ===================================================================
-// INTEGRACIÓN OFICIAL CASHEA WEB CHECKOUT SDK
-// ===================================================================
-let casheaSDKInstance = null;
-
-function chEl(id) { return document.getElementById(id); }
-
-function chEsCashea() {
-    const sel = chEl('fisicaMetodoPago');
-    return !!sel && sel.value === 'Cashea';
-}
-
-function chInicializarSDK() {
-    if (typeof WebCheckoutSDK !== 'undefined' && !casheaSDKInstance) {
-        casheaSDKInstance = new WebCheckoutSDK({
-            apiKey: 'TU_PUBLIC_API_KEY_AQUI'
-        });
-    }
-}
-
-function chActualizarBotonSDK() {
-    chInicializarSDK();
-    const bloque = chEl('bloqueCasheaSDK');
-    if (!bloque) return;
-
-    const visible = chEsCashea() && carritoFisica.length > 0;
-    bloque.classList.toggle('hidden', !visible);
-    if (!visible) return;
-
-    const resumen = calcularResumenCarritoFisica();
-    chEl('chTotalUsd').textContent = '$' + resumen.total.toFixed(2);
-    chEl('chTotalBs').textContent = tasaBcvAdmin
-        ? 'Bs ' + (resumen.total * tasaBcvAdmin).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-        : '';
-
-    const cedula = (chEl('chCedula') ? chEl('chCedula').value.trim() : '');
-    const container = chEl('cashea-checkout-container');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    if (!cedula) {
-        container.innerHTML = '<p class="text-xs text-amber-500 font-semibold text-center">Ingresa la cédula del cliente para activar el botón de Cashea.</p>';
-        return;
-    }
-
-    if (!casheaSDKInstance) {
-        container.innerHTML = '<p class="text-xs text-rose-500 text-center">Cargando SDK de Cashea...</p>';
-        return;
-    }
-
-    // Estructura del Payload según documentación técnica
-    const payload = {
-        deliveryMethod: 'IN_STORE',
-        redirectUrl: 'https://valerasportvzla.com/admin',
-        merchantName: 'Valera Sport',
-        identificationNumber: cedula,
-        externalClientId: 'valera_sport_01',
-        deliveryPrice: 0,
-        orders: [
-            {
-                store: {
-                    id: 123,
-                    name: 'Valera Sport',
-                    enabled: true
-                },
-                products: carritoFisica.map((item, idx) => ({
-                    id: item.id || ('prod-' + idx),
-                    name: item.nombre || 'Prenda Deportiva',
-                    price: item.precio || 0,
-                    quantity: item.cantidad || 1,
-                    sku: item.sku || 'SKU-VALERA',
-                    description: item.descripcion || 'Ropa deportiva Valera Sport',
-                    imageUrl: item.imagen || '',
-                    tax: 0,
-                    discount: 0
-                }))
-            }
-        ]
-    };
-
-    try {
-        casheaSDKInstance.createCheckoutButton({
-            payload: payload,
-            container: container
-        });
-    } catch (e) {
-        console.error('Error al generar botón de Cashea:', e);
-    }
-}
-
-function chValidarAntesDeGuardar() {
-    const cedula = chEl('chCedula') ? chEl('chCedula').value.trim() : '';
-    if (!cedula) return 'Ingresa la cédula del cliente para procesar con Cashea.';
-    return '';
-}
-
-function chTextoVenta() {
-    const cedula = chEl('chCedula') ? chEl('chCedula').value.trim() : '';
-    return 'Pagó con Cashea (Cliente CI: ' + cedula + ')';
-}
-
-function chLimpiar() {
-    if (chEl('chCedula')) chEl('chCedula').value = '';
-    const container = chEl('cashea-checkout-container');
-    if (container) container.innerHTML = '';
-}
-
-setInterval(function() {
-    try { if (chEsCashea()) chActualizarBotonSDK(); } catch(e){}
-}, 2000);
-
-function registrarVentaDesdeScanner() {
+        function registrarVentaDesdeScanner() {
             cerrarScannerVenta();
             registrarVentaFisica();
         }
