@@ -1502,6 +1502,15 @@ body::after{display:none}
         // ===================================================================
         const HISTORIAL_VERSIONES = [
             {
+                numero: '4.2', fecha: '2026-10-25', tipo: 'Mejora',
+                titulo: 'Transición rápida y mensaje del día',
+                cambios: [
+                    'La transición Persiana es mucho más rápida: las opciones aparecen casi al instante.',
+                    'El inicio muestra un mensaje minimalista que cambia cada día.',
+                    'Se devolvieron a como estaban los desenfoques, las ventanas y los refrescos del panel.'
+                ]
+            },
+            {
                 numero: '4.1', fecha: '2026-10-25', tipo: 'Novedad',
                 titulo: 'Inicio limpio y una ventana para cada módulo',
                 cambios: [
@@ -4566,7 +4575,7 @@ body::after{display:none}
         window.addEventListener('load', () => setTimeout(reposicionarGlider, 100));
 
         setInterval(() => {
-            if (!panelPrincipal.classList.contains('hidden') && !document.hidden) cargarTodo();
+            if (!panelPrincipal.classList.contains('hidden')) cargarTodo();
         }, INTERVALO_REFRESCO);
     </script>
 <!-- ===== PANEL 4.0: menú lateral, operaciones, avisos ===== -->
@@ -4729,8 +4738,7 @@ body::after{display:none}
         var h = new Date().getHours();
         var saludo = h < 12 ? 'Buenos días' : (h < 19 ? 'Buenas tardes' : 'Buenas noches');
         var fecha = new Date().toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' });
-        var htmlS = '<p class="v4-saludo">' + esc(saludo) + '</p><p class="v4-fecha">' + esc(fecha) + '</p>';
-        if (p.getAttribute('data-h') !== htmlS) { p.setAttribute('data-h', htmlS); p.innerHTML = htmlS; }
+        p.innerHTML = '<p class="v4-saludo">' + esc(saludo) + '</p><p class="v4-fecha">' + esc(fecha) + '</p>';
     }
 
     /* ---------- Aviso de novedad (mensaje corto con X) ---------- */
@@ -4815,31 +4823,21 @@ body::after{display:none}
     armarEncabezado();
     armarOperaciones();
     refrescar();
-    setInterval(function () { if (!document.hidden) refrescar(); }, 3000);
+    setInterval(refrescar, 1500);
 })();
 </script>
 
+
+
 <!-- v41:inicio -->
 <style id="v41-css">
-/* ===== PANEL 4.1 ===== */
+/* ===== PANEL 4.2 ===== */
 
-/* Inicio limpio: solo queda el resumen de hoy */
+/* Inicio limpio: solo queda el resumen de hoy y el mensaje del día */
 #opsV4, #accionesV, #contenedorTabsNav, #v4Modulo { display: none !important; }
 
-/* Cada ventana vive apagada (cero costo) hasta que se abre. La entrada la hace la Persiana. */
-.pantalla-accion { display: none; transform: none !important; transition: none !important; visibility: visible !important; }
-.pantalla-accion.abierta { display: block; }
-.pantalla-barra { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: rgba(255,255,255,.97) !important; }
-
-/* Sin desenfoques en superficies que se mueven o se desplazan (era lo que más pesaba) */
-#panelPrincipal > header { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: rgba(255,255,255,.98) !important; }
-#panelPrincipal .panel, #panelPrincipal .tarjeta { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
-.v4-fondo { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
-
-/* Listas largas: lo que no se ve en pantalla no se dibuja */
-#listaPedidos > *, #listaAceptadas > *, #listaRechazadas > *, #listaFiados > *, #listaGastos > *, #listaVentas > * {
-    content-visibility: auto; contain-intrinsic-size: auto 110px;
-}
+/* Las ventanas ya no se deslizan: la entrada la hace la Persiana */
+.pantalla-accion { transform: none !important; transition: none !important; }
 
 /* Botón de actualizar dentro de cada ventana */
 .v41-ref {
@@ -4866,6 +4864,13 @@ body::after{display:none}
 .v41-item:active { background: #E0F2FE; }
 .v41-nav-rotulo { margin: 16px 0 6px; padding: 0 12px; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #94A3B8; }
 
+/* Mensaje del día */
+#v42Mensaje { padding: 34px 8px 12px; }
+.v42-eti { display: flex; align-items: center; gap: 10px; font-size: 10px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: #7C8DA3; }
+.v42-eti::before { content: ""; width: 24px; height: 2px; border-radius: 2px; background: #00A8E8; }
+.v42-txt { margin-top: 14px; font-family: 'Big Shoulders Display', 'Inter', sans-serif; font-weight: 800; text-transform: uppercase; font-size: clamp(28px, 7vw, 42px); line-height: .98; letter-spacing: -.005em; color: #0F172A; max-width: 30rem; }
+.v42-sub { margin-top: 12px; max-width: 28rem; font-size: 13px; line-height: 1.55; color: #64748B; }
+
 /* ===== TRANSICIÓN "PERSIANA" ===== */
 #v41Persiana {
     position: fixed; inset: 0; z-index: 90; display: none;
@@ -4885,7 +4890,7 @@ body::after{display:none}
     if (window.__v41) return;
     var panel = document.getElementById('panelPrincipal');
     if (!panel || typeof PANELES_ACCION === 'undefined' || typeof mostrarPantallaAccion !== 'function' || typeof abrirPanelAccion !== 'function') {
-        console.warn('[v4.1] No se encontro la base del panel; no se activo.');
+        console.warn('[v4.2] No se encontro la base del panel; no se activo.');
         return;
     }
     window.__v41 = true;
@@ -4977,7 +4982,58 @@ body::after{display:none}
     }
     armarMenu();
 
-    /* ---------- 4. Transición "Persiana" ---------- */
+    /* ---------- 4. Mensaje del día (cambia solo cada día) ---------- */
+    var MENSAJES = [
+        ["Hoy es un buen día para vender.", "Un cliente contento trae a otro. Atiende cada venta como si fuera la primera."],
+        ["Cada prenda cuenta.", "Las ventas grandes se arman de muchas pequeñas. Sigue sumando."],
+        ["El éxito se construye día a día.", "Abrir la tienda con ganas ya es la mitad del trabajo."],
+        ["Vende con una sonrisa.", "La gente recuerda cómo la atendiste más que lo que compró."],
+        ["Orden en la caja, calma en la cabeza.", "Anota cada venta y cada gasto: lo que se mide, crece."],
+        ["Hoy puede ser tu mejor día.", "No lo sabes hasta que abres. Abre con confianza."],
+        ["Un cliente satisfecho vuelve.", "Cumple lo que prometes y el negocio trabaja por ti."],
+        ["La constancia vence al talento.", "Una tienda que abre todos los días termina ganando."],
+        ["Cobra con cuidado.", "Revisa el vuelto dos veces: la confianza se gana en los detalles."],
+        ["La buena atención no cuesta nada.", "Y es lo que mejor se paga en una tienda."],
+        ["Tu marca es tu palabra.", "Valera Sport crece con cada cliente que sale feliz."],
+        ["Ofrece la segunda prenda.", "A veces el cliente solo necesita que se lo sugieran."],
+        ["Los números ordenados dan paz.", "Revisa los fiados pendientes y cobra con respeto."],
+        ["Empieza el día con una meta.", "Una venta más que ayer. Eso es crecer."],
+        ["Lo que hoy siembras, mañana cobra.", "Cada cliente nuevo es una puerta que se abre."],
+        ["Que el cliente se sienta en casa.", "Una tienda limpia y ordenada vende sola."],
+        ["Cree en lo que vendes.", "Cuando tú confías en la prenda, el cliente también."],
+        ["Cada venta es un gracias.", "Agradece siempre: es gratis y deja huella."],
+        ["Menos prisa, más calidad.", "Un buen servicio hoy es una recomendación mañana."],
+        ["Trabajo constante, resultados reales.", "Poco a poco, la caja lo dice todo."],
+        ["Hoy suma, mañana multiplica.", "No midas el día por una venta: mídelo por lo que aprendiste."],
+        ["Un buen cierre vale oro.", "Cuadra la caja, anota los gastos y descansa tranquilo."],
+        ["Vende lo que te gustaría comprar.", "La honestidad llena la tienda de clientes fieles."],
+        ["El éxito es de quien insiste.", "Que no te frene un día lento: mañana la tienda vuelve a llenarse."]
+    ];
+
+    function pintarMensaje() {
+        var d = new Date();
+        var n = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+        var m = MENSAJES[n % MENSAJES.length];
+        var el = $('v42Mensaje');
+        if (!el) {
+            var hero = document.querySelector('#panelPrincipal > section.panel');
+            if (!hero) return;
+            el = document.createElement('section');
+            el.id = 'v42Mensaje';
+            hero.parentNode.insertBefore(el, hero.nextSibling);
+        }
+        if (el.getAttribute('data-n') === String(n)) return;
+        el.setAttribute('data-n', String(n));
+        el.innerHTML = '<p class="v42-eti">Para hoy</p><p class="v42-txt">' + m[0] + '</p><p class="v42-sub">' + m[1] + '</p>';
+        if (el.animate) el.animate(
+            [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
+            { duration: 500, easing: 'cubic-bezier(.2,.8,.2,1)' }
+        );
+    }
+    pintarMensaje();
+    setInterval(pintarMensaje, 60000);
+
+    /* ---------- 5. Transición "Persiana" (rápida) ---------- */
     var N = 7;
     var cont = document.createElement('div');
     cont.id = 'v41Persiana';
@@ -4993,17 +5049,17 @@ body::after{display:none}
     }
     function termino(a) { return a.finished.catch(function () {}); }
 
-    // Las persianas bajan de arriba hacia abajo, cada tira desde un borde distinto (como tejido)
+    // Las tiras bajan de arriba hacia abajo, cada una desde un borde distinto (como tejido)
     function cubrir() {
         cont.classList.add('on');
         var p = lonchas.map(function (s, i) {
             s.style.transformOrigin = (i % 2) ? '50% 100%' : '50% 0%';
             return termino(s.animate(
                 [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }],
-                { duration: 165, delay: i * 20, easing: 'cubic-bezier(.55,0,.25,1)', fill: 'forwards' }
+                { duration: 100, delay: i * 11, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' }
             ));
         });
-        return esperar(p, 700);
+        return esperar(p, 450);
     }
 
     // Se abren de abajo hacia arriba, saliendo por el lado contrario al que entraron
@@ -5019,13 +5075,13 @@ body::after{display:none}
             s.style.transformOrigin = (i % 2) ? '50% 0%' : '50% 100%';
             return termino(s.animate(
                 [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }],
-                { duration: 185, delay: (N - 1 - i) * 20, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'forwards' }
+                { duration: 115, delay: (N - 1 - i) * 11, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'forwards' }
             ));
         });
-        return esperar(p, 700).then(limpiar);
+        return esperar(p, 450).then(limpiar);
     }
 
-    // El contenido de la ventana sube escalonado mientras las persianas se abren
+    // El contenido de la ventana sube escalonado mientras las tiras se abren
     function entrada(k) {
         var def = PANELES_ACCION[k];
         var s = def && $(def.form);
@@ -5035,14 +5091,14 @@ body::after{display:none}
         for (var i = 0; i < hijos.length && n < 8; i++) {
             if (hijos[i].classList.contains('hidden')) continue;
             hijos[i].animate(
-                [{ opacity: 0, transform: 'translateY(16px) scale(.985)' }, { opacity: 1, transform: 'none' }],
-                { duration: 420, delay: 90 + n * 38, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' }
+                [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }],
+                { duration: 300, delay: 30 + n * 28, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' }
             );
             n++;
         }
     }
 
-    /* ---------- 5. Enganche con las funciones del panel ---------- */
+    /* ---------- 6. Enganche con las funciones del panel ---------- */
     var origMostrar = window.mostrarPantallaAccion;
     var origAbrir = window.abrirPanelAccion;
     var busy = false, hayCola = false, cola = null, bloqueo = 0;
@@ -5087,7 +5143,7 @@ body::after{display:none}
     window.abrirPanelAccion = function () {
         var ahora = Date.now();
         if (ahora < bloqueo) return;
-        bloqueo = ahora + (reducido ? 150 : 620);
+        bloqueo = ahora + (reducido ? 150 : 400);
         return origAbrir.apply(this, arguments);
     };
 
