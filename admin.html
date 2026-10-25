@@ -1502,6 +1502,16 @@ body::after{display:none}
         // ===================================================================
         const HISTORIAL_VERSIONES = [
             {
+                numero: '4.1', fecha: '2026-10-25', tipo: 'Novedad',
+                titulo: 'Inicio limpio y una ventana para cada módulo',
+                cambios: [
+                    'El inicio quedó limpio: solo el resumen de hoy. Lo demás se abre desde el menú de las tres rayitas.',
+                    'Pedidos, Ventas, Fiado y Gastos ahora tienen su propia ventana, igual que Vender en la tienda.',
+                    'Vender, Escanear y Crear QR pasaron al menú, junto con los avisos de pedidos y fiados vencidos.',
+                    'Transición nueva «Persiana» entre todas las ventanas, y el panel pesa menos para ir más fluido.'
+                ]
+            },
+            {
                 numero: '4.0.1', fecha: '2026-10-25', tipo: 'Arreglo',
                 titulo: 'Arreglo: el encabezado (VALERASPORT) ahora queda FIJO arriba al bajar,    pegado al borde (sin hueco por donde se vea el contenido) y se hace más    pequeño al desplazarse para no tapar.',
                 cambios: [
@@ -4556,7 +4566,7 @@ body::after{display:none}
         window.addEventListener('load', () => setTimeout(reposicionarGlider, 100));
 
         setInterval(() => {
-            if (!panelPrincipal.classList.contains('hidden')) cargarTodo();
+            if (!panelPrincipal.classList.contains('hidden') && !document.hidden) cargarTodo();
         }, INTERVALO_REFRESCO);
     </script>
 <!-- ===== PANEL 4.0: menú lateral, operaciones, avisos ===== -->
@@ -4719,7 +4729,8 @@ body::after{display:none}
         var h = new Date().getHours();
         var saludo = h < 12 ? 'Buenos días' : (h < 19 ? 'Buenas tardes' : 'Buenas noches');
         var fecha = new Date().toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' });
-        p.innerHTML = '<p class="v4-saludo">' + esc(saludo) + '</p><p class="v4-fecha">' + esc(fecha) + '</p>';
+        var htmlS = '<p class="v4-saludo">' + esc(saludo) + '</p><p class="v4-fecha">' + esc(fecha) + '</p>';
+        if (p.getAttribute('data-h') !== htmlS) { p.setAttribute('data-h', htmlS); p.innerHTML = htmlS; }
     }
 
     /* ---------- Aviso de novedad (mensaje corto con X) ---------- */
@@ -4804,8 +4815,290 @@ body::after{display:none}
     armarEncabezado();
     armarOperaciones();
     refrescar();
-    setInterval(refrescar, 1500);
+    setInterval(function () { if (!document.hidden) refrescar(); }, 3000);
 })();
 </script>
+
+<!-- v41:inicio -->
+<style id="v41-css">
+/* ===== PANEL 4.1 ===== */
+
+/* Inicio limpio: solo queda el resumen de hoy */
+#opsV4, #accionesV, #contenedorTabsNav, #v4Modulo { display: none !important; }
+
+/* Cada ventana vive apagada (cero costo) hasta que se abre. La entrada la hace la Persiana. */
+.pantalla-accion { display: none; transform: none !important; transition: none !important; visibility: visible !important; }
+.pantalla-accion.abierta { display: block; }
+.pantalla-barra { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: rgba(255,255,255,.97) !important; }
+
+/* Sin desenfoques en superficies que se mueven o se desplazan (era lo que más pesaba) */
+#panelPrincipal > header { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: rgba(255,255,255,.98) !important; }
+#panelPrincipal .panel, #panelPrincipal .tarjeta { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.v4-fondo { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+
+/* Listas largas: lo que no se ve en pantalla no se dibuja */
+#listaPedidos > *, #listaAceptadas > *, #listaRechazadas > *, #listaFiados > *, #listaGastos > *, #listaVentas > * {
+    content-visibility: auto; contain-intrinsic-size: auto 110px;
+}
+
+/* Botón de actualizar dentro de cada ventana */
+.v41-ref {
+    justify-self: end; width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid var(--linea-fuerte); color: #475569; cursor: pointer;
+    transition: background-color .2s, color .2s;
+}
+.v41-ref:hover { background: #F0F9FF; color: #0284C7; }
+.v41-ref.gira i { animation: v41Gira .6s linear; }
+@keyframes v41Gira { to { transform: rotate(360deg); } }
+
+/* Menú lateral con todas las opciones */
+.v41-item {
+    display: flex; align-items: center; justify-content: space-between; width: 100%;
+    padding: 12px 14px; border-radius: 16px; border: 0; background: transparent;
+    font-size: 13px; font-weight: 700; color: #334155; text-align: left; cursor: pointer;
+    transition: background-color .2s, color .2s;
+}
+.v41-iz { display: flex; align-items: center; gap: 12px; }
+.v41-ic { width: 18px; text-align: center; color: #94A3B8; transition: color .2s; }
+.v41-item:hover { background: #F0F9FF; color: #0284C7; }
+.v41-item:hover .v41-ic { color: #00A8E8; }
+.v41-item:active { background: #E0F2FE; }
+.v41-nav-rotulo { margin: 16px 0 6px; padding: 0 12px; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #94A3B8; }
+
+/* ===== TRANSICIÓN "PERSIANA" ===== */
+#v41Persiana {
+    position: fixed; inset: 0; z-index: 90; display: none;
+    grid-template-rows: repeat(7, 1fr); overflow: hidden; pointer-events: auto;
+}
+#v41Persiana.on { display: grid; }
+#v41Persiana i {
+    display: block; margin: -.5px 0; transform: scaleY(0); will-change: transform;
+    background: linear-gradient(135deg, #0284C7 0%, #00A8E8 100%);
+    box-shadow: inset 0 -1px 0 rgba(255,255,255,.28);
+}
+#v41Persiana i:nth-child(even) { background: linear-gradient(135deg, #00A8E8 0%, #38BDF8 100%); }
+</style>
+<script id="v41-js">
+(function () {
+    'use strict';
+    if (window.__v41) return;
+    var panel = document.getElementById('panelPrincipal');
+    if (!panel || typeof PANELES_ACCION === 'undefined' || typeof mostrarPantallaAccion !== 'function' || typeof abrirPanelAccion !== 'function') {
+        console.warn('[v4.1] No se encontro la base del panel; no se activo.');
+        return;
+    }
+    window.__v41 = true;
+
+    function $(id) { return document.getElementById(id); }
+    var reducido = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var TABS = { pedidos: 1, ventas: 1, fiados: 1, gastos: 1 };
+
+    /* ---------- 1. Inicio limpio ---------- */
+    ['opsV4', 'accionesV'].forEach(function (id) {
+        var e = $(id);
+        if (e && e.parentNode) e.parentNode.removeChild(e);
+    });
+
+    window.v41Refrescar = function (b) {
+        if (b) { b.classList.remove('gira'); void b.offsetWidth; b.classList.add('gira'); }
+        if (typeof refrescarManual === 'function') refrescarManual();
+    };
+
+    /* ---------- 2. Una ventana propia por módulo ---------- */
+    var DEFS = [
+        { k: 'pedidos', titulo: 'Pedidos', refresh: false, nodos: function () { var f = $('ultimaActualizacion'); return [f && f.parentElement, $('vistaPedidos')]; } },
+        { k: 'ventas', titulo: 'Ventas', refresh: true, nodos: function () { return [$('vistaVentas')]; } },
+        { k: 'fiados', titulo: 'Fiado', refresh: true, nodos: function () { return [$('vistaFiados')]; } },
+        { k: 'gastos', titulo: 'Gastos', refresh: true, nodos: function () { return [$('vistaGastos')]; } }
+    ];
+
+    function crearPantalla(d) {
+        var id = 'pantalla' + d.k.charAt(0).toUpperCase() + d.k.slice(1);
+        if ($(id)) { PANELES_ACCION[d.k] = { form: id }; return; }
+        var s = document.createElement('section');
+        s.id = id;
+        s.className = 'pantalla-accion';
+        s.setAttribute('aria-label', d.titulo);
+        s.innerHTML =
+            '<div class="pantalla-barra">' +
+                '<button type="button" onclick="abrirPanelAccion(null)" class="icon-btn btn-fantasma pantalla-volver">' +
+                    '<i class="fa-solid fa-chevron-left text-[11px]"></i> Volver</button>' +
+                '<p class="marca pantalla-titulo">' + d.titulo + '</p>' +
+                (d.refresh
+                    ? '<button type="button" class="v41-ref" onclick="v41Refrescar(this)" aria-label="Actualizar" title="Actualizar"><i class="fa-solid fa-arrows-rotate text-sm"></i></button>'
+                    : '<span></span>') +
+            '</div>' +
+            '<div class="pantalla-cuerpo"></div>';
+        var cuerpo = s.querySelector('.pantalla-cuerpo');
+        d.nodos().forEach(function (n) { if (n) cuerpo.appendChild(n); });
+        panel.appendChild(s);
+        PANELES_ACCION[d.k] = { form: id };
+    }
+    DEFS.forEach(crearPantalla);
+
+    /* ---------- 3. Menú lateral con todo ---------- */
+    function item(k, icono, texto, badgeId, rojo, oculto) {
+        var b = '';
+        if (badgeId) {
+            b = '<span class="v4-num' + (rojo ? ' rojo' : '') + '" id="' + badgeId + '"' + (oculto ? ' style="display:none"' : '') + '>' + (oculto ? '0' : '') + '</span>';
+        }
+        return '<button type="button" class="v41-item" data-k="' + k + '"><span class="v41-iz"><i class="fa-solid ' + icono + ' v41-ic"></i><span>' + texto + '</span></span>' + b + '</button>';
+    }
+
+    function armarMenu() {
+        var lat = $('v4Lateral');
+        var viejo = lat && lat.querySelector('.v4-nav');
+        if (!viejo) return;
+        var nav = document.createElement('nav');
+        nav.className = 'v4-nav';
+        nav.innerHTML =
+            item('inicio', 'fa-house', 'Inicio') +
+            item('pedidos', 'fa-boxes-packing', 'Pedidos', 'v4SbPed', false, true) +
+            item('ventas', 'fa-chart-line', 'Ventas') +
+            item('fiados', 'fa-user-clock', 'Fiado', 'v4SbFia', true, true) +
+            item('gastos', 'fa-wallet', 'Gastos') +
+            '<p class="v41-nav-rotulo">Operaciones</p>' +
+            item('fisica', 'fa-store', 'Vender en la tienda') +
+            item('escanear', 'fa-camera', 'Escanear una prenda') +
+            item('qr', 'fa-qrcode', 'Crear un código QR') +
+            '<p class="v41-nav-rotulo">Sistema</p>' +
+            item('version', 'fa-code-branch', 'Versión del sistema', 'v4SbVer', false, false);
+        viejo.parentNode.replaceChild(nav, viejo);
+        nav.addEventListener('click', function (e) {
+            var b = e.target.closest('.v41-item');
+            if (!b) return;
+            var k = b.getAttribute('data-k');
+            if (typeof v4Lateral === 'function') v4Lateral(false);
+            if (k === 'inicio') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+            if (k === 'escanear') { abrirScannerVenta(); return; }
+            abrirPanelAccion(k);
+        });
+    }
+    armarMenu();
+
+    /* ---------- 4. Transición "Persiana" ---------- */
+    var N = 7;
+    var cont = document.createElement('div');
+    cont.id = 'v41Persiana';
+    cont.setAttribute('aria-hidden', 'true');
+    var htmlLonchas = '';
+    for (var q = 0; q < N; q++) htmlLonchas += '<i></i>';
+    cont.innerHTML = htmlLonchas;
+    document.body.appendChild(cont);
+    var lonchas = Array.prototype.slice.call(cont.children);
+
+    function esperar(promesas, ms) {
+        return Promise.race([Promise.all(promesas), new Promise(function (r) { setTimeout(r, ms); })]);
+    }
+    function termino(a) { return a.finished.catch(function () {}); }
+
+    // Las persianas bajan de arriba hacia abajo, cada tira desde un borde distinto (como tejido)
+    function cubrir() {
+        cont.classList.add('on');
+        var p = lonchas.map(function (s, i) {
+            s.style.transformOrigin = (i % 2) ? '50% 100%' : '50% 0%';
+            return termino(s.animate(
+                [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }],
+                { duration: 165, delay: i * 20, easing: 'cubic-bezier(.55,0,.25,1)', fill: 'forwards' }
+            ));
+        });
+        return esperar(p, 700);
+    }
+
+    // Se abren de abajo hacia arriba, saliendo por el lado contrario al que entraron
+    function limpiar() {
+        lonchas.forEach(function (s) {
+            s.getAnimations().forEach(function (a) { a.cancel(); });
+            s.style.transformOrigin = '';
+        });
+        cont.classList.remove('on');
+    }
+    function revelar() {
+        var p = lonchas.map(function (s, i) {
+            s.style.transformOrigin = (i % 2) ? '50% 0%' : '50% 100%';
+            return termino(s.animate(
+                [{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }],
+                { duration: 185, delay: (N - 1 - i) * 20, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'forwards' }
+            ));
+        });
+        return esperar(p, 700).then(limpiar);
+    }
+
+    // El contenido de la ventana sube escalonado mientras las persianas se abren
+    function entrada(k) {
+        var def = PANELES_ACCION[k];
+        var s = def && $(def.form);
+        if (!s || !s.animate) return;
+        var hijos = s.querySelectorAll('.pantalla-cuerpo > *');
+        var n = 0;
+        for (var i = 0; i < hijos.length && n < 8; i++) {
+            if (hijos[i].classList.contains('hidden')) continue;
+            hijos[i].animate(
+                [{ opacity: 0, transform: 'translateY(16px) scale(.985)' }, { opacity: 1, transform: 'none' }],
+                { duration: 420, delay: 90 + n * 38, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' }
+            );
+            n++;
+        }
+    }
+
+    /* ---------- 5. Enganche con las funciones del panel ---------- */
+    var origMostrar = window.mostrarPantallaAccion;
+    var origAbrir = window.abrirPanelAccion;
+    var busy = false, hayCola = false, cola = null, bloqueo = 0;
+
+    function post(n) {
+        if (n && TABS[n] && typeof cambiarTabPedidos === 'function') {
+            try { cambiarTabPedidos(n); } catch (e) { console.error(e); }
+        } else if (!n) {
+            try { tabActiva = 'inicio'; } catch (e) {}
+        }
+    }
+
+    window.mostrarPantallaAccion = function (n) {
+        n = n || null;
+        var actual = (typeof pantallaAccionAbierta !== 'undefined') ? pantallaAccionAbierta : null;
+        if (n === actual || reducido || panel.classList.contains('hidden') || !cont.animate) {
+            origMostrar(n);
+            post(n);
+            return;
+        }
+        if (busy) { hayCola = true; cola = n; return; }
+        busy = true;
+        cubrir()
+            .then(function () {
+                origMostrar(n);
+                post(n);
+                if (n) entrada(n);
+                return revelar();
+            })
+            .catch(function (e) { console.error(e); limpiar(); })
+            .then(function () {
+                busy = false;
+                if (hayCola) {
+                    var c = cola;
+                    hayCola = false; cola = null;
+                    window.mostrarPantallaAccion(c);
+                }
+            });
+    };
+
+    // Evita que un doble toque en "Volver" retroceda dos veces en el historial
+    window.abrirPanelAccion = function () {
+        var ahora = Date.now();
+        if (ahora < bloqueo) return;
+        bloqueo = ahora + (reducido ? 150 : 620);
+        return origAbrir.apply(this, arguments);
+    };
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        var esc = $('scannerModalVenta');
+        if (esc && !esc.classList.contains('hidden')) return;
+        if (typeof pantallaAccionAbierta !== 'undefined' && pantallaAccionAbierta) window.abrirPanelAccion(null);
+    });
+})();
+</script>
+<!-- v41:fin -->
 </body>
 </html>
