@@ -7,6 +7,9 @@
 node_modules/
 ValeraSport_1707/
 admin_backup_*.html
+admin.bak-antes-v4.html
+admin.bak-*.html
+aplicar-rediseno.js
 
 # Android
 android/app/build/

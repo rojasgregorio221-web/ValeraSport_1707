@@ -545,15 +545,21 @@ body::before{background:linear-gradient(180deg,#EAF3FA 0%,#F4F8FC 50%,#EDF4FA 10
 body::after{display:none}
 #panelPrincipal{max-width:60rem !important;padding-bottom:56px !important}
 
-/* ---------- Encabezado ---------- */
+/* ---------- Encabezado (FIJO arriba) ---------- */
+#panelPrincipal{max-width:60rem !important;padding-top:calc(92px + env(safe-area-inset-top,0px)) !important;padding-bottom:56px !important}
 #panelPrincipal > header{
-  position:sticky; top:10px; z-index:30; margin-bottom:16px !important; gap:10px;
-  padding:11px 14px; border-radius:26px;
-  background:rgba(255,255,255,.92); border:1px solid rgba(255,255,255,.95);
-  box-shadow:var(--sombra); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  position:fixed !important; top:0; left:0; right:0; z-index:40; margin:0 !important; gap:10px; animation:none !important;
+  padding:calc(10px + env(safe-area-inset-top,0px)) max(14px, calc((100vw - 60rem) / 2 + 14px)) 10px;
+  border-radius:0 0 26px 26px; background:rgba(255,255,255,.95); border:0; border-bottom:1px solid rgba(15,23,42,.07);
+  box-shadow:0 12px 30px -16px rgba(0,100,180,.30); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  transition:padding .2s ease;
 }
 #panelPrincipal > header > div:not(.v4-bcv){flex:1; min-width:0; margin-left:2px}
-#panelPrincipal > header .marca{font-size:26px !important;vertical-align:middle}
+#panelPrincipal > header .marca{font-size:26px !important;vertical-align:middle;transition:font-size .2s ease}
+#panelPrincipal > header.v4-compacto{padding-top:calc(6px + env(safe-area-inset-top,0px));padding-bottom:6px}
+#panelPrincipal > header.v4-compacto .rotulo{display:none}
+#panelPrincipal > header.v4-compacto .marca{font-size:22px !important}
+#panelPrincipal > header.v4-compacto .v4-burger{width:38px;height:38px}
 .v4-burger{flex:none;width:42px;height:42px;border-radius:14px;background:#fff;border:1px solid var(--linea-fuerte);
   color:#334155;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s,color .2s,transform .2s var(--suave)}
 .v4-burger:hover{background:#F0F9FF;color:#0284C7}
@@ -1495,6 +1501,13 @@ body::after{display:none}
         // tipo: 'Novedad' | 'Mejora' | 'Arreglo' | 'Base'
         // ===================================================================
         const HISTORIAL_VERSIONES = [
+            {
+                numero: '4.0.1', fecha: '2026-10-25', tipo: 'Arreglo',
+                titulo: 'Arreglo: el encabezado (VALERASPORT) ahora queda FIJO arriba al bajar,    pegado al borde (sin hueco por donde se vea el contenido) y se hace más    pequeño al desplazarse para no tapar.',
+                cambios: [
+                    'Arreglo: el encabezado (VALERASPORT) ahora queda FIJO arriba al bajar,    pegado al borde (sin hueco por donde se vea el contenido) y se hace más    pequeño al desplazarse para no tapar.'
+                ]
+            },
             {
                 numero: '4.0.0', fecha: '2026-10-25', tipo: 'Novedad',
                 titulo: 'Panel nuevo',
@@ -4779,6 +4792,13 @@ body::after{display:none}
     }
 
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') lateral(false); });
+    /* Encabezado fijo: se hace más pequeño al bajar para no estorbar */
+    function compactarEncabezado() {
+        var c = document.querySelector('#panelPrincipal > header');
+        if (c) c.classList.toggle('v4-compacto', (window.pageYOffset || document.documentElement.scrollTop || 0) > 40);
+    }
+    window.addEventListener('scroll', compactarEncabezado, { passive: true });
+    compactarEncabezado();
 
     crearLateral();
     armarEncabezado();
