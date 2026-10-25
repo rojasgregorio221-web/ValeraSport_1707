@@ -530,6 +530,198 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
+    <style id="rediseno-v4">
+/* ===== VALERA SPORT · PANEL 4.0 ===== */
+:root{
+  --brasa:#00A8E8; --fucsia:#00A8E8; --violeta:#0284C7; --cyan:#0284C7;
+  --hueso:#0F172A; --tinta:#FFFFFF; --fondo:#EAF3FA;
+  --panel:rgba(255,255,255,.92); --panel-alto:#FFFFFF;
+  --linea:rgba(15,23,42,.08); --linea-fuerte:rgba(15,23,42,.16);
+  --gris:#475569; --tenue:#7C8DA3;
+  --sombra:0 10px 30px -10px rgba(0,120,200,.16), 0 4px 12px -2px rgba(0,0,0,.04);
+}
+body{color:#0F172A}
+body::before{background:linear-gradient(180deg,#EAF3FA 0%,#F4F8FC 50%,#EDF4FA 100%) !important}
+body::after{display:none}
+#panelPrincipal{max-width:60rem !important;padding-bottom:56px !important}
+
+/* ---------- Encabezado ---------- */
+#panelPrincipal > header{
+  position:sticky; top:10px; z-index:30; margin-bottom:16px !important; gap:10px;
+  padding:11px 14px; border-radius:26px;
+  background:rgba(255,255,255,.92); border:1px solid rgba(255,255,255,.95);
+  box-shadow:var(--sombra); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+}
+#panelPrincipal > header > div:not(.v4-bcv){flex:1; min-width:0; margin-left:2px}
+#panelPrincipal > header .marca{font-size:26px !important;vertical-align:middle}
+.v4-burger{flex:none;width:42px;height:42px;border-radius:14px;background:#fff;border:1px solid var(--linea-fuerte);
+  color:#334155;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s,color .2s,transform .2s var(--suave)}
+.v4-burger:hover{background:#F0F9FF;color:#0284C7}
+.v4-burger:active{transform:scale(.94)}
+.v4-modulo{display:inline-block;margin-left:8px;padding:3px 9px;border-radius:9999px;vertical-align:middle;
+  background:#E0F2FE;color:#0369A1;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.v4-bcv{display:none;align-items:center;gap:8px;padding:7px 13px;border-radius:9999px;background:rgba(240,249,255,.9);
+  border:1px solid #BAE6FD;color:#075985;font-size:12px;font-weight:600;white-space:nowrap}
+.v4-bcv b{color:#0F172A}
+.v4-vivo{display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;animation:v4Pulso 2s ease-in-out infinite}
+@keyframes v4Pulso{0%,100%{opacity:1}50%{opacity:.35}}
+@media(min-width:700px){.v4-bcv{display:inline-flex}}
+
+/* ---------- Superficies ---------- */
+.panel,.tarjeta{
+  background:rgba(255,255,255,.92) !important; border:1px solid rgba(255,255,255,.95) !important;
+  border-radius:24px !important; box-shadow:var(--sombra) !important;
+  backdrop-filter:blur(14px) !important; -webkit-backdrop-filter:blur(14px) !important;
+}
+.tarjeta:hover{border-color:#BAE6FD !important}
+.sub-panel{background:#F8FAFC !important;border:1px solid #EEF2F7 !important;border-radius:16px !important}
+
+/* ---------- Resumen de hoy (bloque cian) ---------- */
+#panelPrincipal > section.panel{
+  --hueso:#fff; --tenue:rgba(255,255,255,.72); --gris:rgba(255,255,255,.88);
+  --linea:rgba(255,255,255,.24); --cyan:#E0F7FF;
+  color:#fff; border:0 !important; border-radius:30px !important;
+  background:linear-gradient(135deg,#0284C7 0%,#00A8E8 58%,#38BDF8 100%) !important;
+  box-shadow:0 30px 56px -28px rgba(0,140,220,.8) !important;
+}
+#panelPrincipal > section.panel [style*="#6EE7B7"]{color:#D1FAE5 !important}
+#panelPrincipal > section.panel i{color:#fff !important}
+#panelPrincipal > section.panel .cifra-grande{font-size:clamp(34px,9vw,54px)}
+.v4-saludo{font-size:15px;font-weight:800;margin-bottom:2px}
+.v4-fecha{font-size:11px;font-weight:500;color:rgba(255,255,255,.75);text-transform:capitalize;margin-bottom:18px}
+
+/* ---------- Avisos + Operaciones rápidas ---------- */
+.v4-ops{margin-bottom:18px}
+.v4-alertas{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.v4-alerta{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:20px;text-align:left;cursor:pointer;
+  background:rgba(255,255,255,.92);border:1px solid #fff;box-shadow:var(--sombra);transition:transform .2s var(--suave),border-color .2s}
+.v4-alerta:hover{border-color:#BAE6FD}.v4-alerta:active{transform:scale(.98)}
+.v4-alerta-ico{flex:none;width:38px;height:38px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  background:#E0F2FE;color:#0284C7;font-size:15px}
+.v4-alerta.rojo .v4-alerta-ico{background:#FFE4E6;color:#E11D48}
+.v4-alerta b{display:block;font-family:'Big Shoulders Display',sans-serif;font-size:28px;line-height:.9;font-weight:900}
+.v4-alerta small{display:block;margin-top:3px;font-size:11px;font-weight:600;color:#64748B}
+.v4-alerta.activa b{color:#0284C7}.v4-alerta.rojo.activa b{color:#E11D48}
+.v4-card{background:rgba(255,255,255,.92);border:1px solid #fff;border-radius:28px;padding:20px;box-shadow:var(--sombra)}
+.v4-card-cab{display:flex;align-items:center;gap:8px;padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid #EEF2F7}
+.v4-card-cab h2{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#64748B;flex:1}
+.v4-card-cab span.v4-sub{font-size:11px;font-weight:500;color:#94A3B8}
+.v4-punto{width:10px;height:10px;border-radius:50%;background:#00A8E8}
+.v4-acciones{display:grid;grid-template-columns:1fr;gap:10px}
+.v4-accion{display:flex;align-items:center;gap:14px;padding:14px;border-radius:22px;text-align:left;cursor:pointer;
+  background:rgba(255,255,255,.85);border:1px solid #EEF2F7;transition:background .2s,border-color .2s,transform .2s var(--suave)}
+.v4-accion:hover{background:#F0F9FF;border-color:#BAE6FD}.v4-accion:active{transform:scale(.98)}
+.v4-accion-ico{flex:none;width:48px;height:48px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:background .2s,color .2s}
+.v4-a1 .v4-accion-ico{background:#E0F2FE;color:#0284C7}.v4-a1:hover .v4-accion-ico{background:#00A8E8;color:#fff}
+.v4-a2 .v4-accion-ico{background:#CFFAFE;color:#0891B2}.v4-a2:hover .v4-accion-ico{background:#06B6D4;color:#fff}
+.v4-a3 .v4-accion-ico{background:#E0E7FF;color:#4F46E5}.v4-a3:hover .v4-accion-ico{background:#6366F1;color:#fff}
+.v4-accion-num{display:block;font-size:9px;font-weight:800;letter-spacing:.22em;color:#94A3B8}
+.v4-accion strong{display:block;font-size:14px;font-weight:800;color:#0F172A}
+.v4-accion small{display:block;margin-top:2px;font-size:11px;color:#94A3B8}
+@media(min-width:640px){
+  .v4-acciones{grid-template-columns:repeat(3,1fr);gap:14px}
+  .v4-accion{flex-direction:column;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px}
+}
+#accionesV{display:none !important}
+
+/* ---------- Pestañas y filtros ---------- */
+#contenedorTabsNav{
+  position:relative !important; margin-bottom:12px !important; scroll-margin-top:96px;
+  background:rgba(255,255,255,.88) !important; border:1px solid rgba(15,23,42,.07) !important;
+  box-shadow:none !important; padding:5px !important;
+}
+#contenedorTabsNav .tab-pedidos{flex:1 1 auto;justify-content:center}
+.liquid-glider{background:#00A8E8 !important;box-shadow:0 4px 14px rgba(0,168,232,.38) !important}
+.tab-pedidos.activa{color:#fff !important}
+.seg{background:rgba(255,255,255,.85) !important;border:1px solid rgba(15,23,42,.07) !important;border-radius:16px !important}
+.seg-btn.on,.subtab-pedidos.activa{background:#0F172A !important;color:#fff !important}
+
+/* ---------- Botones y campos ---------- */
+.btn-marca{background:linear-gradient(135deg,#0284C7,#00A8E8) !important;border-radius:16px;box-shadow:0 14px 28px -14px rgba(0,150,230,.85) !important}
+.btn-marca::before{background:linear-gradient(135deg,#00A8E8,#0284C7) !important}
+.btn-hueso{background:#0F172A !important;color:#fff !important}
+.btn-hueso:hover{background:#1E293B !important}
+.btn-fantasma{background:rgba(255,255,255,.9) !important;border:1px solid rgba(15,23,42,.10) !important;color:#334155 !important}
+.btn-fantasma:hover{background:#fff !important;border-color:#BAE6FD !important}
+.campo{background:#F8FAFC !important;border:1px solid #E2E8F0 !important;border-radius:14px !important}
+.campo:focus{background:#fff !important;border-color:#00A8E8 !important;box-shadow:0 0 0 4px rgba(0,168,232,.15) !important}
+
+/* ---------- Acceso, pantallas, versión ---------- */
+.tarjeta-acceso{border-radius:30px !important;border:1px solid #fff}
+.pantalla-accion{background:linear-gradient(180deg,#EAF3FA 0%,#F4F8FC 55%,#EDF4FA 100%) !important}
+.pantalla-barra{background:rgba(255,255,255,.92) !important}
+.ver-hero{background:linear-gradient(135deg,#0284C7,#00A8E8) !important;border:0 !important;color:#fff;
+  --hueso:#fff; --tenue:rgba(255,255,255,.75); --linea:rgba(255,255,255,.24)}
+.ver-hero .rotulo,.ver-hero .ver-nota{color:rgba(255,255,255,.8)}
+.ver-hero i{color:#fff !important}
+
+/* ---------- MENÚ LATERAL ---------- */
+#v4Lateral{position:fixed;inset:0;z-index:52;pointer-events:none;visibility:hidden;transition:visibility 0s linear .3s}
+#v4Lateral.abierto{pointer-events:auto;visibility:visible;transition:visibility 0s}
+.v4-fondo{position:absolute;inset:0;background:rgba(15,23,42,.38);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  opacity:0;transition:opacity .28s cubic-bezier(.16,1,.3,1)}
+#v4Lateral.abierto .v4-fondo{opacity:1}
+.v4-cajon{position:absolute;top:0;left:0;height:100%;width:20rem;max-width:86vw;padding:22px;display:flex;flex-direction:column;justify-content:space-between;
+  background:rgba(255,255,255,.97);border-right:1px solid #fff;box-shadow:0 30px 70px -20px rgba(15,23,42,.45);
+  transform:translateX(-100%);transition:transform .32s cubic-bezier(.16,1,.3,1);overflow-y:auto}
+#v4Lateral.abierto .v4-cajon{transform:none}
+.v4-cab{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid #EEF2F7}
+.v4-marca{display:flex;align-items:center;gap:12px}
+.v4-logo{width:40px;height:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;
+  background:linear-gradient(135deg,#0284C7,#22D3EE);box-shadow:0 8px 16px -6px rgba(0,168,232,.5)}
+.v4-marca h2{font-size:15px;font-weight:900;letter-spacing:.06em;color:#0F172A;line-height:1}
+.v4-marca h2 span{color:#00A8E8}
+.v4-marca p{margin-top:3px;font-size:11px;color:#94A3B8;font-weight:500}
+.v4-cerrar{width:34px;height:34px;border-radius:50%;border:0;background:#F1F5F9;color:#64748B;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.v4-cerrar:hover{color:#0F172A}
+.v4-tasa{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;margin-bottom:18px;border-radius:18px;background:#F0F9FF;border:1px solid #E0F2FE;font-size:12px;font-weight:700;color:#075985}
+.v4-tasa b{color:#0F172A;font-weight:900}
+.v4-tasa span{display:flex;align-items:center;gap:8px}
+.v4-rotulo{padding:0 12px;margin-bottom:8px;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#94A3B8}
+.v4-nav{display:flex;flex-direction:column;gap:4px}
+.v4-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:16px;border:0;background:transparent;
+  font-size:13px;font-weight:700;color:#334155;text-align:left;cursor:pointer;transition:background .2s,color .2s}
+.v4-item span.v4-iz{display:flex;align-items:center;gap:12px}
+.v4-item i.v4-ic{width:18px;text-align:center;color:#94A3B8;transition:color .2s}
+.v4-item:hover{background:#F0F9FF;color:#0284C7}.v4-item:hover i.v4-ic{color:#00A8E8}
+.v4-item.actual{background:#00A8E8;color:#fff;box-shadow:0 8px 18px -8px rgba(0,168,232,.7)}
+.v4-item.actual i.v4-ic{color:#fff}
+.v4-num{min-width:20px;padding:2px 7px;border-radius:9999px;background:#E0F2FE;color:#0369A1;font-size:10px;font-weight:800;text-align:center}
+.v4-num.rojo{background:#FFE4E6;color:#BE123C}
+.v4-item.actual .v4-num{background:rgba(255,255,255,.25);color:#fff}
+.v4-pie{padding-top:16px;margin-top:16px;border-top:1px solid #EEF2F7;display:flex;flex-direction:column;gap:12px}
+.v4-estado{display:flex;align-items:center;justify-content:space-between;padding:0 4px;font-size:12px;color:#64748B}
+.v4-estado span{display:flex;align-items:center;gap:8px}
+.v4-salir{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;border-radius:16px;border:1px solid #E2E8F0;
+  background:#fff;color:#475569;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+.v4-salir:hover{background:#FFF1F2;border-color:#FECDD3;color:#E11D48}
+
+/* ---------- AVISO DE NOVEDAD ---------- */
+#avisoNovedad{
+  position:fixed;left:14px;right:14px;margin:0 auto;max-width:520px;z-index:45;
+  bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  display:none;align-items:flex-start;gap:12px;padding:14px 12px 14px 14px;
+  background:#fff;border:1px solid var(--linea);border-left:4px solid #00A8E8;
+  border-radius:18px;box-shadow:0 24px 50px -20px rgba(5,50,90,.55);
+}
+#avisoNovedad.on{display:flex;animation:avisoEntra .6s var(--suave) both}
+#avisoNovedad.sale{animation:avisoSale .25s ease both}
+@keyframes avisoEntra{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes avisoSale{to{opacity:0;transform:translateY(14px) scale(.97)}}
+.aviso-icono{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#0284C7,#00A8E8);color:#fff;font-size:14px}
+.aviso-cuerpo{min-width:0;flex:1}
+.aviso-etq{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#0284C7}
+.aviso-titulo{margin-top:2px;font-size:13px;font-weight:800;color:#0F172A}
+.aviso-texto{margin-top:3px;font-size:12px;line-height:1.45;color:#64748B}
+.aviso-lista{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.aviso-lista li{position:relative;padding-left:14px;font-size:12px;line-height:1.45;color:#64748B}
+.aviso-lista li::before{content:"";position:absolute;left:2px;top:7px;width:5px;height:5px;background:#00A8E8;transform:rotate(45deg)}
+.aviso-x{flex:none;width:30px;height:30px;border-radius:50%;border:0;cursor:pointer;color:#64748B;background:#F1F5F9;display:flex;align-items:center;justify-content:center}
+.aviso-x:hover{background:#E2E8F0}
+@media(prefers-reduced-motion:reduce){.v4-cajon,.v4-fondo,#avisoNovedad{transition:none !important;animation:none !important}.v4-vivo{animation:none}}
+</style>
     <link rel="stylesheet" href="/tailwind.css">
 </head>
 <body class="antialiased min-h-screen">
@@ -1303,6 +1495,17 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
         // tipo: 'Novedad' | 'Mejora' | 'Arreglo' | 'Base'
         // ===================================================================
         const HISTORIAL_VERSIONES = [
+            {
+                numero: '4.0.0', fecha: '2026-10-25', tipo: 'Novedad',
+                titulo: 'Panel nuevo',
+                cambios: [
+                    'Menú lateral nuevo: toca las tres rayitas de arriba para ir a Pedidos, Ventas, Fiado, Gastos y Versión.',
+                    'Operaciones rápidas en tarjetas grandes: vender, escanear y crear QR.',
+                    'Avisos de pedidos por revisar y fiados vencidos, y la tasa BCV siempre a la vista.',
+                    'Resumen de hoy en un bloque cian con saludo, y todo el panel con diseño más limpio.',
+                    'Cada versión nueva muestra un aviso corto que se quita con la X.'
+                ]
+            },
             {
                 numero: '1.3.0', fecha: '2026-10-20', tipo: 'Novedad',
                 titulo: 'Reporte de ventas en PDF',
@@ -4343,5 +4546,246 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:opacity(.5)}
             if (!panelPrincipal.classList.contains('hidden')) cargarTodo();
         }, INTERVALO_REFRESCO);
     </script>
+<!-- ===== PANEL 4.0: menú lateral, operaciones, avisos ===== -->
+<script id="novedades-v4">
+(function () {
+    var LLAVE = 'vs_aviso_visto';
+    var descartado = false;
+    var MODULOS = { pedidos: 'Pedidos', ventas: 'Ventas', fiados: 'Fiado', gastos: 'Gastos' };
+
+    function $(id) { return document.getElementById(id); }
+    function esc(s) { return (typeof escapeHTML === 'function') ? escapeHTML(s) : String(s == null ? '' : s); }
+    function leer() { try { return localStorage.getItem(LLAVE); } catch (e) { return null; } }
+    function guardar(v) { try { localStorage.setItem(LLAVE, v); } catch (e) {} }
+    function cuenta(idBadge) {
+        var b = $(idBadge);
+        if (!b || b.classList.contains('hidden')) return 0;
+        return parseInt(b.textContent, 10) || 0;
+    }
+    function versionActual() {
+        try { return HISTORIAL_VERSIONES[0].numero; } catch (e) { return ''; }
+    }
+    function tasaTexto() {
+        var t = (typeof tasaBcvAdmin !== 'undefined') ? tasaBcvAdmin : null;
+        return t ? 'Bs ' + Number(t).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'Bs --';
+    }
+    function pestanaActual() { return (typeof tabActiva !== 'undefined') ? tabActiva : 'pedidos'; }
+
+    /* ---------- Menú lateral ---------- */
+    function crearLateral() {
+        if ($('v4Lateral')) return;
+        var items = [
+            ['inicio', 'fa-house', 'Inicio y operaciones', ''],
+            ['pedidos', 'fa-boxes-packing', 'Pedidos', '<span class="v4-num" id="v4SbPed" style="display:none">0</span>'],
+            ['ventas', 'fa-chart-line', 'Ventas', ''],
+            ['fiados', 'fa-user-clock', 'Fiado', '<span class="v4-num rojo" id="v4SbFia" style="display:none">0</span>'],
+            ['gastos', 'fa-wallet', 'Gastos', ''],
+            ['version', 'fa-code-branch', 'Versión del sistema', '<span class="v4-num" id="v4SbVer"></span>']
+        ];
+        var nav = items.map(function (it) {
+            return '<button type="button" class="v4-item" data-k="' + it[0] + '">' +
+                '<span class="v4-iz"><i class="fa-solid ' + it[1] + ' v4-ic"></i><span>' + it[2] + '</span></span>' + it[3] + '</button>';
+        }).join('');
+        var el = document.createElement('div');
+        el.id = 'v4Lateral';
+        el.setAttribute('aria-hidden', 'true');
+        el.innerHTML =
+            '<div class="v4-fondo" id="v4Fondo"></div>' +
+            '<aside class="v4-cajon" role="dialog" aria-label="Menú">' +
+                '<div>' +
+                    '<div class="v4-cab">' +
+                        '<div class="v4-marca"><div class="v4-logo">VS</div><div><h2>VALERA<span>SPORT</span></h2><p>Menú de navegación</p></div></div>' +
+                        '<button type="button" class="v4-cerrar" id="v4Cerrar" aria-label="Cerrar menú"><i class="fa-solid fa-xmark text-sm"></i></button>' +
+                    '</div>' +
+                    '<div class="v4-tasa"><span><i class="v4-vivo"></i>Tasa BCV</span><b id="v4SbTasa">Bs --</b></div>' +
+                    '<p class="v4-rotulo">Módulos</p>' +
+                    '<nav class="v4-nav">' + nav + '</nav>' +
+                '</div>' +
+                '<div class="v4-pie">' +
+                    '<div class="v4-estado"><span><i class="v4-vivo"></i>Sistema en línea</span><span id="v4SbPie"></span></div>' +
+                    '<button type="button" class="v4-salir" id="v4Salir"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir del sistema</button>' +
+                '</div>' +
+            '</aside>';
+        document.body.appendChild(el);
+        $('v4Fondo').addEventListener('click', function () { lateral(false); });
+        $('v4Cerrar').addEventListener('click', function () { lateral(false); });
+        $('v4Salir').addEventListener('click', function () { lateral(false); if (typeof cerrarSesion === 'function') cerrarSesion(); });
+        el.querySelector('.v4-nav').addEventListener('click', function (e) {
+            var b = e.target.closest('.v4-item');
+            if (b) ir(b.getAttribute('data-k'));
+        });
+    }
+
+    function lateral(abrir) {
+        var el = $('v4Lateral');
+        if (!el) return;
+        el.classList.toggle('abierto', abrir);
+        el.setAttribute('aria-hidden', String(!abrir));
+        document.body.style.overflow = abrir ? 'hidden' : '';
+    }
+    window.v4Lateral = lateral;
+
+    function irANav() {
+        var nav = $('contenedorTabsNav');
+        if (nav) nav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function ir(k) {
+        lateral(false);
+        if (k === 'inicio') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+        if (k === 'version') { if (typeof abrirPanelAccion === 'function') abrirPanelAccion('version'); return; }
+        if (typeof cambiarTabPedidos === 'function') cambiarTabPedidos(k);
+        setTimeout(irANav, 160);
+    }
+    window.v4Ir = ir;
+
+    /* ---------- Encabezado: botón de menú, módulo y tasa ---------- */
+    function armarEncabezado() {
+        var cab = document.querySelector('#panelPrincipal > header');
+        if (!cab || $('v4Burger')) return;
+        var b = document.createElement('button');
+        b.type = 'button'; b.id = 'v4Burger'; b.className = 'v4-burger';
+        b.setAttribute('aria-label', 'Abrir menú');
+        b.innerHTML = '<i class="fa-solid fa-bars text-base"></i>';
+        b.addEventListener('click', function () { lateral(true); });
+        cab.insertBefore(b, cab.firstChild);
+
+        var marca = cab.querySelector('.marca');
+        if (marca) marca.insertAdjacentHTML('afterend', '<span class="v4-modulo" id="v4Modulo">Pedidos</span>');
+
+        var salir = cab.querySelector('button[onclick*="cerrarSesion"]');
+        var pill = document.createElement('div');
+        pill.className = 'v4-bcv';
+        pill.innerHTML = '<i class="v4-vivo"></i><span>BCV: <b id="v4Bcv">Bs --</b></span>';
+        if (salir) cab.insertBefore(pill, salir); else cab.appendChild(pill);
+    }
+
+    /* ---------- Avisos + operaciones rápidas ---------- */
+    function armarOperaciones() {
+        if ($('opsV4')) return;
+        var ref = $('accionesV');
+        if (!ref) return;
+        var s = document.createElement('section');
+        s.id = 'opsV4';
+        s.className = 'v4-ops entra';
+        s.innerHTML =
+            '<div class="v4-alertas">' +
+                '<button type="button" class="v4-alerta" id="v4AlPed" onclick="v4Ir(&quot;pedidos&quot;)">' +
+                    '<span class="v4-alerta-ico"><i class="fa-solid fa-boxes-packing"></i></span>' +
+                    '<span><b id="v4NumPed">0</b><small>Pedidos por revisar</small></span></button>' +
+                '<button type="button" class="v4-alerta rojo" id="v4AlFia" onclick="v4Ir(&quot;fiados&quot;)">' +
+                    '<span class="v4-alerta-ico"><i class="fa-solid fa-hand-holding-dollar"></i></span>' +
+                    '<span><b id="v4NumFia">0</b><small>Fiados vencidos</small></span></button>' +
+            '</div>' +
+            '<div class="v4-card">' +
+                '<div class="v4-card-cab"><i class="v4-punto"></i><h2>Operaciones rápidas</h2><span class="v4-sub">En la tienda</span></div>' +
+                '<div class="v4-acciones">' +
+                    '<button type="button" class="v4-accion v4-a1" onclick="abrirPanelAccion(&quot;fisica&quot;)">' +
+                        '<span class="v4-accion-ico"><i class="fa-solid fa-store"></i></span>' +
+                        '<span><span class="v4-accion-num">01</span><strong>Vender en la tienda</strong><small>Cobro rápido de la prenda</small></span></button>' +
+                    '<button type="button" class="v4-accion v4-a2" onclick="abrirScannerVenta()">' +
+                        '<span class="v4-accion-ico"><i class="fa-solid fa-camera"></i></span>' +
+                        '<span><span class="v4-accion-num">02</span><strong>Escanear una prenda</strong><small>Leer el código con la cámara</small></span></button>' +
+                    '<button type="button" class="v4-accion v4-a3" onclick="abrirPanelAccion(&quot;qr&quot;)">' +
+                        '<span class="v4-accion-ico"><i class="fa-solid fa-qrcode"></i></span>' +
+                        '<span><span class="v4-accion-num">03</span><strong>Crear un código QR</strong><small>Etiqueta para la prenda</small></span></button>' +
+                '</div>' +
+            '</div>';
+        ref.parentNode.insertBefore(s, ref);
+    }
+
+    /* ---------- Saludo dentro del resumen de hoy ---------- */
+    function pintarSaludo() {
+        var hero = document.querySelector('#panelPrincipal > section.panel > .relative');
+        if (!hero) return;
+        var p = $('v4Saludo');
+        if (!p) {
+            p = document.createElement('div');
+            p.id = 'v4Saludo';
+            hero.insertBefore(p, hero.firstChild);
+        }
+        var h = new Date().getHours();
+        var saludo = h < 12 ? 'Buenos días' : (h < 19 ? 'Buenas tardes' : 'Buenas noches');
+        var fecha = new Date().toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' });
+        p.innerHTML = '<p class="v4-saludo">' + esc(saludo) + '</p><p class="v4-fecha">' + esc(fecha) + '</p>';
+    }
+
+    /* ---------- Aviso de novedad (mensaje corto con X) ---------- */
+    function cerrarAviso() {
+        descartado = true;
+        var v = versionActual();
+        if (v) guardar(v);
+        var el = $('avisoNovedad');
+        if (!el) return;
+        el.classList.add('sale');
+        setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 260);
+    }
+    window.cerrarAvisoNovedad = cerrarAviso;
+
+    function mostrarAviso() {
+        if (descartado || $('avisoNovedad')) return;
+        if (typeof HISTORIAL_VERSIONES === 'undefined') return;
+        var v = HISTORIAL_VERSIONES[0];
+        if (!v || leer() === v.numero) return;
+        var panel = $('panelPrincipal');
+        if (!panel || panel.classList.contains('hidden')) return;
+
+        var items = (v.cambios || []).slice(0, 3).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('');
+        var cuerpo = v.aviso ? '<p class="aviso-texto">' + esc(v.aviso) + '</p>' : '<ul class="aviso-lista">' + items + '</ul>';
+        var el = document.createElement('div');
+        el.id = 'avisoNovedad';
+        el.setAttribute('role', 'status');
+        el.innerHTML =
+            '<div class="aviso-icono"><i class="fa-solid fa-wand-magic-sparkles"></i></div>' +
+            '<div class="aviso-cuerpo">' +
+                '<p class="aviso-etq">' + esc(v.tipo || 'Novedad') + ' · v' + esc(v.numero) + '</p>' +
+                '<p class="aviso-titulo">' + esc(v.titulo || '') + '</p>' +
+                cuerpo +
+            '</div>' +
+            '<button type="button" class="aviso-x" aria-label="Cerrar aviso" title="Cerrar" onclick="cerrarAvisoNovedad()">' +
+                '<i class="fa-solid fa-xmark text-sm"></i>' +
+            '</button>';
+        document.body.appendChild(el);
+        requestAnimationFrame(function () { el.classList.add('on'); });
+    }
+
+    /* ---------- Refresco de lo que cambia solo ---------- */
+    function refrescar() {
+        var tab = pestanaActual();
+        var mod = $('v4Modulo'); if (mod) mod.textContent = MODULOS[tab] || 'Panel';
+
+        var tasa = tasaTexto();
+        if ($('v4Bcv')) $('v4Bcv').textContent = tasa;
+        if ($('v4SbTasa')) $('v4SbTasa').textContent = tasa + ' / $';
+
+        var ped = cuenta('badgePedidosPendientes'), fia = cuenta('badgeFiadosVencidos');
+        if ($('v4NumPed')) $('v4NumPed').textContent = String(ped);
+        if ($('v4NumFia')) $('v4NumFia').textContent = String(fia);
+        if ($('v4AlPed')) $('v4AlPed').classList.toggle('activa', ped > 0);
+        if ($('v4AlFia')) $('v4AlFia').classList.toggle('activa', fia > 0);
+        var sp = $('v4SbPed'), sf = $('v4SbFia');
+        if (sp) { sp.textContent = String(ped); sp.style.display = ped ? '' : 'none'; }
+        if (sf) { sf.textContent = String(fia); sf.style.display = fia ? '' : 'none'; }
+
+        var v = versionActual();
+        if ($('v4SbVer')) $('v4SbVer').textContent = v ? 'v' + v : '';
+        if ($('v4SbPie')) $('v4SbPie').textContent = v ? 'v' + v : '';
+
+        var items = document.querySelectorAll('#v4Lateral .v4-item');
+        for (var i = 0; i < items.length; i++) {
+            items[i].classList.toggle('actual', items[i].getAttribute('data-k') === tab);
+        }
+        pintarSaludo();
+        mostrarAviso();
+    }
+
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') lateral(false); });
+
+    crearLateral();
+    armarEncabezado();
+    armarOperaciones();
+    refrescar();
+    setInterval(refrescar, 1500);
+})();
+</script>
 </body>
 </html>
