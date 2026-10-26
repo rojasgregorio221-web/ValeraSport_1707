@@ -1,19 +1,21 @@
-// POST /api/admin-pedidos
+// POST /api/admin-pedidos  (versión segura generada por aplicar-seguridad.js)
 //
-// Backend del panel de administración (admin.html). Sigue funcionando por
-// contraseña (ADMIN_PASSWORD), sin relación con el login de clientes.
-//
-// POST { password, tipo: "pedidos" }   -> lista de órdenes pendientes (agrupadas)
-// POST { password, tipo: "aceptados" } -> últimas órdenes ya aceptadas (agrupadas)
-// POST { password, tipo: "resumen" }   -> total vendido hoy
-// POST { password, accion: "aceptarOrden"|"rechazarOrden"|"rechazar_todos", idOrden }
-// POST { password, accion: "ventaFisica", nombre, precio, categoria,
-//        metodoPago, correoCliente } -> registra una venta de tienda física
+// Entrada del panel:  { password, tipo: "pedidos" | "aceptados" | "resumen" | ... }
+//                o:   { password, accion: "aceptarOrden" | "rechazarOrden" | ... , ...datos }
+// El panel manda ADMIN_PASSWORD; este archivo la valida y SIEMPRE manda la
+// clave a Google Apps Script (antes aceptar/rechazar no la mandaban).
+
+const URL_VARS = ["SHEET_WRITE_URL","SHEET_CSV_URL","APPS_SCRIPT_URL","GOOGLE_SCRIPT_URL","GOOGLE_SHEETS_URL","SHEETS_URL","SCRIPT_URL"];
+const CLAVE_VARS = ["CLAVE_ADMIN","APPS_SCRIPT_CLAVE"];
+const URL_FALLBACK = "";
+
+const LECTURAS = ["pedidos", "aceptados", "rechazadas", "ventas", "fiados", "gastos", "resumen", "semanas", "resumenSemanal", "historialCliente"];
+const ACCIONES = ["aceptarOrden", "rechazarOrden", "rechazar_todos", "ventaFisica", "ventaFisicaLote", "marcarFiadoPagado", "agregarGasto", "eliminarGasto", "vaciarVentas", "cerrarSemana"];
 
 function jsonResponse(obj, status) {
   return new Response(JSON.stringify(obj), {
-    status,
-    headers: { "Content-Type": "application/json" },
+    status: status || 200,
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
 }
 
@@ -26,220 +28,74 @@ async function parsearRespuesta(respuesta) {
   }
 }
 
-// ---------- Freno anti fuerza-bruta para la contraseña del panel ----------
-// Vive en memoria del "worker" de Cloudflare mientras esté activo (no es un
-// contador 100% global entre todos los centros de datos, pero sí frena de
-// forma efectiva a un script que intente adivinar la contraseña a golpes).
-const MAX_INTENTOS_FALLIDOS = 5;
-const VENTANA_BLOQUEO_MS = 15 * 60 * 1000; // 15 minutos
-const intentosFallidosPorIP = new Map();
-
-function limpiarIntentosViejos(ahora) {
-  for (const [ip, info] of intentosFallidosPorIP) {
-    if (ahora - info.ultimoIntento > VENTANA_BLOQUEO_MS) intentosFallidosPorIP.delete(ip);
+function primero(env, nombres) {
+  for (let i = 0; i < nombres.length; i++) {
+    if (env[nombres[i]]) return env[nombres[i]];
   }
+  return "";
+}
+
+function iguales(a, b) {
+  const largo = Math.max(a.length, b.length);
+  let r = a.length ^ b.length;
+  for (let i = 0; i < largo; i++) r |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  return r === 0;
 }
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
-  const SHEET_WRITE_URL = env.SHEET_WRITE_URL;
-  const CLAVE_ADMIN = env.CLAVE_ADMIN;
-  const ADMIN_PASSWORD = env.ADMIN_PASSWORD;
-
-  if (!SHEET_WRITE_URL || !CLAVE_ADMIN || !ADMIN_PASSWORD) {
-    return jsonResponse(
-      {
-        ok: false,
-        error: "Faltan variables de entorno en Cloudflare Pages: SHEET_WRITE_URL, CLAVE_ADMIN o ADMIN_PASSWORD",
-      },
-      500
-    );
-  }
-
-  const ip = request.headers.get("CF-Connecting-IP") || "desconocida";
-  const ahora = Date.now();
-  limpiarIntentosViejos(ahora);
-
-  const registro = intentosFallidosPorIP.get(ip);
-  if (registro && registro.cantidad >= MAX_INTENTOS_FALLIDOS && ahora - registro.ultimoIntento < VENTANA_BLOQUEO_MS) {
-    const minutosRestantes = Math.ceil((VENTANA_BLOQUEO_MS - (ahora - registro.ultimoIntento)) / 60000);
-    return jsonResponse(
-      { ok: false, error: "Demasiados intentos fallidos. Intenta de nuevo en " + minutosRestantes + " minuto(s)." },
-      429
-    );
-  }
+  const request = context.request;
+  const env = context.env;
 
   let datos;
   try {
     datos = await request.json();
   } catch (e) {
-    return jsonResponse({ ok: false, error: "Cuerpo de la petición inválido" }, 400);
+    return jsonResponse({ ok: false, error: "Solicitud inválida" }, 400);
   }
 
-  if (datos.password !== ADMIN_PASSWORD) {
-    const actual = intentosFallidosPorIP.get(ip) || { cantidad: 0, ultimoIntento: 0 };
-    intentosFallidosPorIP.set(ip, { cantidad: actual.cantidad + 1, ultimoIntento: ahora });
-    return jsonResponse({ ok: false, error: "Contraseña incorrecta" }, 401);
+  const adminPassword = (env.ADMIN_PASSWORD || "").toString();
+  const recibida = (datos.password || "").toString();
+  if (!adminPassword || !iguales(recibida, adminPassword)) {
+    return jsonResponse({ ok: false, error: "Clave incorrecta" }, 401);
   }
 
-  intentosFallidosPorIP.delete(ip);
+  const urlScript = primero(env, URL_VARS) || URL_FALLBACK;
+  if (!urlScript) {
+    return jsonResponse({ ok: false, error: "Falta configurar la URL del Apps Script en Cloudflare" }, 500);
+  }
+  const claveScript = primero(env, CLAVE_VARS) || adminPassword;
 
-  // Lectura: listar órdenes pendientes/aceptadas/rechazadas, el registro de
-  // ventas (caja registradora), fiados, gastos o el resumen de ventas del día
-  if (
-    datos.tipo === "pedidos" ||
-    datos.tipo === "aceptados" ||
-    datos.tipo === "resumen" ||
-    datos.tipo === "rechazadas" ||
-    datos.tipo === "ventas" ||
-    datos.tipo === "fiados" ||
-    datos.tipo === "gastos"
-  ) {
-    const url = SHEET_WRITE_URL + "?accion=" + datos.tipo + "&clave=" + encodeURIComponent(CLAVE_ADMIN);
-    const respuesta = await fetch(url, { method: "GET" });
-    const resultado = await parsearRespuesta(respuesta);
-    return jsonResponse(resultado, resultado.ok ? 200 : 500);
+  let accion = (datos.accion || "").toString();
+  if (!accion && datos.tipo) accion = datos.tipo.toString();
+  if (LECTURAS.indexOf(accion) === -1 && ACCIONES.indexOf(accion) === -1) {
+    return jsonResponse({ ok: false, error: "Acción no permitida: " + accion }, 400);
   }
 
-  // Escritura: aceptar / rechazar una orden completa / rechazar todas
-  if (datos.accion === "aceptarOrden" || datos.accion === "rechazarOrden" || datos.accion === "rechazar_todos") {
-    if (!datos.idOrden && datos.accion !== "rechazar_todos") {
-      return jsonResponse({ ok: false, error: "Falta el id de la orden" }, 400);
-    }
+  const cuerpo = Object.assign({}, datos);
+  delete cuerpo.password;
+  delete cuerpo.tipo;
+  cuerpo.accion = accion;
+  cuerpo.clave = claveScript;
 
-    const cuerpo = { accion: datos.accion, idOrden: datos.idOrden, clave: CLAVE_ADMIN };
-    if (datos.accion === "rechazarOrden" && datos.motivo) {
-      cuerpo.motivo = String(datos.motivo).slice(0, 300);
-    }
-
-    const respuesta = await fetch(SHEET_WRITE_URL, {
+  try {
+    const respuesta = await fetch(urlScript, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(cuerpo),
+      redirect: "follow",
     });
-
     const resultado = await parsearRespuesta(respuesta);
-    return jsonResponse(resultado, resultado.ok ? 200 : 500);
-  }
 
-  // Escritura: registrar una venta hecha en la tienda física (soporta lote o prenda individual, y fiados)
-  if (datos.accion === "ventaFisica") {
-    const tieneItems = Array.isArray(datos.items) && datos.items.length > 0;
-    if (!datos.metodoPago || (!datos.nombre && !tieneItems)) {
-      return jsonResponse(
-        { ok: false, error: "Faltan datos: producto (o lista de prendas) y método de pago son obligatorios" },
-        400
-      );
+    // Compatibilidad: si el panel esperaba los datos del resumen en la raíz.
+    if (accion === "resumen" && resultado && resultado.resumen) {
+      Object.assign(resultado, resultado.resumen);
     }
-
-    const recortar = (valor, max) => String(valor || "").slice(0, max);
-
-    const cuerpo = {
-      accion: "ventaFisica",
-      metodoPago: recortar(datos.metodoPago, 50),
-      correoCliente: recortar(datos.correoCliente, 200),
-      nota: recortar(datos.nota, 300),
-      clave: CLAVE_ADMIN,
-      esFiado: Boolean(datos.esFiado || datos.metodoPago === "Fiado"),
-      clienteNombre: recortar(datos.clienteNombre, 120),
-      fechaPago: recortar(datos.fechaPago, 30),
-      estadoPago: recortar(datos.estadoPago, 30),
-    };
-
-    if (tieneItems) {
-      cuerpo.items = datos.items;
-      cuerpo.nombre = recortar(datos.items[0].nombre || datos.items[0].producto, 200);
-    } else {
-      cuerpo.nombre = recortar(datos.nombre, 200);
-      cuerpo.precio = recortar(datos.precio, 20);
-      cuerpo.categoria = recortar(datos.categoria, 100);
+    // Siempre un mensaje de error legible para el panel.
+    if (resultado && resultado.ok === false && !resultado.mensaje) {
+      resultado.mensaje = resultado.error;
     }
-
-    const respuesta = await fetch(SHEET_WRITE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpo),
-    });
-
-    const resultado = await parsearRespuesta(respuesta);
-    return jsonResponse(resultado, resultado.ok ? 200 : 500);
+    return jsonResponse(resultado, 200);
+  } catch (e) {
+    return jsonResponse({ ok: false, error: "No se pudo conectar con Google Sheets" }, 502);
   }
-
-  // Escritura: marcar fiado como pagado
-  if (datos.accion === "marcarFiadoPagado") {
-    if (!datos.idVenta && !datos.idFiado && !datos.id) {
-      return jsonResponse({ ok: false, error: "Falta el id del fiado" }, 400);
-    }
-
-    const respuesta = await fetch(SHEET_WRITE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accion: "marcarFiadoPagado",
-        idVenta: datos.idVenta || datos.idFiado || datos.id,
-        metodoPago: datos.metodoPago || "Pago Móvil",
-        clave: CLAVE_ADMIN,
-      }),
-    });
-
-    const resultado = await parsearRespuesta(respuesta);
-    return jsonResponse(resultado, resultado.ok ? 200 : 500);
-  }
-
-  // Escritura: registrar gasto
-  if (datos.accion === "agregarGasto") {
-    const respuesta = await fetch(SHEET_WRITE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accion: "agregarGasto",
-        concepto: datos.concepto,
-        monto: datos.monto,
-        categoria: datos.categoria,
-        fecha: datos.fecha,
-        nota: datos.nota,
-        clave: CLAVE_ADMIN,
-      }),
-    });
-
-    const resultado = await parsearRespuesta(respuesta);
-    return jsonResponse(resultado, resultado.ok ? 200 : 500);
-  }
-
-  // Escritura: eliminar gasto
-  if (datos.accion === "eliminarGasto") {
-    if (!datos.idGasto) {
-      return jsonResponse({ ok: false, error: "Falta el id del gasto" }, 400);
-    }
-
-    const respuesta = await fetch(SHEET_WRITE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accion: "eliminarGasto",
-        idGasto: datos.idGasto,
-        clave: CLAVE_ADMIN,
-      }),
-    });
-
-    const resultado = await parsearRespuesta(respuesta);
-    return jsonResponse(resultado, resultado.ok ? 200 : 500);
-  }
-
-  // Escritura: vaciar todas las ventas (solo admin)
-  if (datos.accion === "vaciarVentas") {
-    const respuesta = await fetch(SHEET_WRITE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accion: "vaciarVentas",
-        clave: CLAVE_ADMIN,
-      }),
-    });
-
-    const resultado = await parsearRespuesta(respuesta);
-    return jsonResponse(resultado, resultado.ok ? 200 : 500);
-  }
-
-  return jsonResponse({ ok: false, error: "Acción inválida" }, 400);
 }
