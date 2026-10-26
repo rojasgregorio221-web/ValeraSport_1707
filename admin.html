@@ -1503,7 +1503,17 @@ body::after{display:none}
         // tipo: 'Novedad' | 'Mejora' | 'Arreglo' | 'Base'
         // ===================================================================
         const HISTORIAL_VERSIONES = [
+            
             {
+                numero: '4.3', fecha: '2026-10-26', tipo: 'Novedad',
+                titulo: 'Cashea y lista de precios',
+                cambios: [
+                    'Nueva forma de pago «Cashea» en Vender en la tienda: cada prenda se recalcula sola y la venta queda anotada con base y recargo.',
+                    'Nueva pantalla «Lista de precios» en el menú: precio normal y precio Cashea en vivo, con buscador y filtros.',
+                    'Descarga el PDF con los precios actualizados (normal, Cashea o ambos).'
+                ]
+            },
+{
                 numero: '4.2', fecha: '2026-10-25', tipo: 'Mejora',
                 titulo: 'Transición rápida y mensaje del día',
                 cambios: [
@@ -5181,5 +5191,439 @@ body::after{display:none}
 })();
 </script>
 <!-- seg:fin -->
+<!-- cashea:inicio -->
+<style id="cashea-css">
+#csAviso { text-align: left; }
+.cs-tabla { width: 100%; border-collapse: collapse; font-size: 12px; }
+.cs-tabla th { text-align: right; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--tenue); padding: 8px 6px; border-bottom: 1px solid var(--linea); }
+.cs-tabla th:first-child { text-align: left; }
+.cs-tabla td { padding: 9px 6px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+.cs-tabla td.cs-num { text-align: right; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cs-tabla td.cs-cash { color: #0284C7; }
+.cs-cat { display: block; margin-top: 2px; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--tenue); }
+.cs-scroll { overflow-x: auto; }
+.cs-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cs-formula { margin-top: 10px; font-size: 12px; color: var(--gris); }
+.cs-formula b { color: var(--hueso); }
+</style>
+<script id="cashea-js">
+(function () {
+    'use strict';
+    if (window.__cashea) return;
+    var panel = document.getElementById('panelPrincipal');
+    if (!panel || typeof PANELES_ACCION === 'undefined' || typeof calcularResumenCarritoFisica !== 'function' || typeof renderizarCarritoFisica !== 'function') {
+        console.warn('[cashea] No se encontro la base del panel; no se activo.');
+        return;
+    }
+    window.__cashea = true;
+
+    function $(id) { return document.getElementById(id); }
+    function esc(s) { return (typeof escapeHTML === 'function') ? escapeHTML(s) : String(s == null ? '' : s); }
+
+    /* ---------- Configuración (se guarda en este navegador) ---------- */
+    var LLAVE = 'vs_cashea_cfg';
+    // modo 'neto'    : precio / (1 - pct)  -> despues del descuento de Cashea te queda el precio base
+    // modo 'recargo' : precio * (1 + pct)  -> se le suma el pct al precio base
+    var cfg = { pct: 21, modo: 'neto' };
+    try {
+        var g = JSON.parse(localStorage.getItem(LLAVE) || 'null');
+        if (g && g.pct > 0 && g.pct < 90) cfg.pct = Number(g.pct);
+        if (g && (g.modo === 'recargo' || g.modo === 'neto')) cfg.modo = g.modo;
+    } catch (e) {}
+    function guardarCfg() { try { localStorage.setItem(LLAVE, JSON.stringify(cfg)); } catch (e) {} }
+
+    function r2(n) { return Math.round(((Number(n) || 0) + 1e-9) * 100) / 100; }
+    function usd(n) { return '$' + (Number(n) || 0).toFixed(2); }
+    function pctTxt() { return String(cfg.pct).replace('.', ','); }
+
+    function aCashea(base) {
+        base = Number(base) || 0;
+        if (cfg.modo === 'neto') return Math.ceil((base / (1 - cfg.pct / 100) - 1e-9) * 100) / 100;
+        return r2(base * (1 + cfg.pct / 100));
+    }
+    function aBase(precioCashea) {
+        precioCashea = Number(precioCashea) || 0;
+        if (cfg.modo === 'neto') return r2(precioCashea * (1 - cfg.pct / 100));
+        return r2(precioCashea / (1 + cfg.pct / 100));
+    }
+    function formulaTxt() {
+        return cfg.modo === 'neto'
+            ? 'precio ÷ ' + (1 - cfg.pct / 100).toFixed(2).replace('.', ',')
+            : 'precio × ' + (1 + cfg.pct / 100).toFixed(2).replace('.', ',');
+    }
+
+    function esCashea() {
+        var s = $('fisicaMetodoPago');
+        return !!s && s.value === 'Cashea';
+    }
+
+    /* ---------- 1. Cashea como forma de pago ---------- */
+    (function agregarOpcion() {
+        var s = $('fisicaMetodoPago');
+        if (!s || s.querySelector('option[value="Cashea"]')) return;
+        var o = document.createElement('option');
+        o.value = 'Cashea';
+        o.textContent = 'Cashea (precio con recargo)';
+        var fiado = s.querySelector('option[value="Fiado"]');
+        if (fiado) s.insertBefore(o, fiado); else s.appendChild(o);
+    })();
+
+    function pintarAviso() {
+        var m = $('fisicaMetodoPago');
+        if (!m) return;
+        var a = $('csAviso');
+        if (!a) {
+            var grid = m.closest('.grid');
+            if (!grid) return;
+            a = document.createElement('div');
+            a.id = 'csAviso';
+            a.className = 'msg msg-warn hidden';
+            grid.parentNode.insertBefore(a, grid.nextSibling);
+        }
+        a.classList.toggle('hidden', !esCashea());
+        a.innerHTML = '<i class="fa-solid fa-credit-card mr-1.5"></i> <b>Cashea activo:</b> cada prenda se cobra a <b>' + esc(formulaTxt()) + '</b>' +
+            (cfg.modo === 'neto' ? ' para que, despues del ' + esc(pctTxt()) + '% de Cashea, te quede el precio base.' : ' (le suma el ' + esc(pctTxt()) + '%).') +
+            ' Ya viene aplicado en la lista de abajo.';
+    }
+
+    // Cada prenda del carrito guarda su precio base y su precio actual (con Cashea o sin)
+    function sincronizar() {
+        var c = esCashea();
+        carritoFisica.forEach(function (it) {
+            if (c) {
+                if (it.precioBase == null) it.precioBase = Number(it.precio) || 0;
+                if (!it.precioManual) it.precio = aCashea(it.precioBase);
+            } else if (it.precioBase != null) {
+                it.precio = it.precioBase;
+                delete it.precioBase;
+                delete it.precioManual;
+            }
+        });
+    }
+
+    function refrescarVenta() {
+        sincronizar();
+        renderizarCarritoFisica();
+        pintarAviso();
+        if (typeof actualizarPrecioBsFisica === 'function') actualizarPrecioBsFisica();
+    }
+
+    var oMetodo = window.alCambiarMetodoPagoFisica;
+    window.alCambiarMetodoPagoFisica = function () {
+        var r = oMetodo ? oMetodo.apply(this, arguments) : undefined;
+        refrescarVenta();
+        return r;
+    };
+
+    var oAgregar = window.agregarItemCarritoFisica;
+    window.agregarItemCarritoFisica = function () {
+        var r = oAgregar.apply(this, arguments);
+        if (esCashea()) { sincronizar(); renderizarCarritoFisica(); }
+        return r;
+    };
+
+    var oPrecioItem = window.actualizarPrecioItemFisica;
+    if (typeof oPrecioItem === 'function') {
+        window.actualizarPrecioItemFisica = function (indice) {
+            var it = carritoFisica[indice];
+            var antes = it ? it.precio : null;
+            var r = oPrecioItem.apply(this, arguments);
+            if (esCashea() && it && carritoFisica[indice] === it && it.precio !== antes) {
+                // Si se cambia el precio a mano en modo Cashea, ese es el precio final
+                it.precioBase = aBase(it.precio);
+                it.precioManual = true;
+            }
+            return r;
+        };
+    }
+
+    var oPrecioBs = window.actualizarPrecioBsFisica;
+    if (typeof oPrecioBs === 'function') {
+        window.actualizarPrecioBsFisica = function () {
+            var r = oPrecioBs.apply(this, arguments);
+            var el = $('fisicaPrecioBs');
+            var input = $('fisicaPrecio');
+            var p = input ? parseFloat(input.value) : NaN;
+            if (el && esCashea() && p > 0) {
+                el.textContent = (el.textContent ? el.textContent + ' · ' : '') + 'Con Cashea: ' + usd(aCashea(p));
+            }
+            return r;
+        };
+    }
+
+    var oRegistrar = window.registrarVentaFisica;
+    window.registrarVentaFisica = function () {
+        try {
+            if (esCashea()) {
+                // Si quedó una prenda escrita sin sumar, se suma primero para que entre al cálculo
+                var ps = $('fisicaProducto').value.trim();
+                var pp = parseFloat($('fisicaPrecio').value);
+                if (ps && !isNaN(pp) && pp > 0) window.agregarItemCarritoFisica();
+
+                if (carritoFisica.length) {
+                    var base = 0, conCashea = 0;
+                    carritoFisica.forEach(function (it) {
+                        var cant = parseInt(it.cantidad, 10) || 1;
+                        base += (Number(it.precioBase != null ? it.precioBase : it.precio) || 0) * cant;
+                        conCashea += (Number(it.precio) || 0) * cant;
+                    });
+                    var txt = 'Cashea (base ' + usd(base) + ' + recargo ' + usd(conCashea - base) + ')';
+                    var n = $('fisicaNota');
+                    var limpia = n.value.replace(/(?:\s*·\s*)?Cashea \(base [^)]*\)/g, '').trim();
+                    n.value = limpia ? limpia + ' · ' + txt : txt;
+                }
+            }
+        } catch (e) { console.error('[cashea]', e); }
+        return oRegistrar.apply(this, arguments);
+    };
+
+    /* ---------- 2. Pantalla "Lista de precios" ---------- */
+    var csCat = 'todas';
+
+    function crearPantalla() {
+        if ($('pantallaPrecios')) { PANELES_ACCION.precios = { form: 'pantallaPrecios' }; return; }
+        var s = document.createElement('section');
+        s.id = 'pantallaPrecios';
+        s.className = 'pantalla-accion';
+        s.setAttribute('aria-label', 'Lista de precios');
+        s.innerHTML =
+            '<div class="pantalla-barra">' +
+                '<button type="button" onclick="abrirPanelAccion(null)" class="icon-btn btn-fantasma pantalla-volver">' +
+                    '<i class="fa-solid fa-chevron-left text-[11px]"></i> Volver</button>' +
+                '<p class="marca pantalla-titulo">Lista de precios</p>' +
+                '<button type="button" class="v41-ref" onclick="csRecargar(this)" aria-label="Actualizar" title="Traer el catálogo otra vez"><i class="fa-solid fa-arrows-rotate text-sm"></i></button>' +
+            '</div>' +
+            '<div class="pantalla-cuerpo">' +
+                '<div class="panel p-5">' +
+                    '<p class="rotulo mb-4"><i class="fa-solid fa-credit-card mr-1.5" style="color: var(--fucsia)"></i> Cálculo de Cashea</p>' +
+                    '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">' +
+                        '<div><label class="etiqueta" for="csPct">Porcentaje de Cashea (%)</label>' +
+                            '<input type="number" id="csPct" step="0.5" min="1" max="60" class="campo cifra" oninput="csCambioCfg()"></div>' +
+                        '<div><label class="etiqueta" for="csModo">Cómo se calcula</label>' +
+                            '<select id="csModo" class="campo" onchange="csCambioCfg()">' +
+                                '<option value="neto">Cubrir el descuento (te queda el precio base)</option>' +
+                                '<option value="recargo">Sumar el porcentaje al precio</option>' +
+                            '</select></div>' +
+                    '</div>' +
+                    '<p class="cs-formula" id="csFormula"></p>' +
+                '</div>' +
+                '<div class="panel p-5">' +
+                    '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-3">' +
+                        '<div><label class="etiqueta" for="csBuscar">Buscar prenda</label>' +
+                            '<input type="text" id="csBuscar" placeholder="Biker, conjunto, chaqueta..." class="campo" oninput="csRender()"></div>' +
+                        '<div class="flex items-end"><label class="flex items-center gap-2.5 text-xs font-semibold cursor-pointer select-none" style="color: var(--gris); padding-bottom: 12px">' +
+                            '<input type="checkbox" id="csSoloStock" onchange="csRender()"> Solo prendas con stock</label></div>' +
+                    '</div>' +
+                    '<div id="csCats" class="cs-chips mb-4"></div>' +
+                    '<p id="csResumen" class="text-[11px] mb-2" style="color: var(--tenue)"></p>' +
+                    '<div class="cs-scroll"><table class="cs-tabla"><thead><tr><th>Prenda</th><th>Normal</th><th>Cashea</th></tr></thead><tbody id="csLista"></tbody></table></div>' +
+                    '<p id="csVacio" class="hidden vacio">No hay prendas con ese filtro.</p>' +
+                '</div>' +
+                '<div class="panel p-5">' +
+                    '<p class="rotulo mb-4"><i class="fa-solid fa-file-pdf mr-1.5" style="color: var(--fucsia)"></i> Descargar PDF</p>' +
+                    '<label class="etiqueta" for="csPdfModo">Qué precios llevará</label>' +
+                    '<select id="csPdfModo" class="campo"><option value="ambos">Precio normal y precio Cashea</option><option value="normal">Solo precio normal</option><option value="cashea">Solo precio Cashea</option></select>' +
+                    '<p class="text-[11px] mt-2" style="color: var(--tenue)">El PDF respeta lo que tengas filtrado arriba (búsqueda, categoría y stock).</p>' +
+                    '<button type="button" onclick="csPdf()" class="btn-marca w-full py-3 rounded-full text-sm mt-4 flex items-center justify-center gap-2"><i class="fa-solid fa-download"></i> Descargar PDF</button>' +
+                    '<p id="csMsg" class="hidden msg"></p>' +
+                '</div>' +
+            '</div>';
+        panel.appendChild(s);
+        PANELES_ACCION.precios = { form: 'pantallaPrecios' };
+
+        $('csPct').value = cfg.pct;
+        $('csModo').value = cfg.modo;
+        $('csCats').addEventListener('click', function (e) {
+            var b = e.target.closest('[data-cat]');
+            if (!b) return;
+            csCat = b.getAttribute('data-cat');
+            csRender();
+        });
+    }
+
+    function csItems() {
+        var out = [];
+        var lista = (typeof productosCatalogo !== 'undefined') ? productosCatalogo : [];
+        lista.forEach(function (p) {
+            var nombre = String(p.producto || p.nombre || '').trim();
+            var precio = parseFloat(String(p.precio || '').replace(/[^0-9.,-]/g, '').replace(',', '.'));
+            if (!nombre || !(precio > 0)) return;
+            var cat = (typeof normalizarCategoria === 'function' ? normalizarCategoria(p.categoria) : String(p.categoria || '')) || 'Otros';
+            var stock = parseInt(p.stock, 10);
+            out.push({ nombre: nombre, precio: precio, cat: cat, stock: isNaN(stock) ? null : stock });
+        });
+        return out;
+    }
+
+    function csFiltrados() {
+        var q = ($('csBuscar').value || '').toLowerCase().trim();
+        var soloStock = $('csSoloStock').checked;
+        return csItems().filter(function (f) {
+            if (csCat !== 'todas' && f.cat !== csCat) return false;
+            if (q && f.nombre.toLowerCase().indexOf(q) === -1) return false;
+            if (soloStock && !(f.stock > 0)) return false;
+            return true;
+        }).sort(function (a, b) {
+            return a.cat.localeCompare(b.cat, 'es') || a.nombre.localeCompare(b.nombre, 'es');
+        });
+    }
+
+    window.csRender = function () {
+        if (!$('csLista')) return;
+        $('csFormula').innerHTML = 'Fórmula actual: <b>' + esc(formulaTxt()) + '</b> · Ejemplo: ' + usd(10) + ' normal → <b>' + usd(aCashea(10)) + '</b> con Cashea' +
+            (cfg.modo === 'neto' ? '<br>Comprobación: ' + usd(aCashea(10)) + ' menos el ' + esc(pctTxt()) + '% de Cashea = ' + usd(aCashea(10) * (1 - cfg.pct / 100)) + '.' : '');
+
+        var cats = [];
+        csItems().forEach(function (f) { if (cats.indexOf(f.cat) === -1) cats.push(f.cat); });
+        cats.sort(function (a, b) { return a.localeCompare(b, 'es'); });
+        if (csCat !== 'todas' && cats.indexOf(csCat) === -1) csCat = 'todas';
+        var chips = '<button type="button" data-cat="todas" class="seg-btn ' + (csCat === 'todas' ? 'on' : '') + '" style="border: 1px solid var(--linea)">Todas</button>';
+        cats.forEach(function (c) {
+            chips += '<button type="button" data-cat="' + esc(c) + '" class="seg-btn ' + (csCat === c ? 'on' : '') + '" style="border: 1px solid var(--linea)">' + esc(c) + '</button>';
+        });
+        $('csCats').innerHTML = chips;
+
+        var filas = csFiltrados();
+        $('csResumen').textContent = filas.length + (filas.length === 1 ? ' prenda' : ' prendas');
+        $('csVacio').classList.toggle('hidden', filas.length > 0);
+        $('csLista').innerHTML = filas.map(function (f) {
+            return '<tr><td><span class="font-semibold">' + esc(f.nombre) + '</span><span class="cs-cat">' + esc(f.cat) + (f.stock != null ? ' · stock ' + f.stock : '') + '</span></td>' +
+                '<td class="cs-num">' + usd(f.precio) + '</td>' +
+                '<td class="cs-num cs-cash">' + usd(aCashea(f.precio)) + '</td></tr>';
+        }).join('');
+    };
+
+    window.csCambioCfg = function () {
+        var p = parseFloat($('csPct').value);
+        if (p > 0 && p <= 60) cfg.pct = p;
+        cfg.modo = $('csModo').value === 'recargo' ? 'recargo' : 'neto';
+        guardarCfg();
+        csRender();
+        if (esCashea()) refrescarVenta(); else pintarAviso();
+    };
+
+    window.csRecargar = function (btn) {
+        if (btn) { btn.classList.remove('gira'); void btn.offsetWidth; btn.classList.add('gira'); }
+        if (typeof cargarProductosCatalogo === 'function') {
+            Promise.resolve(cargarProductosCatalogo()).then(csRender).catch(csRender);
+        }
+    };
+
+    /* ---------- 3. PDF con los precios ---------- */
+    window.csPdf = function () {
+        var msg = $('csMsg');
+        msg.classList.add('hidden');
+        if (!window.jspdf) {
+            msg.textContent = 'No cargó la librería del PDF. Revisa la conexión y recarga la página.';
+            msg.className = 'msg msg-error';
+            return;
+        }
+        var filas = csFiltrados();
+        if (!filas.length) {
+            msg.textContent = 'No hay prendas para poner en el PDF con ese filtro.';
+            msg.className = 'msg msg-warn';
+            return;
+        }
+        var modo = $('csPdfModo').value;
+        var verNormal = modo !== 'cashea';
+        var verCashea = modo !== 'normal';
+        var jsPDF = window.jspdf.jsPDF;
+        var doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        var M = 40, AZUL = [4, 107, 168];
+        var hoy = new Date();
+
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(14, 17, 22);
+        doc.text('Valera Sport', M, 52);
+        doc.setFontSize(12); doc.setTextColor(AZUL[0], AZUL[1], AZUL[2]);
+        doc.text('Lista de precios', M, 70);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(90);
+        doc.text('Actualizada el ' + hoy.toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' }), M, 86);
+
+        var head = ['Prenda'];
+        if (verNormal) head.push('Precio normal');
+        if (verCashea) head.push('Precio Cashea');
+        var nCols = head.length;
+
+        var body = [];
+        var catActual = null;
+        filas.forEach(function (f) {
+            if (f.cat !== catActual) {
+                catActual = f.cat;
+                body.push([{ content: catActual.toUpperCase(), colSpan: nCols, styles: { fillColor: [230, 238, 245], textColor: AZUL, fontStyle: 'bold' } }]);
+            }
+            var r = [f.nombre];
+            if (verNormal) r.push(usd(f.precio));
+            if (verCashea) r.push(usd(aCashea(f.precio)));
+            body.push(r);
+        });
+
+        var colStyles = {};
+        for (var i = 1; i < nCols; i++) colStyles[i] = { halign: 'right', cellWidth: 100 };
+
+        doc.autoTable({
+            startY: 104, margin: { left: M, right: M },
+            head: [head], body: body,
+            styles: { fontSize: 9, cellPadding: 4 },
+            headStyles: { fillColor: AZUL },
+            columnStyles: colStyles
+        });
+
+        var y = doc.lastAutoTable.finalY + 18;
+        if (y > 790) { doc.addPage(); y = 50; }
+        doc.setFont('helvetica', 'italic'); doc.setFontSize(8.5); doc.setTextColor(110);
+        doc.text('Precios en dólares (USD). Sujetos a cambio sin previo aviso.', M, y);
+
+        var paginas = doc.getNumberOfPages();
+        for (var p = 1; p <= paginas; p++) {
+            doc.setPage(p);
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(140);
+            doc.text('Página ' + p + ' de ' + paginas, 595 - M, 820, { align: 'right' });
+        }
+
+        var f2 = hoy.getFullYear() + '-' + String(hoy.getMonth() + 1).padStart(2, '0') + '-' + String(hoy.getDate()).padStart(2, '0');
+        doc.save('lista_precios_' + f2 + '.pdf');
+        msg.textContent = '✅ PDF descargado.';
+        msg.className = 'msg msg-ok';
+    };
+
+    /* ---------- Entrada en el menú lateral y apertura de la pantalla ---------- */
+    function armarMenu() {
+        var nav = document.querySelector('#v4Lateral .v4-nav');
+        if (!nav) return false;
+        if (nav.querySelector('[data-k="precios"]')) return true;
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'v41-item';
+        b.setAttribute('data-k', 'precios');
+        b.innerHTML = '<span class="v41-iz"><i class="fa-solid fa-tags v41-ic"></i><span>Lista de precios</span></span>';
+        var ref = nav.querySelector('[data-k="qr"]');
+        if (ref) ref.insertAdjacentElement('afterend', b); else nav.appendChild(b);
+        return true;
+    }
+
+    var oMostrar = window.mostrarPantallaAccion;
+    window.mostrarPantallaAccion = function (n) {
+        var r = oMostrar.apply(this, arguments);
+        if (n === 'precios') {
+            csRender();
+            if (typeof productosCatalogo !== 'undefined' && !productosCatalogo.length && typeof cargarProductosCatalogo === 'function') {
+                Promise.resolve(cargarProductosCatalogo()).then(csRender).catch(function () {});
+            }
+        }
+        return r;
+    };
+
+    crearPantalla();
+    if (!armarMenu()) setTimeout(armarMenu, 800);
+    csRender();
+    pintarAviso();
+    // Si el catálogo llega después, la lista se llena sola
+    setInterval(function () {
+        var s = $('pantallaPrecios');
+        if (s && s.classList.contains('abierta')) csRender();
+    }, 20000);
+})();
+</script>
+<!-- cashea:fin -->
 </body>
 </html>
