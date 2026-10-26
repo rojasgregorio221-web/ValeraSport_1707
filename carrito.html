@@ -789,36 +789,58 @@
             }
         }
 
+        function aplicarEstadoPedido(datos, idOrden) {
+            const estadoEl = document.getElementById('estadoConfirmacion');
+            if (datos.estado === 'aceptado') {
+                const codigo = datos.numeroOrden || String(idOrden).slice(0, 8).toUpperCase();
+                if (estadoEl) {
+                    estadoEl.innerHTML =
+                        '✅ ¡Aceptado! Gracias por tu compra.<br>' +
+                        '<span class="block mt-2 text-xs font-mono tracking-wider text-emerald-600">N° de pedido: ' + escapeHTML(String(codigo)) + '</span>' +
+                        '<span class="block mt-1 text-[11px] font-normal text-emerald-600/80">Guarda una captura de esto como comprobante.</span>';
+                }
+                const aviso = document.getElementById('avisoEnvioWhatsApp');
+                if (aviso) aviso.classList.remove('hidden');
+                return true;
+            }
+            if (datos.estado === 'rechazado') {
+                if (estadoEl) {
+                    estadoEl.className = 'text-center bg-rose-50 border border-rose-200 text-rose-600 font-semibold py-7 px-5 rounded-[24px] text-sm';
+                    estadoEl.innerHTML = '❌ Tu pedido fue rechazado. Contáctanos por WhatsApp para más info.';
+                }
+                return true;
+            }
+            return false;
+        }
+
         function iniciarConsultaEstado(idOrden) {
+            let terminado = false;
             let intentos = 0;
-            const intervalo = setInterval(async () => {
+            let temporizador = null;
+
+            async function consultar() {
+                if (terminado) return;
                 intentos++;
                 try {
-                    const resp = await fetch('/api/estado-pedido?idOrden=' + encodeURIComponent(idOrden));
+                    const resp = await fetch('/api/estado-pedido?idOrden=' + encodeURIComponent(idOrden) + '&t=' + Date.now(), { cache: 'no-store' });
                     const datos = await resp.json();
-                    if (!datos.ok) return;
-                    const estadoEl = document.getElementById('estadoConfirmacion');
-                    if (datos.estado === 'aceptado') {
-                        clearInterval(intervalo);
-                        const codigo = datos.numeroOrden || String(idOrden).slice(0, 8).toUpperCase();
-                        if (estadoEl) {
-                            estadoEl.innerHTML =
-                                '✅ ¡Aceptado! Gracias por tu compra.<br>' +
-                                '<span class="block mt-2 text-xs font-mono tracking-wider text-emerald-600">N° de pedido: ' + codigo + '</span>' +
-                                '<span class="block mt-1 text-[11px] font-normal text-emerald-600/80">Guarda una captura de esto como comprobante.</span>';
-                        }
-                        const aviso = document.getElementById('avisoEnvioWhatsApp');
-                        if (aviso) aviso.classList.remove('hidden');
-                    } else if (datos.estado === 'rechazado') {
-                        clearInterval(intervalo);
-                        if (estadoEl) {
-                            estadoEl.className = 'text-center bg-rose-50 border border-rose-200 text-rose-600 font-semibold py-7 px-5 rounded-[24px] text-sm';
-                            estadoEl.innerHTML = '❌ Tu pedido fue rechazado. Contáctanos por WhatsApp para más info.';
-                        }
-                    }
+                    if (datos.ok) terminado = aplicarEstadoPedido(datos, idOrden);
+                    else console.warn('estado-pedido:', datos.error || datos);
                 } catch (e) { console.error('Error consultando estado del pedido:', e); }
-                if (intentos > 60) clearInterval(intervalo);
-            }, 5000);
+                if (!terminado && intentos < 2000) programar();
+            }
+
+            function programar() {
+                clearTimeout(temporizador);
+                const espera = document.hidden ? 15000 : (intentos < 40 ? 3000 : 10000);
+                temporizador = setTimeout(consultar, espera);
+            }
+
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden && !terminado) { clearTimeout(temporizador); consultar(); }
+            });
+
+            consultar();
         }
 
         // ---------- ESTADO DEL ÚLTIMO PEDIDO (persiste al salir/volver) ----------
