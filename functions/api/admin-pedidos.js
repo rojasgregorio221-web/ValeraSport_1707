@@ -1,13 +1,13 @@
-// POST /api/admin-pedidos  (versión segura generada por aplicar-seguridad.js)
+// POST /api/admin-pedidos
 //
 // Entrada del panel:  { password, tipo: "pedidos" | "aceptados" | "resumen" | ... }
 //                o:   { password, accion: "aceptarOrden" | "rechazarOrden" | ... , ...datos }
 // El panel manda ADMIN_PASSWORD; este archivo la valida y SIEMPRE manda la
-// clave a Google Apps Script (antes aceptar/rechazar no la mandaban).
+// clave a Google Apps Script.
 
-const URL_VARS = ["SHEET_WRITE_URL","SHEET_CSV_URL","APPS_SCRIPT_URL","GOOGLE_SCRIPT_URL","GOOGLE_SHEETS_URL","SHEETS_URL","SCRIPT_URL"];
-const CLAVE_VARS = ["CLAVE_ADMIN","APPS_SCRIPT_CLAVE"];
-const URL_FALLBACK = "";
+// Solo la URL de ESCRITURA del Apps Script (nunca la del CSV público).
+const URL_VARS = ["SHEET_WRITE_URL", "APPS_SCRIPT_URL", "GOOGLE_SCRIPT_URL"];
+const CLAVE_VARS = ["APPS_SCRIPT_CLAVE", "CLAVE_ADMIN"];
 
 const LECTURAS = ["pedidos", "aceptados", "rechazadas", "ventas", "fiados", "gastos", "resumen", "semanas", "resumenSemanal", "historialCliente"];
 const ACCIONES = ["aceptarOrden", "rechazarOrden", "rechazar_todos", "ventaFisica", "ventaFisicaLote", "marcarFiadoPagado", "agregarGasto", "eliminarGasto", "vaciarVentas", "cerrarSemana"];
@@ -19,12 +19,24 @@ function jsonResponse(obj, status) {
   });
 }
 
+// Si Google devuelve una página HTML (error, autorización pendiente, etc.),
+// se muestra el texto legible en vez de un trozo de código.
 async function parsearRespuesta(respuesta) {
   const texto = await respuesta.text();
   try {
     return JSON.parse(texto);
   } catch (e) {
-    return { ok: false, error: "Respuesta inesperada de Google Sheets: " + texto.slice(0, 200) };
+    const legible = texto
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 300);
+    return {
+      ok: false,
+      error: "Google Apps Script devolvió una página en vez de datos (HTTP " + respuesta.status + "): " + (legible || "sin texto"),
+    };
   }
 }
 
@@ -59,9 +71,9 @@ export async function onRequestPost(context) {
     return jsonResponse({ ok: false, error: "Clave incorrecta" }, 401);
   }
 
-  const urlScript = primero(env, URL_VARS) || URL_FALLBACK;
+  const urlScript = primero(env, URL_VARS);
   if (!urlScript) {
-    return jsonResponse({ ok: false, error: "Falta configurar la URL del Apps Script en Cloudflare" }, 500);
+    return jsonResponse({ ok: false, error: "Falta la variable SHEET_WRITE_URL en Cloudflare" }, 500);
   }
   const claveScript = primero(env, CLAVE_VARS) || adminPassword;
 
@@ -80,17 +92,15 @@ export async function onRequestPost(context) {
   try {
     const respuesta = await fetch(urlScript, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(cuerpo),
       redirect: "follow",
     });
     const resultado = await parsearRespuesta(respuesta);
 
-    // Compatibilidad: si el panel esperaba los datos del resumen en la raíz.
     if (accion === "resumen" && resultado && resultado.resumen) {
       Object.assign(resultado, resultado.resumen);
     }
-    // Siempre un mensaje de error legible para el panel.
     if (resultado && resultado.ok === false && !resultado.mensaje) {
       resultado.mensaje = resultado.error;
     }
