@@ -1101,7 +1101,47 @@ body::after{display:none}
                     </div>
                 </div>
 
-                <div id="camposFiadoFisica" class="hidden grid grid-cols-1 md:grid-cols-2 gap-3 rounded-2xl p-4" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.28)">
+                <!-- cashea-plan:inicio -->
+<div id="cpBloque" class="hidden sub-panel p-4 space-y-3" style="border-color: rgba(21,153,208,0.35)">
+  <div class="flex items-center justify-between gap-2 flex-wrap">
+    <span class="text-[11px] font-bold tracking-[0.12em] uppercase flex items-center gap-2"><i class="fa-solid fa-credit-card" style="color: var(--fucsia)"></i> Plan Cashea</span>
+    <span id="cpCuotasTxt" class="chip chip-mute"></span>
+  </div>
+
+  <label class="flex items-center justify-between gap-3 cursor-pointer select-none">
+    <span class="text-xs font-bold">¿Cobra inicial ahora?</span>
+    <input type="checkbox" id="cpActivo" class="vv-switch" checked onchange="cpRender()">
+  </label>
+
+  <div class="grid grid-cols-2 gap-2.5">
+    <div>
+      <label class="etiqueta">Inicial (%)</label>
+      <input type="number" id="cpPct" min="1" max="100" step="1" value="40" class="campo cifra" oninput="cpRender()">
+    </div>
+    <div class="sub-panel p-2.5">
+      <p class="rotulo mb-1">Total venta</p>
+      <p id="cpTotal" class="cifra font-bold text-sm">$0.00</p>
+      <p id="cpTotalBs" class="text-[10px] cifra" style="color: var(--cyan)"></p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-2.5">
+    <div class="sub-panel p-2.5">
+      <p class="rotulo mb-1">Inicial (cliente paga hoy)</p>
+      <p id="cpInicial" class="cifra font-bold text-sm">$0.00</p>
+      <p id="cpInicialBs" class="text-[10px] cifra" style="color: var(--cyan)"></p>
+    </div>
+    <div class="sub-panel p-2.5">
+      <p class="rotulo mb-1">Financiado (Cashea)</p>
+      <p id="cpFinanciado" class="cifra font-bold text-sm">$0.00</p>
+      <p id="cpFinanciadoBs" class="text-[10px] cifra" style="color: var(--cyan)"></p>
+    </div>
+  </div>
+
+  <p id="cpCuotasDetalle" class="text-xs" style="color: var(--gris)"></p>
+</div>
+<!-- cashea-plan:fin -->
+<div id="camposFiadoFisica" class="hidden grid grid-cols-1 md:grid-cols-2 gap-3 rounded-2xl p-4" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.28)">
                     <div>
                         <label class="etiqueta" style="color: #FCD34D">Quién queda debiendo</label>
                         <input type="text" id="fiadoNombreCliente" placeholder="Nombre del cliente" class="campo">
@@ -5652,5 +5692,289 @@ body::after{display:none}
 })();
 </script>
 <!-- cashea:fin -->
+<script id="cashea-plan-js">
+(function () {
+  'use strict';
+  if (window.__cpPlan2) return;
+
+  var panel = document.getElementById('panelPrincipal');
+  if (!panel || typeof carritoFisica === 'undefined' || typeof calcularResumenCarritoFisica !== 'function' ||
+      typeof PANELES_ACCION === 'undefined' || !document.getElementById('cpBloque')) {
+    console.warn('[cashea] No se encontró la base del panel; no se activó.');
+    return;
+  }
+  window.__cpPlan2 = true;
+
+  var planes = [];
+  var LIMITE_TRES_CUOTAS = 100;
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return (typeof escapeHTML === 'function') ? escapeHTML(s) : String(s == null ? '' : s); }
+  function r2(n) { return Math.round((Number(n) || 0) * 100 + 1e-6) / 100; }
+  function usd(n) { return '$' + (Number(n) || 0).toFixed(2); }
+  function bs(n) { return 'Bs ' + (Number(n) || 0).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function tasa() { return (typeof tasaBcvAdmin !== 'undefined' && tasaBcvAdmin) ? Number(tasaBcvAdmin) : 0; }
+  function metodo() { var s = $('fisicaMetodoPago'); return s ? s.value : ''; }
+
+  function pctLeido() {
+    var v = parseFloat(String($('cpPct').value).replace(',', '.'));
+    if (isNaN(v)) return 40;
+    return Math.min(100, Math.max(1, v));
+  }
+
+  // ---------- Cálculo del plan de la venta ----------
+  function plan() {
+    var total = carritoFisica.length ? r2(calcularResumenCarritoFisica().total) : 0;
+    var activo = $('cpActivo').checked;
+    var pct = pctLeido();
+    var inicial = activo ? r2(total * pct / 100) : 0;
+    var financiado = r2(total - inicial);
+    var cuotas = total <= LIMITE_TRES_CUOTAS ? 3 : 6;
+    var cuota = r2(financiado / cuotas);
+    var ultima = r2(financiado - cuota * (cuotas - 1));
+    return { total: total, activo: activo, pct: pct, inicial: inicial, financiado: financiado,
+             cuotas: cuotas, cuota: cuota, ultima: ultima, tasa: tasa() };
+  }
+
+  function cpRender() {
+    var box = $('cpBloque');
+    if (!box) return;
+    var visible = metodo() === 'Cashea' && carritoFisica.length > 0;
+    box.classList.toggle('hidden', !visible);
+    if (!visible) return;
+
+    var p = plan();
+    var t = p.tasa;
+    $('cpTotal').textContent = usd(p.total);
+    $('cpTotalBs').textContent = t ? bs(p.total * t) : '';
+    $('cpInicial').textContent = usd(p.inicial);
+    $('cpInicialBs').textContent = t ? bs(p.inicial * t) : '';
+    $('cpFinanciado').textContent = usd(p.financiado);
+    $('cpFinanciadoBs').textContent = t ? bs(p.financiado * t) : '';
+    $('cpCuotasTxt').textContent = p.cuotas + ' cuotas';
+
+    var det = p.cuotas + ' cuotas semanales de <b>' + usd(p.cuota) + '</b>';
+    if (p.ultima !== p.cuota) det += ' (la última de ' + usd(p.ultima) + ')';
+    if (t) det += ' · ' + bs(p.cuota * t) + ' c/u';
+    $('cpCuotasDetalle').innerHTML = p.financiado > 0 ? det : 'Sin financiado: todo se paga de inicial.';
+  }
+  window.cpRender = cpRender;
+
+  function hookear(nombre, fn) {
+    var original = window[nombre];
+    if (typeof original !== 'function') return;
+    window[nombre] = function () {
+      var r = original.apply(this, arguments);
+      try { fn(); } catch (e) { console.error(e); }
+      return r;
+    };
+  }
+  hookear('renderizarCarritoFisica', cpRender);
+  hookear('alCambiarMetodoPagoFisica', cpRender);
+
+  // ---------- Venta: capturar el plan ANTES de que se limpie el carrito ----------
+  var oRegistrar = window.registrarVentaFisica;
+  window.registrarVentaFisica = function () {
+    if (metodo() === 'Cashea' && carritoFisica.length) {
+      var ps = $('fisicaProducto').value.trim();
+      var pp = parseFloat($('fisicaPrecio').value);
+      if (ps && !isNaN(pp) && pp > 0) agregarItemCarritoFisica();
+
+      if (contarTotalPiezasFisica() >= 3 && aplicarDescuentoMayor === null) {
+        var quiere = confirm('Llevan ' + contarTotalPiezasFisica() + ' prendas en esta venta.\n\n' +
+          '¿Les aplicas el precio al mayor de $1.00 menos por prenda?\n\n' +
+          '• Aceptar = sí, -$1.00 por prenda\n• Cancelar = no, precio normal');
+        aplicarDescuentoMayor = quiere;
+        renderizarCarritoFisica();
+      }
+      window.__cpSnap = plan();
+    }
+    try {
+      return oRegistrar.apply(this, arguments);
+    } finally {
+      window.__cpSnap = null;
+    }
+  };
+
+  // Agrega el plan a la petición de venta (sin tocar la función original)
+  var fetchOriginal = window.fetch.bind(window);
+  window.fetch = function (url, opts) {
+    var snap = window.__cpSnap;
+    if (snap && opts && typeof opts.body === 'string' && String(url).indexOf('/api/admin-pedidos') !== -1) {
+      try {
+        var cuerpo = JSON.parse(opts.body);
+        if (cuerpo.accion === 'ventaFisica') {
+          cuerpo.cashea = { total: snap.total, inicial: snap.inicial, pct: snap.pct, activo: snap.activo };
+          opts = Object.assign({}, opts, { body: JSON.stringify(cuerpo) });
+        }
+      } catch (e) {}
+    }
+    return fetchOriginal(url, opts);
+  };
+
+  // ---------- Comunicación con el servidor ----------
+  function enviar(accion, extra) {
+    var cuerpo = Object.assign({ password: obtenerPassword(), accion: accion }, extra || {});
+    return fetch('/api/admin-pedidos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cuerpo)
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d.ok) throw new Error(d.error || 'No se pudo completar');
+      return d;
+    });
+  }
+
+  function cuotaSiguiente(p) {
+    if (p.saldo <= 0) return 0;
+    if (p.cobros + 1 >= p.cuotas) return p.saldo;
+    return r2(Math.min(p.cuotaSugerida, p.saldo));
+  }
+
+  // ---------- Pantalla "Cobros Cashea" ----------
+  function cardCobro(p) {
+    var t = tasa();
+    var fecha = p.fecha ? new Date(p.fecha).toLocaleDateString('es-VE', { day: '2-digit', month: 'short' }) : '';
+    var liquidado = p.saldo <= 0;
+    var pct = p.financiado > 0 ? Math.min(100, Math.round(p.cobradoUSD / p.financiado * 100)) : 100;
+    var chip = liquidado
+      ? '<span class="chip chip-ok"><i class="fa-solid fa-check"></i> Liquidado</span>'
+      : '<span class="chip chip-warn">' + p.cobros + ' de ' + p.cuotas + ' cuotas cobradas</span>';
+    var boton = liquidado ? '' :
+      '<button type="button" onclick="cpCobrar(\'' + esc(p.idVenta) + '\')" class="btn-marca w-full mt-3 py-2.5 rounded-full text-xs">' +
+      '<i class="fa-solid fa-hand-holding-dollar mr-1.5"></i> Registrar cobro de Cashea</button>';
+
+    return '<div class="tarjeta p-4">' +
+      '<div class="flex justify-between items-start gap-3 mb-2">' +
+        '<div class="min-w-0"><p class="text-sm font-bold truncate">' + esc(p.cliente || 'Cliente') + '</p>' +
+        '<p class="text-[11px]" style="color: var(--tenue)">' + esc(fecha) + ' · ' + esc(p.producto || '') + '</p>' +
+        '<p class="text-[11px]" style="color: var(--tenue)">Inicial ' + usd(p.inicial) + ' · ' + p.cuotas + ' cuotas de ' + usd(p.cuotaSugerida) + '</p></div>' +
+        '<div class="text-right flex-shrink-0"><span class="cifra-grande text-[22px] block">' + usd(p.saldo) + '</span>' +
+        (t ? '<span class="cifra text-[11px] block" style="color: var(--cyan)">' + bs(p.saldo * t) + '</span>' : '') +
+        '<span class="text-[9px] uppercase tracking-[0.16em] font-bold" style="color: var(--tenue)">por cobrar</span></div>' +
+      '</div>' +
+      '<div class="flex justify-between items-center gap-2 mb-2">' + chip +
+        '<span class="text-[11px] cifra" style="color: var(--gris)">Total ' + usd(p.total) + '</span></div>' +
+      '<div style="height: 6px; border-radius: 9999px; background: var(--linea); overflow: hidden">' +
+        '<div style="height: 100%; width: ' + pct + '%; background: var(--fucsia)"></div></div>' +
+      (liquidado ? '' : '<p class="text-[11px] mt-2" style="color: var(--gris)">Cuota de esta semana: <b>' + usd(cuotaSiguiente(p)) + '</b></p>') +
+      boton +
+    '</div>';
+  }
+
+  function renderCobros() {
+    var t = tasa();
+    var activos = planes.filter(function (p) { return p.saldo > 0; });
+    var total = r2(activos.reduce(function (s, p) { return s + p.saldo; }, 0));
+    var semana = r2(activos.reduce(function (s, p) { return s + cuotaSiguiente(p); }, 0));
+
+    $('cpTotalCobrar').textContent = usd(total);
+    $('cpTotalCobrarBs').textContent = t ? bs(total * t) : '';
+    $('cpCobroSemana').textContent = usd(semana);
+    $('cpCobroSemanaBs').textContent = t ? bs(semana * t) : '';
+    $('cpPlanesActivos').textContent = String(activos.length);
+
+    $('cpCobrosLista').innerHTML = planes.length
+      ? planes.map(cardCobro).join('')
+      : '<p class="vacio">Todavía no hay ventas con plan Cashea.</p>';
+  }
+
+  function cargarPlanes() {
+    return enviar('cashea_planes').then(function (d) {
+      planes = d.planes || [];
+      renderCobros();
+    }).catch(function (e) {
+      $('cpCobrosLista').innerHTML = '<p class="aviso-error">' + esc(e.message) + '</p>';
+    });
+  }
+
+  window.cpCobrar = function (idVenta) {
+    var p = planes.find(function (x) { return x.idVenta === idVenta; });
+    if (!p) return;
+    var sug = cuotaSiguiente(p);
+
+    var u = prompt('Cobro de Cashea en DÓLARES ($).\nCuota sugerida: ' + usd(sug) + '.\nSi no llegó en dólares, deja 0.', '0');
+    if (u === null) return;
+    var b = prompt('Cobro de Cashea en BOLÍVARES (Bs).\nSi no llegó en bolívares, deja 0.', '0');
+    if (b === null) return;
+
+    var montoUsd = parseFloat(String(u).replace(',', '.')) || 0;
+    var montoBs = parseFloat(String(b).replace(',', '.')) || 0;
+    if (montoUsd <= 0 && montoBs <= 0) { alert('Escribe el monto que recibiste.'); return; }
+
+    enviar('cashea_cobro', { idVenta: idVenta, usd: montoUsd, bs: montoBs, nota: '' })
+      .then(function (d) {
+        alert('Cobro registrado. Saldo pendiente: ' + usd(d.saldoPendiente));
+        return cargarPlanes();
+      })
+      .catch(function (e) { alert('No se pudo registrar: ' + e.message); });
+  };
+
+  window.cpRefrescar = function (btn) {
+    if (btn) { btn.classList.remove('gira'); void btn.offsetWidth; btn.classList.add('gira'); }
+    cargarPlanes();
+  };
+
+  function crearPantalla() {
+    if (document.getElementById('pantallaCobrosCashea')) {
+      PANELES_ACCION.cobrosCashea = { form: 'pantallaCobrosCashea' };
+      return;
+    }
+    var s = document.createElement('section');
+    s.id = 'pantallaCobrosCashea';
+    s.className = 'pantalla-accion';
+    s.setAttribute('aria-label', 'Cobros Cashea');
+    s.innerHTML =
+      '<div class="pantalla-barra">' +
+        '<button type="button" onclick="abrirPanelAccion(null)" class="icon-btn btn-fantasma pantalla-volver"><i class="fa-solid fa-chevron-left text-[11px]"></i> Volver</button>' +
+        '<p class="marca pantalla-titulo">Cobros Cashea</p>' +
+        '<button type="button" class="v41-ref" onclick="cpRefrescar(this)" aria-label="Actualizar" title="Actualizar"><i class="fa-solid fa-arrows-rotate text-sm"></i></button>' +
+      '</div>' +
+      '<div class="pantalla-cuerpo">' +
+        '<div class="panel p-5">' +
+          '<p class="rotulo mb-4"><i class="fa-solid fa-credit-card mr-1.5" style="color: var(--fucsia)"></i> Lo que Cashea te debe</p>' +
+          '<div class="grid grid-cols-2 gap-4">' +
+            '<div><p class="text-[10px] font-bold uppercase tracking-[0.16em] mb-1.5" style="color: var(--cyan)">Total por cobrar</p>' +
+              '<p id="cpTotalCobrar" class="cifra-grande text-[26px]">$0.00</p>' +
+              '<p id="cpTotalCobrarBs" class="text-[11px] cifra mt-1" style="color: var(--tenue)"></p></div>' +
+            '<div class="pl-4" style="border-left: 1px solid var(--linea)"><p class="text-[10px] font-bold uppercase tracking-[0.16em] mb-1.5" style="color: #6EE7B7">Cuota de esta semana</p>' +
+              '<p id="cpCobroSemana" class="cifra-grande text-[26px]">$0.00</p>' +
+              '<p id="cpCobroSemanaBs" class="text-[11px] cifra mt-1" style="color: var(--tenue)"></p></div>' +
+          '</div>' +
+          '<p class="text-[11px] mt-4" style="color: var(--tenue)">Planes activos: <b id="cpPlanesActivos">0</b>. Cada cobro que registres baja el saldo de esa venta.</p>' +
+        '</div>' +
+        '<div id="cpCobrosLista" class="space-y-3"></div>' +
+      '</div>';
+    panel.appendChild(s);
+    PANELES_ACCION.cobrosCashea = { form: 'pantallaCobrosCashea' };
+  }
+
+  function armarMenu() {
+    var nav = document.querySelector('#v4Lateral .v4-nav');
+    if (!nav) return false;
+    if (nav.querySelector('[data-k="cobrosCashea"]')) return true;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'v41-item';
+    b.setAttribute('data-k', 'cobrosCashea');
+    b.innerHTML = '<span class="v41-iz"><i class="fa-solid fa-credit-card v41-ic"></i><span>Cobros Cashea</span></span>';
+    var ref = nav.querySelector('[data-k="precios"]') || nav.querySelector('[data-k="qr"]');
+    if (ref) ref.insertAdjacentElement('afterend', b); else nav.appendChild(b);
+    return true;
+  }
+
+  var oMostrar = window.mostrarPantallaAccion;
+  window.mostrarPantallaAccion = function (n) {
+    var r = oMostrar.apply(this, arguments);
+    if (n === 'cobrosCashea') cargarPlanes();
+    return r;
+  };
+
+  crearPantalla();
+  if (!armarMenu()) setTimeout(armarMenu, 800);
+  cpRender();
+  console.log('[cashea] plan activo');
+})();
+</script>
 </body>
 </html>
