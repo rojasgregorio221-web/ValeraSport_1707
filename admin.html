@@ -5573,18 +5573,28 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
             .catch((e) => { $('cpCobrosLista').innerHTML = '<p class="aviso-error">' + esc(e.message) + '</p>'; });
     }
 
-    function cobrar(idVenta) {
+    function cobrar(idVenta) { // [VS] cobro por cuotas
         const p = planes.find((x) => x.idVenta === idVenta);
         if (!p) return;
-        const u = prompt('Cobro de Cashea en DÓLARES ($).\nCuota sugerida: ' + usd(cuotaSiguiente(p)) + '.\nSi no llegó en dólares, deja 0.', '0');
-        if (u === null) return;
-        const b = prompt('Cobro de Cashea en BOLÍVARES (Bs).\nSi no llegó en bolívares, deja 0.', '0');
-        if (b === null) return;
-        const montoUsd = parseFloat(String(u).replace(',', '.')) || 0;
-        const montoBs = parseFloat(String(b).replace(',', '.')) || 0;
-        if (montoUsd <= 0 && montoBs <= 0) { alert('Escribe el monto que recibiste.'); return; }
-        servidor('cashea_cobro', { idVenta: idVenta, usd: montoUsd, bs: montoBs, nota: '' })
-            .then((d) => { alert('Cobro registrado. Saldo pendiente: ' + usd(d.saldoPendiente)); return cargarPlanes(); })
+        const restantes = Math.max(1, (Number(p.cuotas) || 1) - (Number(p.cobros) || 0));
+        const montoDe = (n) => (n >= restantes ? r2(p.saldo) : r2(Math.min(p.cuotaSugerida * n, p.saldo)));
+        const opciones = [];
+        for (let n = 1; n <= restantes; n++) {
+            opciones.push('   ' + n + (n === 1 ? ' cuota  = ' : ' cuotas = ') + usd(montoDe(n)) + (n === restantes ? '  (liquida el plan)' : ''));
+        }
+        const entrada = prompt(
+            '¿A cuántas cuotas te pagó Cashea?\n' +
+            'Escribe un número del 1 al ' + restantes + ':\n\n' + opciones.join('\n'),
+            '1'
+        );
+        if (entrada === null) return;
+        const n = parseInt(String(entrada).trim(), 10);
+        if (!(n >= 1 && n <= restantes)) { alert('Escribe un número del 1 al ' + restantes + '.'); return; }
+        servidor('cashea_cobro', { idVenta: idVenta, cuotas: n, nota: '' })
+            .then((d) => {
+                alert('Cobro registrado: ' + n + (n === 1 ? ' cuota' : ' cuotas') + ' (' + usd(d.cobrado != null ? d.cobrado : montoDe(n)) + ').\nSaldo pendiente: ' + usd(d.saldoPendiente));
+                return cargarPlanes();
+            })
             .catch((e) => alert('No se pudo registrar: ' + e.message));
     }
 
