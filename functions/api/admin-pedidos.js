@@ -9,8 +9,8 @@
 const URL_VARS = ["SHEET_WRITE_URL", "APPS_SCRIPT_URL", "GOOGLE_SCRIPT_URL"];
 const CLAVE_VARS = ["APPS_SCRIPT_CLAVE", "CLAVE_ADMIN"];
 
-const LECTURAS = ["pedidos", "aceptados", "rechazadas", "ventas", "fiados", "gastos", "resumen", "semanas", "resumenSemanal", "historialCliente"];
-const ACCIONES = ["aceptarOrden", "rechazarOrden", "rechazar_todos", "ventaFisica", "ventaFisicaLote", "marcarFiadoPagado", "agregarGasto", "eliminarGasto", "vaciarVentas", "cerrarSemana"];
+const LECTURAS = ["pedidos", "aceptados", "rechazadas", "ventas", "fiados", "gastos", "resumen", "semanas", "resumenSemanal", "historialCliente", "cashea_planes"];
+const ACCIONES = ["aceptarOrden", "rechazarOrden", "rechazar_todos", "ventaFisica", "ventaFisicaLote", "marcarFiadoPagado", "agregarGasto", "eliminarGasto", "vaciarVentas", "cerrarSemana", "cashea_cobro", "cashea_crear_plan", "cashea_anular"];
 
 function jsonResponse(obj, status) {
   return new Response(JSON.stringify(obj), {
