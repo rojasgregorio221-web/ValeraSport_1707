@@ -1544,6 +1544,16 @@ body::after{display:none}
         // ===================================================================
         const HISTORIAL_VERSIONES = [
             {
+                numero: '6.6.0', fecha: '2026-11-02', tipo: 'Novedad',
+                titulo: 'Inventario con stock, colores y tallas',
+                cambios: [
+                    'Nueva pantalla Inventario en el menú: agregar, editar y borrar prendas.',
+                    'Stock con botones de sumar y restar, avisos de stock bajo y agotado.',
+                    'Colores y tallas por prenda, con revisión del formato antes de guardar.',
+                    'Arreglo: imprimir QR ya no lleva código pegado dentro del script.'
+                ]
+            },
+            {
                 numero: '6.5.0', fecha: '2026-11-02', tipo: 'Arreglo',
                 titulo: 'Inventario en el panel y arreglo del script cortado',
                 cambios: [
@@ -1627,7 +1637,7 @@ body::after{display:none}
             },
             {
                 numero: '4.0.1', fecha: '2026-10-25', tipo: 'Arreglo',
-                titulo: 'Arreglo: el encabezado (VALERASPORT) ahora queda FIJO arriba al bajar,    pegado al borde (sin hueco por donde se vea el contenido) y se hace más    pequeño al desplazarse para no tapar.',
+                titulo: 'Encabezado fijo arriba',
                 cambios: [
                     'Arreglo: el encabezado (VALERASPORT) ahora queda FIJO arriba al bajar,    pegado al borde (sin hueco por donde se vea el contenido) y se hace más    pequeño al desplazarse para no tapar.'
                 ]
@@ -3133,7 +3143,7 @@ body::after{display:none}
         // ---------- CATÁLOGO ----------
         async function cargarProductosCatalogo() {
             try {
-                const respuesta = await fetch('/api/obtener-productos');
+                const respuesta = await fetch('/api/obtener-productos?t=' + Date.now());
                 if (!respuesta.ok) return;
                 const texto = await respuesta.text();
                 productosCatalogo = parseCSV(texto);
@@ -4216,28 +4226,24 @@ body::after{display:none}
         }
 
         function imprimirQR() {
-            const contenedor = document.getElementById('canvasQR');
-            const canvas = contenedor.querySelector('canvas');
-            const imgSrc = canvas ? canvas.toDataURL() : (contenedor.querySelector('img') || {}).src;
-            if (!imgSrc) { alert('No se pudo preparar el QR para imprimir.'); return; }
+    const contenedor = document.getElementById('canvasQR');
+    const canvas = contenedor.querySelector('canvas');
+    const imgSrc = canvas ? canvas.toDataURL() : (contenedor.querySelector('img') || {}).src;
+    if (!imgSrc) { alert('No se pudo preparar el QR para imprimir.'); return; }
 
-            const etiqueta = document.getElementById('qrCodigo').value.trim();
-            const ventana = window.open('', '_blank');
-            ventana.document.write(`
-                <html><head><title>Imprimir QR</title></head>
-                <body style="text-align:center; font-family:Arial, sans-serif; padding-top:40px;">
-                    <img src="${imgSrc}" style="width:220px;">
-                    <p style="font-weight:bold; font-size:16px;">${escapeHTML(etiqueta)}</p>
-                    <script>window.onload = () => window.print();<\/script>
-
-
-
-
-
-</body></html>
-            `);
-            ventana.document.close();
-        }
+    const etiqueta = document.getElementById('qrCodigo').value.trim();
+    const ventana = window.open('', '_blank');
+    if (!ventana) { alert('El navegador bloqueó la ventana. Permite las ventanas emergentes.'); return; }
+    ventana.document.write(
+        '<html><head><title>Imprimir QR</title></head>' +
+        '<body style="text-align:center; font-family:Arial, sans-serif; padding-top:40px;">' +
+        '<img src="' + imgSrc + '" style="width:220px;">' +
+        '<p style="font-weight:bold; font-size:16px;">' + escapeHTML(etiqueta) + '</p>' +
+        '<script>window.onload = function () { window.print(); };<\/script>' +
+        '</body></html>'
+    );
+    ventana.document.close();
+}
 
         function registrarVentaDesdeScanner() {
             cerrarScannerVenta();
@@ -6047,6 +6053,567 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
 })();
 </script>
 <!-- vs-venta2:fin -->
-<script src="/inventario.js"></script>
+<!-- vs-inventario:inicio -->
+<style id="vsi-css">
+.inv-resumen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(min-width:560px){.inv-resumen{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.inv-dato{background:#fff;border:1px solid var(--linea);border-radius:16px;padding:12px 14px;min-width:0}
+.inv-dato span{display:block;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--tenue)}
+.inv-dato b{display:block;margin-top:4px;font-family:'Big Shoulders Display','Inter',sans-serif;font-size:28px;line-height:.95;font-weight:900;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.inv-fila{display:flex;gap:8px;flex-wrap:wrap}
+.inv-fila .campo{flex:1 1 180px}
+.inv-filtros{display:flex;flex-wrap:wrap;gap:6px}
+.inv-filtros .seg-btn{border:1px solid var(--linea)}
+.inv-card{padding:14px 16px}
+.inv-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.inv-nombre{font-size:14px;font-weight:800;overflow-wrap:anywhere}
+.inv-meta{margin-top:2px;font-size:11px;color:var(--tenue)}
+.inv-precio{font-family:'Big Shoulders Display','Inter',sans-serif;font-size:24px;font-weight:900;line-height:1;white-space:nowrap}
+.inv-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.inv-tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:9999px;background:#F1F5F9;color:#334155;border:1px solid var(--linea)}
+.inv-tag.t{background:#E0F2FE;color:#075985;border-color:#BAE6FD}
+.inv-pie{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--linea);flex-wrap:wrap}
+.inv-stock{display:flex;align-items:center;gap:8px}
+.inv-mini{width:34px;height:34px;border-radius:11px;border:1px solid var(--linea-fuerte);background:#fff;color:#0F172A;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.inv-mini:active{transform:scale(.94)}
+.inv-cant{min-width:30px;text-align:center;font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
+.inv-acc{display:flex;gap:6px}
+.inv-acc .inv-mini{font-size:12px}
+#invModal{position:fixed;inset:0;z-index:80;display:none;align-items:flex-end;justify-content:center;background:rgba(15,23,42,.45);backdrop-filter:blur(4px)}
+#invModal.abierto{display:flex}
+@media(min-width:640px){#invModal{align-items:center}}
+.inv-hoja{width:100%;max-width:34rem;max-height:94vh;overflow-y:auto;background:#fff;border-radius:26px 26px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 30px 70px -20px rgba(15,23,42,.5)}
+@media(min-width:640px){.inv-hoja{border-radius:26px}}
+.inv-hoja h3{font-size:22px;margin-bottom:14px}
+.inv-form{display:flex;flex-direction:column;gap:12px}
+.inv-g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.inv-ayuda{font-size:10px;color:var(--tenue);margin-top:5px}
+.inv-rapidas{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.inv-rapidas button{padding:5px 10px;border-radius:9999px;border:1px solid var(--linea-fuerte);background:#fff;font-size:11px;font-weight:800;cursor:pointer}
+.inv-botones{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+#invToast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);opacity:0;pointer-events:none;z-index:95;max-width:90vw;background:#0F172A;color:#fff;font-size:13px;font-weight:700;padding:11px 18px;border-radius:16px;transition:opacity .2s,transform .2s;text-align:center}
+#invToast.on{opacity:1;transform:translate(-50%,0)}
+#invToast.mal{background:#BE123C}
+</style>
+<script id="vsi-js">
+(function inventarioModulo() {
+    'use strict';
+    if (window.VSI) return;
+    var $ = function (id) { return document.getElementById(id); };
+    if (typeof PANELES_ACCION === 'undefined' || typeof cargarProductosCatalogo !== 'function' ||
+        typeof mostrarPantallaAccion !== 'function') {
+        console.warn('[VSI] No encontré la base del panel; el inventario no se activó.');
+        return;
+    }
+    window.VSI = {};
+
+    var esc = function (s) { return window.escapeHTML(s); };
+    var LIMITE_BAJO = 3;
+    var items = [];
+    var filtro = 'todas';
+    var busqueda = '';
+    var editando = -1;          // índice en items, -1 = prenda nueva
+    var cargado = false;
+    var temporizadores = {};
+
+    /* ------------------------- utilidades ------------------------- */
+    function numero(v) {
+        var n = parseFloat(String(v == null ? '' : v).replace(/[^0-9.,-]/g, '').replace(',', '.'));
+        return isNaN(n) ? 0 : n;
+    }
+    function lista(v) {
+        var partes = Array.isArray(v) ? v : String(v == null ? '' : v).split(/[,;|]+/);
+        var vistos = {}, salida = [];
+        partes.forEach(function (p) {
+            var t = String(p).trim().replace(/\s+/g, ' ');
+            if (!t) return;
+            var k = t.toLowerCase();
+            if (vistos[k]) return;
+            vistos[k] = true;
+            salida.push(t);
+        });
+        return salida;
+    }
+    function usd(n) { return '$' + (Number(n) || 0).toFixed(2); }
+    function toast(txt, mal) {
+        var t = $('invToast');
+        t.textContent = txt;
+        t.className = (mal ? 'mal ' : '') + 'on';
+        clearTimeout(toast._t);
+        toast._t = setTimeout(function () { t.className = ''; }, mal ? 4200 : 1900);
+    }
+
+    /* ------------------------- datos ------------------------- */
+    function leerCatalogo() {
+        items = (productosCatalogo || []).map(function (p) {
+            var st = parseInt(p.stock, 10);
+            return {
+                raw: p,
+                codigo: String(p.codigo || '').trim(),
+                nombre: String(p.producto || p.nombre || '').trim(),
+                precio: numero(p.precio),
+                categoria: (typeof normalizarCategoria === 'function' ? normalizarCategoria(p.categoria) : String(p.categoria || '')) || '',
+                stock: isNaN(st) || st < 0 ? 0 : st,
+                colores: lista(p.colores || p.color),
+                tallas: lista(p.tallas || p.talla)
+            };
+        }).filter(function (x) { return x.nombre || x.codigo; });
+    }
+
+    // Deja productosCatalogo igual que items (así la lista de precios y el escáner ven lo nuevo)
+    function volcar() {
+        items.forEach(function (it) {
+            var r = it.raw || (it.raw = {});
+            r.codigo = it.codigo;
+            r.producto = it.nombre;
+            r.nombre = it.nombre;
+            r.precio = it.precio.toFixed(2);
+            r.categoria = it.categoria;
+            r.stock = String(it.stock);
+            r.colores = it.colores.join(', ');
+            r.tallas = it.tallas.join(', ');
+        });
+        var crudos = items.map(function (it) { return it.raw; });
+        productosCatalogo.splice.apply(productosCatalogo, [0, productosCatalogo.length].concat(crudos));
+    }
+
+    function servidor(accion, extra) {
+        return fetch('/api/admin-pedidos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.assign({ password: obtenerPassword(), accion: accion }, extra || {}))
+        }).then(function (r) { return r.json(); }).then(function (d) {
+            if (!d.ok) throw new Error(d.error || 'No se pudo completar');
+            return d;
+        });
+    }
+
+    function guardarRemoto(it, esNuevo, codigoAnterior) {
+        return servidor('guardarProducto', {
+            esNuevo: !!esNuevo,
+            codigoAnterior: codigoAnterior || '',
+            producto: {
+                codigo: it.codigo,
+                nombre: it.nombre,
+                producto: it.nombre,
+                precio: it.precio.toFixed(2),
+                categoria: it.categoria,
+                stock: it.stock,
+                colores: it.colores.join(', '),
+                tallas: it.tallas.join(', ')
+            }
+        });
+    }
+
+    /* ------------------------- pantalla ------------------------- */
+    var seccion = document.createElement('section');
+    seccion.id = 'vs-inventario';
+    seccion.className = 'pantalla-accion';
+    seccion.setAttribute('aria-label', 'Inventario');
+    seccion.innerHTML =
+        '<div class="pantalla-barra">' +
+            '<button type="button" onclick="abrirPanelAccion(null)" class="icon-btn btn-fantasma pantalla-volver"><i class="fa-solid fa-chevron-left text-[11px]"></i> Volver</button>' +
+            '<p class="marca pantalla-titulo">Inventario</p>' +
+            '<button type="button" class="vs-ref" id="invRef" aria-label="Actualizar" title="Actualizar"><i class="fa-solid fa-arrows-rotate text-sm"></i></button>' +
+        '</div>' +
+        '<div class="pantalla-cuerpo">' +
+            '<div class="inv-resumen" id="invResumen"></div>' +
+            '<div class="inv-fila">' +
+                '<input type="text" id="invBuscar" class="campo" placeholder="Buscar por nombre, código, color o talla..." autocomplete="off">' +
+                '<button type="button" id="invNueva" class="btn-marca py-3 px-5 rounded-2xl text-sm"><i class="fa-solid fa-plus mr-1.5"></i> Agregar prenda</button>' +
+            '</div>' +
+            '<div class="inv-filtros" id="invFiltros"></div>' +
+            '<p id="invConteo" class="text-[11px]" style="color: var(--tenue)"></p>' +
+            '<p id="invCargando" class="vacio">Buscando inventario...</p>' +
+            '<div id="invLista" class="space-y-3"></div>' +
+            '<p id="invVacio" class="hidden vacio">No hay prendas con ese filtro.</p>' +
+            '<button type="button" id="invCsv" class="btn-fantasma w-full py-2.5 rounded-xl text-xs"><i class="fa-regular fa-copy mr-1.5"></i> Copiar inventario como CSV</button>' +
+        '</div>';
+    document.body.appendChild(seccion);
+    PANELES_ACCION.inventario = { form: 'vs-inventario' };
+
+    var modal = document.createElement('div');
+    modal.id = 'invModal';
+    modal.innerHTML =
+        '<div class="inv-hoja" role="dialog" aria-label="Prenda">' +
+            '<h3 class="marca" id="invTitulo">Agregar prenda</h3>' +
+            '<div class="inv-form">' +
+                '<div class="inv-g2">' +
+                    '<div><label class="etiqueta" for="invCodigo">Código</label><input type="text" id="invCodigo" class="campo" placeholder="Automático"></div>' +
+                    '<div><label class="etiqueta" for="invCategoria">Categoría</label><input type="text" id="invCategoria" class="campo" list="invCats" placeholder="Damas, Caballeros..."><datalist id="invCats"></datalist></div>' +
+                '</div>' +
+                '<div><label class="etiqueta" for="invNombre">Nombre de la prenda</label><input type="text" id="invNombre" class="campo" placeholder="Chaqueta deportiva" maxlength="80"></div>' +
+                '<div class="inv-g2">' +
+                    '<div><label class="etiqueta" for="invPrecio">Precio ($)</label><input type="number" id="invPrecio" class="campo cifra" step="0.01" min="0" max="9999" inputmode="decimal" placeholder="0.00"></div>' +
+                    '<div><label class="etiqueta" for="invStock">Stock (unidades)</label><input type="number" id="invStock" class="campo cifra" step="1" min="0" max="99999" inputmode="numeric" placeholder="0"></div>' +
+                '</div>' +
+                '<div><label class="etiqueta" for="invColores">Colores</label><input type="text" id="invColores" class="campo" placeholder="Negro, Azul, Rojo">' +
+                    '<p class="inv-ayuda">Sepáralos con coma. Máximo 12 colores.</p></div>' +
+                '<div><label class="etiqueta" for="invTallas">Tallas</label><input type="text" id="invTallas" class="campo" placeholder="S, M, L, XL">' +
+                    '<div class="inv-rapidas" id="invRapidas"></div>' +
+                    '<p class="inv-ayuda">Sepáralas con coma. También sirven números (28, 30, 32).</p></div>' +
+                '<p id="invErr" class="hidden msg msg-error"></p>' +
+                '<div class="inv-botones">' +
+                    '<button type="button" id="invCancelar" class="btn-fantasma py-3 rounded-full text-sm">Cancelar</button>' +
+                    '<button type="button" id="invGuardar" class="btn-marca py-3 rounded-full text-sm">Guardar</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    document.body.appendChild(modal);
+
+    var toastEl = document.createElement('div');
+    toastEl.id = 'invToast';
+    document.body.appendChild(toastEl);
+
+    ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Única'].forEach(function (t) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = t;
+        b.addEventListener('click', function () {
+            var actual = lista($('invTallas').value);
+            if (!actual.some(function (x) { return x.toLowerCase() === t.toLowerCase(); })) actual.push(t);
+            $('invTallas').value = actual.join(', ');
+        });
+        $('invRapidas').appendChild(b);
+    });
+
+    /* ------------------------- dibujo ------------------------- */
+    function estado(it) {
+        if (it.stock <= 0) return { cls: 'chip-danger', txt: 'Agotada' };
+        if (it.stock <= LIMITE_BAJO) return { cls: 'chip-warn', txt: 'Quedan ' + it.stock };
+        return { cls: 'chip-ok', txt: 'En stock' };
+    }
+
+    function coincide(it) {
+        if (filtro === 'con' && !(it.stock > LIMITE_BAJO)) return false;
+        if (filtro === 'bajo' && !(it.stock > 0 && it.stock <= LIMITE_BAJO)) return false;
+        if (filtro === 'agotadas' && it.stock > 0) return false;
+        if (busqueda) {
+            var pajar = [it.nombre, it.codigo, it.categoria, it.colores.join(' '), it.tallas.join(' ')].join(' ').toLowerCase();
+            if (pajar.indexOf(busqueda) === -1) return false;
+        }
+        return true;
+    }
+
+    function pintarResumen() {
+        var unidades = 0, valor = 0, bajo = 0, agot = 0;
+        items.forEach(function (it) {
+            unidades += it.stock;
+            valor += it.stock * it.precio;
+            if (it.stock <= 0) agot++; else if (it.stock <= LIMITE_BAJO) bajo++;
+        });
+        $('invResumen').innerHTML =
+            '<div class="inv-dato"><span>Prendas</span><b>' + items.length + '</b></div>' +
+            '<div class="inv-dato"><span>Unidades</span><b>' + unidades + '</b></div>' +
+            '<div class="inv-dato"><span>Valor en stock</span><b>' + usd(valor) + '</b></div>' +
+            '<div class="inv-dato"><span>Bajo / agotadas</span><b>' + bajo + ' / ' + agot + '</b></div>';
+
+        var defs = [['todas', 'Todas'], ['con', 'Con stock'], ['bajo', 'Stock bajo'], ['agotadas', 'Agotadas']];
+        $('invFiltros').innerHTML = defs.map(function (d) {
+            return '<button type="button" class="seg-btn ' + (filtro === d[0] ? 'on' : '') + '" data-f="' + d[0] + '">' + d[1] + '</button>';
+        }).join('');
+    }
+
+    function tarjeta(it, i) {
+        var e = estado(it);
+        var tags = it.colores.map(function (c) { return '<span class="inv-tag">' + esc(c) + '</span>'; }).join('') +
+                   it.tallas.map(function (t) { return '<span class="inv-tag t">' + esc(t) + '</span>'; }).join('');
+        return '<div class="tarjeta inv-card" data-i="' + i + '">' +
+            '<div class="inv-top">' +
+                '<div class="min-w-0">' +
+                    '<p class="inv-nombre">' + esc(it.nombre || 'Sin nombre') + '</p>' +
+                    '<p class="inv-meta">' + esc(it.codigo || 'sin código') + (it.categoria ? ' · ' + esc(it.categoria) : '') + '</p>' +
+                '</div>' +
+                '<span class="inv-precio">' + usd(it.precio) + '</span>' +
+            '</div>' +
+            (tags ? '<div class="inv-tags">' + tags + '</div>' : '') +
+            '<div class="inv-pie">' +
+                '<div class="inv-stock">' +
+                    '<button type="button" class="inv-mini" data-act="menos" aria-label="Restar uno">−</button>' +
+                    '<span class="inv-cant">' + it.stock + '</span>' +
+                    '<button type="button" class="inv-mini" data-act="mas" aria-label="Sumar uno">+</button>' +
+                    '<span class="chip ' + e.cls + '">' + e.txt + '</span>' +
+                '</div>' +
+                '<div class="inv-acc">' +
+                    '<button type="button" class="inv-mini" data-act="editar" aria-label="Editar" title="Editar"><i class="fa-solid fa-pen"></i></button>' +
+                    '<button type="button" class="inv-mini" data-act="borrar" aria-label="Borrar" title="Borrar" style="color:#BE123C"><i class="fa-solid fa-trash-can"></i></button>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    }
+
+    function render() {
+        pintarResumen();
+        $('invCargando').classList.toggle('hidden', cargado);
+        var visibles = [];
+        items.forEach(function (it, i) { if (coincide(it)) visibles.push([it, i]); });
+        visibles.sort(function (a, b) { return a[0].nombre.localeCompare(b[0].nombre, 'es'); });
+        $('invLista').innerHTML = visibles.map(function (v) { return tarjeta(v[0], v[1]); }).join('');
+        $('invVacio').classList.toggle('hidden', !cargado || visibles.length > 0);
+        $('invConteo').textContent = cargado ? visibles.length + (visibles.length === 1 ? ' prenda' : ' prendas') : '';
+    }
+
+    /* ------------------------- acciones ------------------------- */
+    function ajustar(i, delta) {
+        var it = items[i];
+        if (!it) return;
+        if (it._ant == null) it._ant = it.stock;
+        it.stock = Math.max(0, Math.min(99999, it.stock + delta));
+        volcar();
+        render();
+        var clave = it.codigo || ('i' + i);
+        clearTimeout(temporizadores[clave]);
+        temporizadores[clave] = setTimeout(function () {
+            guardarRemoto(it, false, it.codigo).then(function () {
+                it._ant = null;
+            }).catch(function (e) {
+                it.stock = it._ant == null ? it.stock : it._ant;
+                it._ant = null;
+                volcar();
+                render();
+                toast('No se guardó el stock: ' + e.message, true);
+            });
+        }, 700);
+    }
+
+    function borrar(i) {
+        var it = items[i];
+        if (!it) return;
+        if (!confirm('¿Borrar "' + it.nombre + '" del inventario?\n\nEsto no se puede deshacer.')) return;
+        var copia = items.slice();
+        items.splice(i, 1);
+        volcar();
+        render();
+        servidor('eliminarProducto', { codigo: it.codigo, nombre: it.nombre }).then(function () {
+            toast('Prenda borrada');
+        }).catch(function (e) {
+            items = copia;
+            volcar();
+            render();
+            toast('No se pudo borrar: ' + e.message, true);
+        });
+    }
+
+    function siguienteCodigo() {
+        var max = 0;
+        items.forEach(function (it) {
+            var m = /^VS-(\d+)$/i.exec(it.codigo);
+            if (m) max = Math.max(max, parseInt(m[1], 10));
+        });
+        return 'VS-' + String(max + 1).padStart(3, '0');
+    }
+
+    function abrirForm(i) {
+        editando = (typeof i === 'number') ? i : -1;
+        var it = editando >= 0 ? items[editando] : null;
+        $('invTitulo').textContent = it ? 'Editar prenda' : 'Agregar prenda';
+        $('invCodigo').value = it ? it.codigo : '';
+        $('invCodigo').placeholder = it ? '' : 'Automático (' + siguienteCodigo() + ')';
+        $('invNombre').value = it ? it.nombre : '';
+        $('invPrecio').value = it ? it.precio.toFixed(2) : '';
+        $('invCategoria').value = it ? it.categoria : '';
+        $('invStock').value = it ? String(it.stock) : '';
+        $('invColores').value = it ? it.colores.join(', ') : '';
+        $('invTallas').value = it ? it.tallas.join(', ') : '';
+        $('invErr').classList.add('hidden');
+
+        var cats = [];
+        items.forEach(function (x) { if (x.categoria && cats.indexOf(x.categoria) === -1) cats.push(x.categoria); });
+        $('invCats').innerHTML = cats.sort().map(function (c) { return '<option value="' + esc(c) + '"></option>'; }).join('');
+
+        modal.classList.add('abierto');
+        setTimeout(function () { $('invNombre').focus(); }, 50);
+    }
+    function cerrarForm() { modal.classList.remove('abierto'); }
+
+    function leerForm() {
+        var nombre = $('invNombre').value.trim().replace(/\s+/g, ' ');
+        var precioTxt = $('invPrecio').value.trim().replace(',', '.');
+        var stockTxt = $('invStock').value.trim() || '0';
+        var codigo = $('invCodigo').value.trim().toUpperCase();
+        var categoria = $('invCategoria').value.trim().replace(/\s+/g, ' ');
+        var colores = lista($('invColores').value);
+        var tallas = lista($('invTallas').value);
+
+        if (nombre.length < 2 || nombre.length > 80) return { error: 'Escribe el nombre de la prenda (entre 2 y 80 letras).' };
+        var precio = parseFloat(precioTxt);
+        if (isNaN(precio) || precio <= 0 || precio > 9999) return { error: 'El precio tiene que ser mayor que 0 y no pasar de 9999.' };
+        if (!/^\d{1,5}$/.test(stockTxt)) return { error: 'El stock es un número entero, desde 0 hasta 99999.' };
+
+        if (!codigo) codigo = (editando >= 0 && items[editando].codigo) ? items[editando].codigo : siguienteCodigo();
+        if (!/^[A-Z0-9_-]{2,20}$/.test(codigo)) return { error: 'El código solo puede tener letras, números, guion y guion bajo (2 a 20).' };
+        for (var k = 0; k < items.length; k++) {
+            if (k !== editando && items[k].codigo && items[k].codigo.toUpperCase() === codigo) {
+                return { error: 'Ya existe una prenda con el código ' + codigo + '.' };
+            }
+        }
+
+        if (colores.length > 12) return { error: 'Máximo 12 colores por prenda.' };
+        for (var c = 0; c < colores.length; c++) {
+            if (colores[c].length > 24 || !/^[\p{L}\p{N} .\-\/]+$/u.test(colores[c])) {
+                return { error: 'Color no válido: "' + colores[c] + '". Usa solo letras (ej: Negro, Azul rey).' };
+            }
+            colores[c] = colores[c].charAt(0).toUpperCase() + colores[c].slice(1);
+        }
+        if (tallas.length > 20) return { error: 'Máximo 20 tallas por prenda.' };
+        for (var t = 0; t < tallas.length; t++) {
+            if (tallas[t].length > 8 || !/^[A-Za-z0-9.\/\-ÚúÑñ]+$/.test(tallas[t])) {
+                return { error: 'Talla no válida: "' + tallas[t] + '". Ejemplos: S, M, XL, 30.' };
+            }
+            tallas[t] = tallas[t].length <= 3 ? tallas[t].toUpperCase() : tallas[t].charAt(0).toUpperCase() + tallas[t].slice(1);
+        }
+
+        return {
+            datos: {
+                codigo: codigo, nombre: nombre, precio: Math.round(precio * 100) / 100,
+                categoria: categoria, stock: parseInt(stockTxt, 10), colores: colores, tallas: tallas
+            }
+        };
+    }
+
+    function guardarForm() {
+        var r = leerForm();
+        var err = $('invErr');
+        if (r.error) { err.textContent = r.error; err.classList.remove('hidden'); return; }
+        err.classList.add('hidden');
+
+        var d = r.datos;
+        var esNuevo = editando < 0;
+        var anterior = esNuevo ? '' : items[editando].codigo;
+        var previo = esNuevo ? null : JSON.parse(JSON.stringify({
+            codigo: items[editando].codigo, nombre: items[editando].nombre, precio: items[editando].precio,
+            categoria: items[editando].categoria, stock: items[editando].stock,
+            colores: items[editando].colores, tallas: items[editando].tallas
+        }));
+        var it;
+        if (esNuevo) {
+            it = { raw: {}, codigo: d.codigo, nombre: d.nombre, precio: d.precio, categoria: d.categoria, stock: d.stock, colores: d.colores, tallas: d.tallas };
+            items.push(it);
+        } else {
+            it = items[editando];
+            it.codigo = d.codigo; it.nombre = d.nombre; it.precio = d.precio; it.categoria = d.categoria;
+            it.stock = d.stock; it.colores = d.colores; it.tallas = d.tallas;
+        }
+        volcar();
+        cerrarForm();
+        render();
+
+        guardarRemoto(it, esNuevo, anterior).then(function () {
+            toast(esNuevo ? '✓ Prenda agregada' : '✓ Cambios guardados');
+        }).catch(function (e) {
+            if (esNuevo) {
+                items.splice(items.indexOf(it), 1);
+            } else {
+                it.codigo = previo.codigo; it.nombre = previo.nombre; it.precio = previo.precio; it.categoria = previo.categoria;
+                it.stock = previo.stock; it.colores = previo.colores; it.tallas = previo.tallas;
+            }
+            volcar();
+            render();
+            toast('No se guardó en el servidor: ' + e.message, true);
+        });
+    }
+
+    function copiarCsv() {
+        function q(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
+        var filas = [['codigo', 'producto', 'precio', 'categoria', 'stock', 'colores', 'tallas'].join(',')];
+        items.forEach(function (it) {
+            filas.push([q(it.codigo), q(it.nombre), it.precio.toFixed(2), q(it.categoria), it.stock, q(it.colores.join(', ')), q(it.tallas.join(', '))].join(','));
+        });
+        var texto = filas.join('\n');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(texto).then(function () { toast('CSV copiado'); }, function () { toast('No se pudo copiar', true); });
+        } else {
+            toast('Tu navegador no deja copiar', true);
+        }
+    }
+
+    function recargar() {
+        var btn = $('invRef');
+        if (btn) { btn.classList.remove('gira'); void btn.offsetWidth; btn.classList.add('gira'); }
+        return Promise.resolve(cargarProductosCatalogo()).then(function () {
+            leerCatalogo();
+            cargado = true;
+            render();
+        }).catch(function () { cargado = true; render(); });
+    }
+
+    /* ------------------------- eventos ------------------------- */
+    $('invLista').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-act]');
+        if (!b) return;
+        var card = b.closest('[data-i]');
+        if (!card) return;
+        var i = parseInt(card.getAttribute('data-i'), 10);
+        var a = b.getAttribute('data-act');
+        if (a === 'mas') ajustar(i, 1);
+        else if (a === 'menos') ajustar(i, -1);
+        else if (a === 'editar') abrirForm(i);
+        else if (a === 'borrar') borrar(i);
+    });
+    $('invFiltros').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-f]');
+        if (!b) return;
+        filtro = b.getAttribute('data-f');
+        render();
+    });
+    $('invBuscar').addEventListener('input', function () {
+        busqueda = this.value.trim().toLowerCase();
+        render();
+    });
+    $('invNueva').addEventListener('click', function () { abrirForm(); });
+    $('invCsv').addEventListener('click', copiarCsv);
+    $('invRef').addEventListener('click', recargar);
+    $('invCancelar').addEventListener('click', cerrarForm);
+    $('invGuardar').addEventListener('click', guardarForm);
+    modal.addEventListener('click', function (e) { if (e.target === modal) cerrarForm(); });
+    modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); guardarForm(); }
+    });
+    // Escape cierra primero el formulario (antes de que cierre la pantalla)
+    window.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('abierto')) {
+            e.stopImmediatePropagation();
+            cerrarForm();
+        }
+    }, true);
+
+    /* ------------------------- enganche a la navegación ------------------------- */
+    var mostrarOriginal = window.mostrarPantallaAccion;
+    window.mostrarPantallaAccion = function (n) {
+        var r = mostrarOriginal.apply(this, arguments);
+        if (n === 'inventario') {
+            if (productosCatalogo.length && !cargado) { leerCatalogo(); cargado = true; }
+            render();
+            recargar();
+        }
+        return r;
+    };
+
+    function colocarMenu() {
+        var nav = document.querySelector('#vsLateral .v4-nav');
+        if (!nav) return false;
+        if (nav.querySelector('[data-k="inventario"]')) return true;
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'vs-item';
+        b.setAttribute('data-k', 'inventario');
+        b.innerHTML = '<span class="vs-iz"><i class="fa-solid fa-boxes-stacked vs-ic"></i><span>Inventario</span></span>';
+        var gastos = nav.querySelector('[data-k="gastos"]');
+        if (gastos && gastos.parentNode) gastos.parentNode.insertBefore(b, gastos.nextSibling);
+        else nav.appendChild(b);
+        return true;
+    }
+    if (!colocarMenu()) {
+        var intentos = 0;
+        var espera = setInterval(function () {
+            if (colocarMenu() || ++intentos > 20) clearInterval(espera);
+        }, 300);
+    }
+
+    window.VSI.abrir = function () { abrirPanelAccion('inventario'); };
+    console.log('[VSI] inventario activo');
+})();
+</script>
+<!-- vs-inventario:fin -->
 </body>
 </html>
