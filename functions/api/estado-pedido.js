@@ -18,4 +18,4 @@ export async function onRequestGet(context) {
     console.error("estado-pedido:", error && error.message);
     return jsonResponse({ ok: false, error: "No se pudo consultar el pedido. Intenta de nuevo." }, 500);
   }
-}s
+}
