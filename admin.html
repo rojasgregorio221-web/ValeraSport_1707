@@ -1544,13 +1544,13 @@ body::after{display:none}
         // ===================================================================
         const HISTORIAL_VERSIONES = [
             {
-                numero: '6.5.0', fecha: '2026-11-02', tipo: 'Novedad',
-                titulo: 'Inventario en el panel y arreglo del menú',
+                numero: '6.5.0', fecha: '2026-11-02', tipo: 'Arreglo',
+                titulo: 'Inventario en el panel y arreglo del script cortado',
                 cambios: [
-                    'Nueva pantalla Inventario en el menú: agregar, editar y borrar prendas directo en la base de datos, sin tocar D1 a mano.',
-                    'Arreglo: el código del inventario se mostraba como texto en el panel. Ahora vive en inventario.js y el panel se ve normal.',
-                    'Arreglo: se quitó la versión 6.3.0 que se subió por error, con su texto mal formado.',
-                    'Mejora: al guardar una prenda se revisa el precio, el stock y el formato de colores antes de enviar.'
+                    'Arreglo: la etiqueta del inventario quedó dentro de la función de imprimir QR y cortaba el script del panel, mostrando código como texto. Ahora está al final del archivo, fuera de cualquier script.',
+                    'Arreglo: el inventario no se enganchaba al menú porque buscaba PANELES_ACCION en window; ahora lo usa directo.',
+                    'Mejora: nueva pantalla Inventario en el menú para agregar, editar y borrar prendas directo en la base de datos.',
+                    'Mejora: al guardar se revisa nombre, precio, stock y el formato de colores y tallas antes de enviar.'
                 ]
             },
             {
@@ -4233,7 +4233,7 @@ body::after{display:none}
 
 
 
-<script src="/inventario.js"></script>
+
 </body></html>
             `);
             ventana.document.close();
@@ -6047,5 +6047,6 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
 })();
 </script>
 <!-- vs-venta2:fin -->
+<script src="/inventario.js"></script>
 </body>
 </html>
