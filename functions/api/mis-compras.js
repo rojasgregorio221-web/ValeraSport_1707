@@ -1,26 +1,13 @@
 // GET /api/mis-compras
-// El cliente (logueado con Firebase Authentication / Google) pide su propio
-// historial de compras. Verificamos su token nosotros mismos en el servidor
-// -- NUNCA confiamos en un correo que venga suelto del cliente en la
-// petición, porque eso permitiría a cualquiera pedir el historial de otra
-// persona con solo saber su correo.
-
+// Historial del cliente logueado; el correo sale del token verificado.
 import { verificarTokenFirebase } from "../_utils/verificarFirebase.js";
-
-function jsonResponse(obj, status) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+import { historialCliente, jsonResponse } from "../_utils/d1.js";
 
 export async function onRequestGet(context) {
   const { request, env } = context;
-  const SHEET_WRITE_URL = env.SHEET_WRITE_URL;
-  const CLAVE_ADMIN = env.CLAVE_ADMIN;
   const FIREBASE_PROJECT_ID = env.FIREBASE_PROJECT_ID;
 
-  if (!SHEET_WRITE_URL || !CLAVE_ADMIN || !FIREBASE_PROJECT_ID) {
+  if (!FIREBASE_PROJECT_ID) {
     return jsonResponse({ ok: false, error: "Faltan variables de entorno en Cloudflare Pages" }, 500);
   }
 
@@ -31,31 +18,13 @@ export async function onRequestGet(context) {
   try {
     payload = await verificarTokenFirebase(idToken, FIREBASE_PROJECT_ID);
   } catch (error) {
-    return jsonResponse(
-      { ok: false, error: "Debes iniciar sesión para ver tu historial (" + error.message + ")" },
-      401
-    );
+    return jsonResponse({ ok: false, error: "Debes iniciar sesión para ver tu historial (" + error.message + ")" }, 401);
   }
 
   try {
-    const url =
-      SHEET_WRITE_URL +
-      "?accion=historialCliente" +
-      "&correo=" + encodeURIComponent(payload.email) +
-      "&clave=" + encodeURIComponent(CLAVE_ADMIN);
-
-    const respuesta = await fetch(url);
-    const texto = await respuesta.text();
-    let resultado;
-    try {
-      resultado = JSON.parse(texto);
-    } catch (e) {
-      resultado = { ok: false, error: "Respuesta inesperada: " + texto.slice(0, 200) };
-    }
-
-    return jsonResponse(resultado, resultado.ok ? 200 : 500);
+    return jsonResponse({ ok: true, compras: await historialCliente(env, payload.email) }, 200);
   } catch (error) {
-    console.error("mis-compras: fallo al conectar con Google Sheets", error);
-    return jsonResponse({ ok: false, error: "No se pudo conectar con el servidor. Intenta de nuevo." }, 500);
+    console.error("mis-compras:", error && error.message);
+    return jsonResponse({ ok: false, error: "No se pudo cargar tu historial. Intenta de nuevo." }, 500);
   }
 }

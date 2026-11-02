@@ -1,62 +1,12 @@
 // POST /api/admin-pedidos
-//
-// Entrada del panel:  { password, tipo: "pedidos" | "aceptados" | "resumen" | ... }
-//                o:   { password, accion: "aceptarOrden" | "rechazarOrden" | ... , ...datos }
-// El panel manda ADMIN_PASSWORD; este archivo la valida y SIEMPRE manda la
-// clave a Google Apps Script.
-
-// Solo la URL de ESCRITURA del Apps Script (nunca la del CSV público).
-const URL_VARS = ["SHEET_WRITE_URL", "APPS_SCRIPT_URL", "GOOGLE_SCRIPT_URL"];
-const CLAVE_VARS = ["APPS_SCRIPT_CLAVE", "CLAVE_ADMIN"];
+// Entrada: { password, tipo: "pedidos" | ... }  o  { password, accion: "aceptarOrden" | ..., ...datos }
+import { despacharAdmin, validarAdmin, jsonResponse, ErrorHttp } from "../_utils/d1.js";
 
 const LECTURAS = ["pedidos", "aceptados", "rechazadas", "ventas", "fiados", "gastos", "resumen", "semanas", "resumenSemanal", "historialCliente", "cashea_planes"];
 const ACCIONES = ["aceptarOrden", "rechazarOrden", "rechazar_todos", "ventaFisica", "ventaFisicaLote", "marcarFiadoPagado", "agregarGasto", "eliminarGasto", "vaciarVentas", "cerrarSemana", "cashea_cobro", "cashea_crear_plan", "cashea_anular"];
 
-function jsonResponse(obj, status) {
-  return new Response(JSON.stringify(obj), {
-    status: status || 200,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-  });
-}
-
-// Si Google devuelve una página HTML (error, autorización pendiente, etc.),
-// se muestra el texto legible en vez de un trozo de código.
-async function parsearRespuesta(respuesta) {
-  const texto = await respuesta.text();
-  try {
-    return JSON.parse(texto);
-  } catch (e) {
-    const legible = texto
-      .replace(/<script[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 300);
-    return {
-      ok: false,
-      error: "Google Apps Script devolvió una página en vez de datos (HTTP " + respuesta.status + "): " + (legible || "sin texto"),
-    };
-  }
-}
-
-function primero(env, nombres) {
-  for (let i = 0; i < nombres.length; i++) {
-    if (env[nombres[i]]) return env[nombres[i]];
-  }
-  return "";
-}
-
-function iguales(a, b) {
-  const largo = Math.max(a.length, b.length);
-  let r = a.length ^ b.length;
-  for (let i = 0; i < largo; i++) r |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
-  return r === 0;
-}
-
 export async function onRequestPost(context) {
-  const request = context.request;
-  const env = context.env;
+  const { request, env } = context;
 
   let datos;
   try {
@@ -65,47 +15,26 @@ export async function onRequestPost(context) {
     return jsonResponse({ ok: false, error: "Solicitud inválida" }, 400);
   }
 
-  const adminPassword = (env.ADMIN_PASSWORD || "").toString();
-  const recibida = (datos.password || "").toString();
-  if (!adminPassword || !iguales(recibida, adminPassword)) {
-    return jsonResponse({ ok: false, error: "Clave incorrecta" }, 401);
-  }
-
-  const urlScript = primero(env, URL_VARS);
-  if (!urlScript) {
-    return jsonResponse({ ok: false, error: "Falta la variable SHEET_WRITE_URL en Cloudflare" }, 500);
-  }
-  const claveScript = primero(env, CLAVE_VARS) || adminPassword;
-
-  let accion = (datos.accion || "").toString();
-  if (!accion && datos.tipo) accion = datos.tipo.toString();
-  if (LECTURAS.indexOf(accion) === -1 && ACCIONES.indexOf(accion) === -1) {
-    return jsonResponse({ ok: false, error: "Acción no permitida: " + accion }, 400);
-  }
-
-  const cuerpo = Object.assign({}, datos);
-  delete cuerpo.password;
-  delete cuerpo.tipo;
-  cuerpo.accion = accion;
-  cuerpo.clave = claveScript;
-
   try {
-    const respuesta = await fetch(urlScript, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpo),
-      redirect: "follow",
-    });
-    const resultado = await parsearRespuesta(respuesta);
+    await validarAdmin(env, request, datos.password);
 
-    if (accion === "resumen" && resultado && resultado.resumen) {
-      Object.assign(resultado, resultado.resumen);
+    const accion = String(datos.accion || datos.tipo || "");
+    if (LECTURAS.indexOf(accion) === -1 && ACCIONES.indexOf(accion) === -1) {
+      return jsonResponse({ ok: false, error: "Acción no permitida: " + accion }, 400);
     }
-    if (resultado && resultado.ok === false && !resultado.mensaje) {
-      resultado.mensaje = resultado.error;
-    }
-    return jsonResponse(resultado, 200);
+
+    const cuerpo = Object.assign({}, datos);
+    delete cuerpo.password;
+    delete cuerpo.tipo;
+    cuerpo.accion = accion;
+
+    return jsonResponse(await despacharAdmin(env, accion, cuerpo), 200);
   } catch (e) {
-    return jsonResponse({ ok: false, error: "No se pudo conectar con Google Sheets" }, 502);
+    if (e instanceof ErrorHttp) {
+      return jsonResponse({ ok: false, error: e.message, mensaje: e.message }, e.status);
+    }
+    console.error("admin-pedidos:", e && e.message);
+    const msg = e && e.message ? e.message : "Error inesperado";
+    return jsonResponse({ ok: false, error: msg, mensaje: msg }, 200);
   }
 }
