@@ -175,6 +175,15 @@
             .tarjeta { animation: none !important; }
             html { scroll-behavior: auto; }
         }
+
+        /* ---- FOTO DEL DETALLE: se ve completa, sin recortar ---- */
+        .vs-foto-marco {
+            position: relative; width: 100%; aspect-ratio: 4 / 5; max-height: 60vh;
+            border-radius: 24px; overflow: hidden; background: #fff;
+            border: 1px solid rgba(22, 19, 31, 0.08);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .vs-foto-img { width: 100%; height: 100%; object-fit: contain; display: block; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -296,8 +305,8 @@
                     Cerrar <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
-            <div class="w-full h-72 rounded-[24px] overflow-hidden bg-gray-50 flex items-center justify-center mb-3">
-                <img id="detalleImagen" src="" alt="" class="max-w-full max-h-full object-contain">
+            <div class="vs-foto-marco mb-3">
+                <img id="detalleImagen" src="" alt="" class="vs-foto-img">
             </div>
             <div id="detalleGaleria" class="hidden flex gap-2 mb-5 overflow-x-auto pb-1"></div>
             <span id="detalleCategoria" class="text-[11px] font-semibold uppercase tracking-widest mb-1 block" style="color: var(--fucsia)"></span>
