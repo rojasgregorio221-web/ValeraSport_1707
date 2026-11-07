@@ -193,6 +193,45 @@
             .vs-det-foto .vs-foto-marco { max-height: calc(90vh - 60px); margin-bottom: 12px; }
             .vs-det-info { padding-top: 6px; }
         }
+
+        /* ---- TARJETAS DEL CATÁLOGO · diseño limpio ---- */
+        .marco {
+            border-radius: 22px; background: #fff;
+            border: 1px solid rgba(22, 19, 31, 0.07);
+            box-shadow: 0 1px 2px rgba(22, 19, 31, 0.04);
+            transition: box-shadow 0.45s var(--suave), transform 0.45s var(--suave), border-color 0.3s ease;
+        }
+        .marco::after { display: none; }
+        .marco img {
+            width: 100%; height: 100%; max-width: none; max-height: none;
+            object-fit: contain; padding: 10px;
+        }
+        .tarjeta:hover .marco {
+            transform: translateY(-4px);
+            border-color: rgba(255, 45, 135, 0.35);
+            box-shadow: 0 24px 40px -24px rgba(22, 19, 31, 0.35);
+        }
+        .tarjeta:hover .marco img { transform: scale(1.04); }
+
+        /* Sin foto cargada: el logo queda como marca de agua, no como una foto */
+        .marco.sin-foto { background: linear-gradient(160deg, #f6f3ec, #ece7dc); }
+        .marco.sin-foto img { width: 44%; height: auto; padding: 0; opacity: 0.4; }
+        .tarjeta:hover .marco.sin-foto img { transform: scale(1.06); }
+
+        /* Agotadas: apagadas */
+        .marco.agotado img { opacity: 0.5; filter: grayscale(0.7); }
+        .marco.agotado.sin-foto img { opacity: 0.25; }
+
+        .ver-chip {
+            position: absolute; left: 50%; bottom: 14px; z-index: 2;
+            transform: translate(-50%, 10px); opacity: 0; pointer-events: none;
+            background: var(--tinta); color: #fff; white-space: nowrap;
+            font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+            padding: 9px 18px; border-radius: 9999px;
+            transition: opacity 0.3s ease, transform 0.4s var(--suave);
+        }
+        .tarjeta:hover .ver-chip { opacity: 1; transform: translate(-50%, 0); }
+        @media (hover: none) { .ver-chip { display: none; } }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -650,12 +689,14 @@
             // El retraso se corta a los 12 primeros: si no, las últimas prendas
             // de una lista larga tardarían demasiado en aparecer.
             let retraso = Math.min(i || 0, 11) * 45;
+            const sinFoto = !imagenUrl || /logo\.jpg/i.test(imagenUrl);
 
             return `
                 <div class="tarjeta group" style="animation-delay: ${retraso}ms" onclick="abrirDetalle(${argsAbrirDetalle})">
-                    <div class="marco">
+                    <div class="marco${sinFoto ? ' sin-foto' : ''}${!estaDisponible ? ' agotado' : ''}">
                         ${!estaDisponible ? '<span class="sello">AGOTADO</span>' : ''}
-                        <img src="${escapeHTML(imagenUrl)}" alt="${escapeHTML(nombreProducto)}" loading="lazy" onerror="this.src='imagenes/logo.jpg'">
+                        <img src="${escapeHTML(imagenUrl)}" alt="${escapeHTML(nombreProducto)}" loading="lazy" onerror="this.onerror=null;this.src='imagenes/logo.jpg';this.parentNode.classList.add('sin-foto')">
+                        <span class="ver-chip">Ver prenda</span>
                     </div>
                     <div class="pt-4">
                         <p class="text-[10px] font-bold tracking-[0.18em] mb-1.5" style="color: var(--gris-claro)">${escapeHTML(categoriaLabel.toUpperCase())}</p>
