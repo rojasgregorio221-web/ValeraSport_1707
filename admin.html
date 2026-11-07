@@ -822,7 +822,7 @@ body::after{display:none}
 
                 <p class="text-[11px] mt-6 pt-4 flex items-start gap-2" style="color: var(--tenue); border-top: 1px solid var(--linea)">
                     <i class="fa-solid fa-circle-info mt-0.5"></i>
-                    <span>Cada moneda va por su lado, nunca se convierte una en la otra. Las ventas con Cashea no se suman aquí: se guardan en Cobros Cashea. <span id="heroTasaInfo"></span></span>
+                    <span>Cada moneda va por su lado, nunca se convierte una en la otra. Las ventas con Cashea no se suman aquí: se siguen en Cobros Cashea (en Ventas sí aparecen). <span id="heroTasaInfo"></span></span>
                 </p>
             </div>
         </section>
@@ -1544,6 +1544,14 @@ body::after{display:none}
         // ===================================================================
         const HISTORIAL_VERSIONES = [
             {
+                numero: '6.7.1', fecha: '2026-11-07', tipo: 'Mejora',
+                titulo: 'Cashea cuenta en Ventas y editar ventas',
+                cambios: [
+                    'Las ventas con Cashea vuelven a sumarse en Ventas, Semana por semana y el Reporte en PDF. Solo quedan fuera del resumen de la pantalla principal (Bs y $), donde se siguen en Cobros Cashea.',
+                    'Editar una venta ya hecha: un lápiz discreto en cada venta para cambiar el producto, el precio de cada prenda o el total.'
+                ]
+            },
+            {
                 numero: '6.7.0', fecha: '2026-11-07', tipo: 'Novedad',
                 titulo: 'Cashea al 15%, cobros netos y ventas por fecha',
                 cambios: [
@@ -1949,16 +1957,15 @@ body::after{display:none}
         }
 
         // ---------- HERO "VENDIDO HOY": TOTALES REALES POR MONEDA, SIN CONVERTIR ----------
-        // Fiado y Cashea no cuentan en Bolívares ni en Divisas: el fiado se cobra después y Cashea va a Cobros Cashea
-        function esFueraDeCaja(v) {
-            const m = ((v && v.metodoPago) || '').toLowerCase().trim();
-            return m === 'fiado' || m.indexOf('cashea') === 0;
+        // Las ventas con Cashea se cobran por cuotas: no suman en el resumen de la pantalla principal (sí en Ventas, semanas y PDF)
+        function esVentaCashea(v) {
+            return ((v && v.metodoPago) || '').toLowerCase().trim().indexOf('cashea') === 0;
         }
 
         function calcularTotalesPorMoneda(ventasArr) {
             let totalBs = 0, totalUsd = 0, piezasBs = 0, piezasUsd = 0;
             (ventasArr || []).forEach(v => {
-                if (esFueraDeCaja(v)) return; // fiado o Cashea: todavía no es dinero en caja
+                if ((v.metodoPago || '').toLowerCase().trim() === 'fiado') return; // fiado: aún no cobrado
                 if (esMetodoUsd(v.metodoPago)) {
                     totalUsd += Number(v.precio) || 0;
                     piezasUsd++;
@@ -1973,7 +1980,7 @@ body::after{display:none}
 
         function renderizarHeroVendidoHoy() {
             const hoyStr = new Date().toLocaleDateString('es-VE');
-            const ventasHoy = listaVentasMemoria.filter(v => v.fecha && new Date(v.fecha).toLocaleDateString('es-VE') === hoyStr);
+            const ventasHoy = listaVentasMemoria.filter(v => v.fecha && new Date(v.fecha).toLocaleDateString('es-VE') === hoyStr && !esVentaCashea(v));
             const totales = calcularTotalesPorMoneda(ventasHoy);
 
             const elBs = document.getElementById('heroTotalBs');
@@ -2283,7 +2290,7 @@ body::after{display:none}
             const hoyStr = new Date().toLocaleDateString('es-VE');
 
             // Las fiadas pendientes no cuentan como dinero cobrado todavía
-            let filtradasPeriodo = listaVentasMemoria.filter(v => !esFueraDeCaja(v));
+            let filtradasPeriodo = listaVentasMemoria.filter(v => (v.metodoPago || '').toLowerCase().trim() !== 'fiado');
 
             if (filtroVentas === 'hoy') {
                 filtradasPeriodo = filtradasPeriodo.filter(v => {
@@ -2386,7 +2393,7 @@ body::after{display:none}
             const bloque = document.getElementById('bloqueSemanas');
             if (!cont || !bloque) return;
 
-            const cobradas = listaVentasMemoria.filter(v => v.fecha && !esFueraDeCaja(v));
+            const cobradas = listaVentasMemoria.filter(v => v.fecha && (v.metodoPago || '').toLowerCase().trim() !== 'fiado');
             if (!cobradas.length) {
                 bloque.classList.add('hidden');
                 return;
@@ -4526,7 +4533,7 @@ body::after{display:none}
             try { await cargarVentas(); } catch (e) { /* se usa lo que ya hay en pantalla */ }
 
             const ventas = listaVentasMemoria
-                .filter(v => v.fecha && !esFueraDeCaja(v))
+                .filter(v => v.fecha && (v.metodoPago || '').toLowerCase().trim() !== 'fiado')
                 .filter(v => { const f = new Date(v.fecha); return f >= rango.ini && f <= rango.fin; })
                 .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
@@ -6594,5 +6601,159 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
 })();
 </script>
 <!-- vs-fechas:fin -->
+<!-- vs-editar:inicio -->
+<script id="vse-js">
+(function () {
+    'use strict';
+    if (window.VSE) return;
+    if (typeof tarjetaVenta !== 'function' || typeof tarjetaVentaGrupo !== 'function' || typeof listaVentasMemoria === 'undefined') {
+        console.warn('[VSE] No encontré la base de Ventas; no se activó.');
+        return;
+    }
+    window.VSE = {};
+    /* ---------- Editar una venta ya hecha (lápiz discreto en cada tarjeta) ---------- */
+    var css = document.createElement('style');
+    css.textContent =
+      '.vsx-lapiz{position:absolute;right:10px;bottom:8px;width:28px;height:28px;border-radius:50%;border:0;background:transparent;' +
+      'color:var(--tenue);opacity:.55;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}' +
+      '.vsx-lapiz:hover,.vsx-lapiz:focus{opacity:1;background:rgba(255,255,255,.06)}' +
+      '.vsx-ov{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}' +
+      '.vsx-hoja{width:100%;max-width:520px;max-height:90vh;overflow:auto;background:var(--tarjeta,#14161c);color:var(--hueso,#fff);' +
+      'border-radius:22px 22px 0 0;padding:20px 18px 24px;box-shadow:0 -10px 40px rgba(0,0,0,.5)}' +
+      '.vsx-fila{display:flex;gap:8px;margin-bottom:10px}' +
+      '.vsx-fila .campo{height:44px;min-width:0}.vsx-p{flex:1}.vsx-n{width:96px;text-align:right}' +
+      '.vsx-tot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 4px;padding-top:12px;border-top:1px solid var(--linea)}' +
+      '.vsx-err{color:#FDA4AF;font-size:12px;margin-top:8px}';
+    document.head.appendChild(css);
+
+    function idDe(v) { return v && (v.idVenta || v.id || ''); }
+    function lapiz(htmlTarjeta, ventas) {
+        var ids = ventas.map(idDe).filter(Boolean);
+        if (!ids.length) return htmlTarjeta;
+        var i = htmlTarjeta.lastIndexOf('</div>');
+        if (i === -1) return htmlTarjeta;
+        var boton = '<button type="button" class="vsx-lapiz" data-vsx-ed="' + escapeHTML(ids.join('|')) + '" aria-label="Editar esta venta" title="Editar"><i class="fa-solid fa-pen"></i></button>';
+        return htmlTarjeta.slice(0, i) + boton + htmlTarjeta.slice(i);
+    }
+    if (typeof tarjetaVenta === 'function') {
+        var tv0 = tarjetaVenta;
+        window.tarjetaVenta = function (v) {
+            return lapiz(tv0(v).replace('<div class="tarjeta p-4">', '<div class="tarjeta p-4" style="position:relative">'), [v]);
+        };
+    }
+    if (typeof tarjetaVentaGrupo === 'function') {
+        var tg0 = tarjetaVentaGrupo;
+        window.tarjetaVentaGrupo = function (vs) {
+            var h = tg0(vs);
+            return lapiz(h.replace('<div class="tarjeta p-4">', '<div class="tarjeta p-4" style="position:relative">'), vs);
+        };
+    }
+
+    function num(x) { var n = parseFloat(String(x).replace(',', '.')); return isFinite(n) ? n : 0; }
+    function r2(n) { return Math.round(n * 100) / 100; }
+
+    function abrirEditor(ids) {
+        var ventas = ids.map(function (id) {
+            return listaVentasMemoria.filter(function (v) { return String(idDe(v)) === String(id); })[0];
+        }).filter(Boolean);
+        if (!ventas.length) return;
+        var ov = document.createElement('div');
+        ov.className = 'vsx-ov';
+        var filas = ventas.map(function (v, k) {
+            return '<div class="vsx-fila">' +
+                '<input class="campo vsx-p" data-k="' + k + '" data-c="prod" value="' + escapeHTML(v.producto || '') + '" placeholder="Producto">' +
+                '<input class="campo cifra vsx-n" data-k="' + k + '" data-c="precio" inputmode="decimal" value="' + r2(num(v.precio)).toFixed(2) + '" aria-label="Precio en dólares">' +
+                '</div>';
+        }).join('');
+        ov.innerHTML =
+            '<div class="vsx-hoja" role="dialog" aria-label="Editar venta">' +
+              '<p class="display text-[22px]" style="margin-bottom:4px">Editar venta</p>' +
+              '<p style="color:var(--tenue);font-size:12px;margin-bottom:14px">Producto y precio en $ de cada prenda.</p>' +
+              filas +
+              '<div class="vsx-tot"><span style="font-size:13px;color:var(--gris)">Total ($)</span>' +
+              '<input class="campo cifra vsx-n" id="vsxTotal" inputmode="decimal" aria-label="Total en dólares"></div>' +
+              '<p id="vsxErr" class="vsx-err" style="display:none"></p>' +
+              '<div style="display:flex;gap:8px;margin-top:16px">' +
+              '<button type="button" id="vsxCancel" class="btn-fantasma" style="flex:1;height:46px;border-radius:999px">Cancelar</button>' +
+              '<button type="button" id="vsxGuardar" class="btn-marca" style="flex:1;height:46px;border-radius:999px">Guardar</button></div>' +
+            '</div>';
+        document.body.appendChild(ov);
+
+        var precios = ov.querySelectorAll('[data-c="precio"]');
+        var total = ov.querySelector('#vsxTotal');
+        function sumar() { var t = 0; precios.forEach(function (e) { t += num(e.value); }); total.value = r2(t).toFixed(2); }
+        sumar();
+        precios.forEach(function (e) { e.addEventListener('input', sumar); });
+        total.addEventListener('change', function () {
+            // Cambiar el total reparte el cambio proporcionalmente entre las prendas
+            var actual = 0; precios.forEach(function (e) { actual += num(e.value); });
+            var nuevo = num(total.value);
+            if (precios.length === 1) { precios[0].value = r2(nuevo).toFixed(2); }
+            else if (actual > 0) {
+                var acum = 0;
+                precios.forEach(function (e, k) {
+                    var p = (k === precios.length - 1) ? r2(nuevo - acum) : r2(num(e.value) * nuevo / actual);
+                    acum += p; e.value = p.toFixed(2);
+                });
+            } else {
+                var c = r2(nuevo / precios.length); precios.forEach(function (e) { e.value = c.toFixed(2); });
+            }
+            sumar();
+        });
+
+        function cerrar() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+        ov.addEventListener('click', function (e) { if (e.target === ov) cerrar(); });
+        ov.querySelector('#vsxCancel').addEventListener('click', cerrar);
+
+        var btn = ov.querySelector('#vsxGuardar');
+        var err = ov.querySelector('#vsxErr');
+        btn.addEventListener('click', async function () {
+            err.style.display = 'none';
+            var cambios = [];
+            ventas.forEach(function (v, k) {
+                var prod = ov.querySelector('[data-k="' + k + '"][data-c="prod"]').value.trim();
+                var precio = r2(num(ov.querySelector('[data-k="' + k + '"][data-c="precio"]').value));
+                if (!prod) prod = v.producto || 'Prenda';
+                var viejoP = r2(num(v.precio));
+                if (prod === (v.producto || '') && precio === viejoP) return;
+                var c = { idVenta: idDe(v), producto: prod, precio: precio.toFixed(2) };
+                if (v.precioBs != null && v.precioBs !== '') {
+                    var factor = viejoP > 0 ? num(v.precioBs) / viejoP : (tasaBcvAdmin || 0);
+                    c.precioBs = r2(precio * factor).toFixed(2);
+                }
+                cambios.push(c);
+            });
+            if (!cambios.length) { cerrar(); return; }
+            btn.disabled = true; btn.textContent = 'Guardando…';
+            try {
+                for (var j = 0; j < cambios.length; j++) {
+                    var resp = await fetch('/api/admin-pedidos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(Object.assign({ password: obtenerPassword(), accion: 'editarVenta' }, cambios[j]))
+                    });
+                    var d = await resp.json();
+                    if (!d.ok) throw new Error(d.error || 'El servidor no aceptó el cambio');
+                }
+                cerrar();
+                cargarVentas();
+            } catch (e) {
+                err.textContent = 'No se pudo guardar: ' + (e && e.message ? e.message : 'error de conexión');
+                err.style.display = 'block';
+                btn.disabled = false; btn.textContent = 'Guardar';
+                if (cambios.length) cargarVentas();
+            }
+        });
+    }
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('[data-vsx-ed]') : null;
+        if (b) { e.stopPropagation(); abrirEditor(b.getAttribute('data-vsx-ed').split('|')); }
+    });
+
+
+    console.log('[VSE] editar ventas activo');
+})();
+</script>
+<!-- vs-editar:fin -->
 </body>
 </html>
