@@ -1544,6 +1544,15 @@ body::after{display:none}
         // ===================================================================
         const HISTORIAL_VERSIONES = [
             {
+                numero: '6.8.0', fecha: '2026-11-07', tipo: 'Novedad',
+                titulo: 'Varias fotos por prenda',
+                cambios: [
+                    'Inventario: el campo Imagen acepta varias fotos, una por línea o separadas por espacio.',
+                    'La vista previa muestra todas las fotos y avisa cuál no carga.',
+                    'En el catálogo la prenda se abre con carrusel de fotos y los colores muestran su tono.'
+                ]
+            },
+            {
                 numero: '6.7.1', fecha: '2026-11-07', tipo: 'Mejora',
                 titulo: 'Cashea cuenta en Ventas y editar ventas',
                 cambios: [
@@ -6783,7 +6792,10 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
 (function () {
     'use strict';
     if (window.VSIMG) return;
-    window.VSIMG = {};
+    window.VSIMG = {}; /*vsimg-multi*/
+    window.VSIMG.partir = function (t) {
+        return String(t == null ? '' : t).split(/[\s,;|]+/).filter(Boolean);
+    };
     var COLUMNA = 'imagen';
     var $ = function (id) { return document.getElementById(id); };
 
@@ -6798,6 +6810,8 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
             '.vsimg-prev.on{display:flex}' +
             '.vsimg-prev img{width:64px;height:64px;object-fit:cover;border-radius:12px;border:1px solid var(--linea);background:#F8FAFC}' +
             '.vsimg-prev span{font-size:11px;color:var(--tenue)}' +
+            '.vsimg-prev{flex-direction:column;align-items:flex-start}' +
+            '#invImagen{min-height:84px;resize:vertical;line-height:1.45;font-size:12px;white-space:pre;overflow:auto}' +
             '.vsimg-thumb{flex:none;width:52px;height:52px;object-fit:cover;border-radius:12px;border:1px solid var(--linea);background:#F8FAFC}' +
             '.inv-top.vsimg-fila{align-items:center}';
         document.head.appendChild(st);
@@ -6805,22 +6819,38 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
         var wrap = document.createElement('div');
         wrap.innerHTML =
             '<label class="etiqueta" for="invImagen">Imagen (URL)</label>' +
-            '<input type="url" id="invImagen" class="campo" placeholder="https://i.ibb.co/xxxx/foto.jpg" autocomplete="off">' +
-            '<p class="inv-ayuda">Pega el enlace directo de la foto (termina en .jpg, .png o .webp).</p>' +
-            '<div class="vsimg-prev" id="invImgPrev"><img id="invImgTag" alt="Vista previa"><span id="invImgTxt"></span></div>';
+            '<textarea id="invImagen" class="campo" rows="3" spellcheck="false" autocomplete="off" placeholder="Una URL por línea (o separadas por espacio)&#10;https://i.postimg.cc/xxxx/foto1.jpg&#10;https://i.postimg.cc/yyyy/foto2.jpg"></textarea>' +
+            '<p class="inv-ayuda">Puedes pegar VARIAS fotos: una por línea o separadas por espacio. La primera es la principal.</p>' +
+            '<div class="vsimg-prev" id="invImgPrev"><div id="invImgStrip" style="display:flex;flex-wrap:wrap;gap:6px"></div><span id="invImgTxt"></span></div>';
         var ref = nombre.parentElement;
         ref.parentElement.insertBefore(wrap, ref.nextSibling);
 
         var campo = $('invImagen'), tag = $('invImgTag'), prev = $('invImgPrev'), txt = $('invImgTxt');
 
         function actualizarPrev() {
-            var v = campo.value.trim();
-            if (!v) { prev.classList.remove('on'); return; }
+            var lista = window.VSIMG.partir(campo.value);
+            var strip = $('invImgStrip');
+            var tok = (actualizarPrev.t = (actualizarPrev.t || 0) + 1);
+            if (strip) strip.innerHTML = '';
+            if (!lista.length) { prev.classList.remove('on'); return; }
             prev.classList.add('on');
-            txt.textContent = 'Cargando...';
-            tag.onload = function () { txt.textContent = 'La foto carga bien'; };
-            tag.onerror = function () { txt.textContent = 'No carga: revisa que sea el enlace directo'; };
-            tag.src = v;
+            txt.textContent = 'Cargando ' + lista.length + (lista.length === 1 ? ' foto...' : ' fotos...');
+            var ok = 0, mal = 0;
+            function fin() {
+                if (tok !== actualizarPrev.t || ok + mal < lista.length) return;
+                txt.textContent = mal
+                    ? (ok + ' cargan, ' + mal + ' no cargan: revisa que sean enlaces directos')
+                    : (lista.length === 1 ? 'La foto carga bien' : 'Las ' + lista.length + ' fotos cargan bien (la primera es la principal)');
+            }
+            lista.forEach(function (u, i) {
+                var im = document.createElement('img');
+                im.alt = 'Foto ' + (i + 1);
+                im.referrerPolicy = 'no-referrer';
+                im.onload = function () { ok++; fin(); };
+                im.onerror = function () { mal++; im.style.opacity = '.35'; im.style.outline = '2px solid #BE123C'; fin(); };
+                im.src = u;
+                if (strip) strip.appendChild(im);
+            });
         }
         campo.addEventListener('input', actualizarPrev);
 
@@ -6844,7 +6874,7 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
         function llenar() {
             setTimeout(function () {
                 var p = buscar($('invCodigo').value, $('invNombre').value);
-                campo.value = imagenDe(p);
+                campo.value = window.VSIMG.partir(imagenDe(p)).join('\n');
                 actualizarPrev();
             }, 0);
         }
@@ -6855,10 +6885,10 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
 
         $('invGuardar').addEventListener('click', function (e) {
             var v = campo.value.trim();
-            if (v && !/^https:\/\/\S+$/i.test(v)) {
+            if (v && !window.VSIMG.partir(v).every(function (u) { return /^https:\/\/\S+$/i.test(u); })) {
                 e.stopImmediatePropagation();
                 var err = $('invErr');
-                err.textContent = 'La imagen debe ser un enlace que empiece por https://';
+                err.textContent = 'Cada imagen debe ser un enlace que empiece por https://';
                 err.classList.remove('hidden');
             }
         }, true);
@@ -6870,7 +6900,7 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
                 if (opts && typeof opts.body === 'string' && String(url).indexOf('/api/admin-pedidos') !== -1) {
                     var c = JSON.parse(opts.body);
                     if (c.accion === 'guardarProducto' && c.producto) {
-                        c.producto[COLUMNA] = campo.value.trim();
+                        c.producto[COLUMNA] = window.VSIMG.partir(campo.value).join(' ');
                         pendiente = { codigo: c.producto.codigo, nombre: c.producto.nombre, img: c.producto[COLUMNA] };
                         opts = Object.assign({}, opts, { body: JSON.stringify(c) });
                     }
@@ -6900,7 +6930,7 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
                 if (!nEl || !top) continue;
                 var cod = mEl ? String(mEl.textContent).split(' · ')[0].trim() : '';
                 if (cod === 'sin código') cod = '';
-                var url = imagenDe(buscar(cod, nEl.textContent));
+                var url = window.VSIMG.partir(imagenDe(buscar(cod, nEl.textContent)))[0] || '';
                 if (!/^https:\/\//i.test(url)) continue;
                 var im = document.createElement('img');
                 im.className = 'vsimg-thumb';

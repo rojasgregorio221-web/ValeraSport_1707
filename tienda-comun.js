@@ -873,3 +873,21 @@ function actualizarBotonCuenta() {
     if (usuarioActual) { btn.title = usuarioActual.email + ' — Ver mi cuenta'; btn.classList.add('text-cyan-500'); }
     else { btn.title = 'Iniciar sesión / Registrarse'; btn.classList.remove('text-cyan-500'); }
 }
+
+/* vsg-lista:inicio */
+(function () {
+    if (typeof obtenerListaImagenes !== 'function' || obtenerListaImagenes.__vsg) return;
+    var original = obtenerListaImagenes;
+    function partir(t) {
+        return String(t == null ? '' : t).split(/[\s,;|]+/).filter(function (u) {
+            return /^(https?:\/\/|\/|imagenes\/)\S+/i.test(u) || /\.(jpe?g|png|webp|gif|avif)(\?\S*)?$/i.test(u);
+        });
+    }
+    var nueva = function (t) {
+        var l = partir(t);
+        return l.length > 1 ? l : original.apply(this, arguments);
+    };
+    nueva.__vsg = true;
+    try { obtenerListaImagenes = nueva; } catch (e) { window.obtenerListaImagenes = nueva; }
+})();
+/* vsg-lista:fin */
