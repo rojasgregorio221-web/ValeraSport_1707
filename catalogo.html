@@ -184,6 +184,15 @@
             display: flex; align-items: center; justify-content: center;
         }
         .vs-foto-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+        /* ---- DETALLE EN DOS MITADES (foto | opciones) ---- */
+        @media (min-width: 768px) {
+            #detalleModalContainer { max-width: 900px; padding: 28px; }
+            .vs-det-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+            .vs-det-foto { position: sticky; top: 0; }
+            .vs-det-foto .vs-foto-marco { max-height: calc(90vh - 60px); margin-bottom: 12px; }
+            .vs-det-info { padding-top: 6px; }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -305,10 +314,14 @@
                     Cerrar <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
+            <div class="vs-det-grid">
+            <div class="vs-det-foto">
             <div class="vs-foto-marco mb-3">
                 <img id="detalleImagen" src="" alt="" class="vs-foto-img">
             </div>
             <div id="detalleGaleria" class="hidden flex gap-2 mb-5 overflow-x-auto pb-1"></div>
+            </div>
+            <div class="vs-det-info">
             <span id="detalleCategoria" class="text-[11px] font-semibold uppercase tracking-widest mb-1 block" style="color: var(--fucsia)"></span>
             <h3 id="detalleNombre" class="display text-[34px] mb-4"></h3>
             <div class="mb-5">
@@ -344,6 +357,8 @@
                 <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
             </a>
             <p id="detalleNoDisponible" class="hidden text-center text-sm text-gray-400 py-3">Actualmente no disponible</p>
+            </div>
+            </div>
         </div>
     </div>
 
