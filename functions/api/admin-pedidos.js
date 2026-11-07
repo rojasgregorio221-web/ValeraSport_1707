@@ -47,6 +47,15 @@ async function claveCodigo(env) {
   } catch (e) { return "codigo"; }
 }
 
+async function claveImagen(env) {
+  try {
+    const f = await env.DB.prepare("SELECT valor FROM config WHERE clave = 'productos_headers'").first();
+    const hs = JSON.parse(f.valor);
+    const h = hs.find((x) => String(x).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\s_\-]/g, "") === "imagen");
+    return h || "imagen";
+  } catch (e) { return "imagen"; }
+}
+
 function leerExtra(f) { try { return JSON.parse(f.extra || "{}"); } catch (e) { return {}; } }
 
 async function guardarProducto(env, cuerpo) {
@@ -59,6 +68,13 @@ async function guardarProducto(env, cuerpo) {
   if (nombre.length < 2 || nombre.length > 80) return { ok: false, error: "Nombre inválido (2 a 80 letras)." };
   if (codigo && !/^[A-Z0-9_-]{2,20}$/.test(codigo)) return { ok: false, error: "Código inválido." };
   if (!isFinite(precio) || precio <= 0 || precio > 9999) return { ok: false, error: "Precio inválido." };
+  // Foto: solo se toca si el panel la manda (así el +/- de stock nunca la borra por accidente)
+  let imagen = null;
+  if (p.imagen !== undefined && p.imagen !== null) {
+    imagen = String(p.imagen).trim();
+    if (imagen.length > 1500) return { ok: false, error: "El enlace de la foto es demasiado largo." };
+    if (/[<>"\u0000-\u001f]/.test(imagen) || /javascript:/i.test(imagen)) return { ok: false, error: "El enlace de la foto tiene caracteres no permitidos." };
+  }
 
   const cols = pares(p.stock_colores, false);
   if (cols.error) return { ok: false, error: "Stock por color: " + cols.error };
@@ -77,6 +93,7 @@ async function guardarProducto(env, cuerpo) {
   const filas = (await env.DB.prepare("SELECT id, producto, extra FROM productos").all()).results || [];
   const kCod = await claveCodigo(env);
   const codDe = (f) => String(leerExtra(f)[kCod] || "").trim().toUpperCase();
+  const kImg = await claveImagen(env);
 
   let actual = null;
   if (!cuerpo.esNuevo) {
@@ -91,11 +108,13 @@ async function guardarProducto(env, cuerpo) {
   if (actual) {
     const extra = leerExtra(actual);
     if (codigo) extra[kCod] = codigo; else delete extra[kCod];
+    if (imagen !== null) { if (imagen) extra[kImg] = imagen; else delete extra[kImg]; }
     await env.DB.prepare(
       "UPDATE productos SET producto = ?1, precio = ?2, categoria = ?3, stock = ?4, disponible = ?5, stock_colores = ?6, stock_variantes = ?7, extra = ?8 WHERE id = ?9"
     ).bind(nombre, precio, categoria, stock, disponible, cols.texto, vars.texto, JSON.stringify(extra), actual.id).run();
   } else {
     const extra = codigo ? { [kCod]: codigo } : {};
+    if (imagen) extra[kImg] = imagen;
     await env.DB.prepare(
       "INSERT INTO productos (producto, precio, categoria, stock, disponible, vendidos, fecha, stock_colores, stock_variantes, extra) VALUES (?1,?2,?3,?4,?5,0,?6,?7,?8,?9)"
     ).bind(nombre, precio, categoria, stock, disponible, new Date().toISOString(), cols.texto, vars.texto, JSON.stringify(extra)).run();
