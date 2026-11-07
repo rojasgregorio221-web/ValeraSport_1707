@@ -232,6 +232,26 @@
         }
         .tarjeta:hover .ver-chip { opacity: 1; transform: translate(-50%, 0); }
         @media (hover: none) { .ver-chip { display: none; } }
+    
+        /* PARCHE-FONDO-FOTO */
+        /* Capa de fondo: la misma foto, estirada a todo el cuadro y difuminada */
+        .vs-foto-marco, .marco { background-color: #e9e6df; }
+        .vs-foto-marco::before, .marco::before {
+            content: ""; position: absolute; inset: -40px; z-index: 0;
+            background-image: var(--fondo, none);
+            background-size: cover; background-position: center;
+            filter: blur(26px) saturate(1.05);
+            transform: scale(1.15);
+            pointer-events: none;
+        }
+        .vs-foto-img, .marco img { position: relative; z-index: 1; }
+        .vs-foto-img { background: transparent; }
+        /* Tarjetas: la foto ocupa todo el cuadro, sin el margen blanco */
+        .marco { background-color: #e9e6df; }
+        .marco img { padding: 0; }
+        /* Sin foto (logo) o agotado */
+        .marco.sin-foto::before { display: none; }
+        .marco.agotado::before { filter: blur(26px) grayscale(0.7); opacity: 0.6; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -706,6 +726,56 @@
                 </div>
             `;
         }
+    </script>
+
+    <!-- PARCHE-FONDO-FOTO-JS -->
+    <script>
+    (function () {
+        function poner(marco, img) {
+            if (!marco || !img) return;
+            var src = img.currentSrc || img.getAttribute('src') || '';
+            if (!src || /logo\.jpg/i.test(src)) {
+                marco.style.removeProperty('--fondo');
+                return;
+            }
+            marco.style.setProperty('--fondo', 'url("' + src.replace(/"/g, '%22') + '")');
+        }
+
+        // Detalle del producto (también cuando se cambia de foto en la galería)
+        function vigilarDetalle() {
+            var img = document.getElementById('detalleImagen');
+            if (!img) return;
+            var marco = img.closest('.vs-foto-marco');
+            var actualizar = function () { poner(marco, img); };
+            new MutationObserver(actualizar).observe(img, { attributes: true, attributeFilter: ['src'] });
+            img.addEventListener('load', actualizar);
+            actualizar();
+        }
+
+        // Tarjetas del catálogo (se vuelven a crear con cada filtro)
+        function procesarTarjetas() {
+            document.querySelectorAll('#gridProductos .marco').forEach(function (marco) {
+                var img = marco.querySelector('img');
+                if (!img || marco.dataset.fondo === '1') return;
+                marco.dataset.fondo = '1';
+                poner(marco, img);
+                img.addEventListener('load', function () { poner(marco, img); });
+                // Si la foto falla y cae al logo, la clase sin-foto oculta el fondo
+            });
+        }
+
+        function iniciar() {
+            vigilarDetalle();
+            var grid = document.getElementById('gridProductos');
+            if (grid) {
+                new MutationObserver(procesarTarjetas).observe(grid, { childList: true });
+                procesarTarjetas();
+            }
+        }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
+        else iniciar();
+    })();
     </script>
 </body>
 </html>
