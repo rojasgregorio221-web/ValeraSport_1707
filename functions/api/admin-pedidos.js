@@ -1,7 +1,7 @@
 import { despacharAdmin, validarAdmin, jsonResponse, ErrorHttp, invalidarCatalogo } from "../_utils/d1.js";
 
 const LECTURAS = ["pedidos", "aceptados", "rechazadas", "ventas", "fiados", "gastos", "resumen", "semanas", "resumenSemanal", "historialCliente", "cashea_planes"];
-const ACCIONES = ["aceptarOrden", "rechazarOrden", "rechazar_todos", "ventaFisica", "ventaFisicaLote", "marcarFiadoPagado", "agregarGasto", "eliminarGasto", "vaciarVentas", "cerrarSemana", "cashea_cobro", "cashea_crear_plan", "cashea_anular"];
+const ACCIONES = ["aceptarOrden", "rechazarOrden", "rechazar_todos", "ventaFisica", "ventaFisicaLote", "marcarFiadoPagado", "agregarGasto", "eliminarGasto", "editarVenta", "vaciarVentas", "cerrarSemana", "cashea_cobro", "cashea_crear_plan", "cashea_anular"];
 const INVENTARIO = ["guardarProducto", "eliminarProducto"];
 
 const clave = (t) => String(t || "").trim().toLowerCase();

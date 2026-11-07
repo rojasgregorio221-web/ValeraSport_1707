@@ -421,9 +421,9 @@ async function listarOrdenes(env, estado) {
 }
 
 async function listarVentas(env) {
-  const f = await todos(env, "SELECT * FROM ventas WHERE lower(trim(COALESCE(metodo_pago,''))) != 'fiado' ORDER BY fecha DESC LIMIT 400");
+  const f = await todos(env, "SELECT rowid AS _rid, * FROM ventas WHERE lower(trim(COALESCE(metodo_pago,''))) != 'fiado' ORDER BY fecha DESC LIMIT 400");
   return f.map((v) => ({ fecha: v.fecha, producto: v.producto || "", categoria: v.categoria || "", precio: v.precio || 0,
-    correo: v.correo_cliente || "", canal: v.canal || "", precioBs: v.precio_bs === null ? "" : v.precio_bs,
+    id: v._rid, idVenta: v._rid, correo: v.correo_cliente || "", canal: v.canal || "", precioBs: v.precio_bs === null ? "" : v.precio_bs,
     tasaBs: v.tasa_bs === null ? "" : v.tasa_bs, nota: v.nota || "", metodoPago: v.metodo_pago || "" }));
 }
 
@@ -679,6 +679,34 @@ async function marcarFiadoPagado(env, datos) {
   return { ok: true, mensaje: "Fiado cobrado y sumado a las ventas de hoy." };
 }
 
+async function editarVenta(env, datos) {
+  const id = parseInt(String(datos.idVenta || datos.id || "").trim(), 10);
+  if (!Number.isInteger(id) || id <= 0) throw new Error("Falta el ID de la venta");
+
+  const v = await primero(env, "SELECT rowid AS _rid, * FROM ventas WHERE rowid = ?1", id);
+  if (!v) throw new Error("Venta no encontrada");
+
+  const producto = limpiar(datos.producto, 300);
+  if (!producto) throw new Error("El producto no puede quedar vacío");
+
+  const precioNum = parseFloat(String(datos.precio === undefined || datos.precio === null ? "" : datos.precio).replace(",", "."));
+  if (!isFinite(precioNum) || precioNum < 0 || precioNum > 99999) throw new Error("Precio inválido");
+  const precio = redondear2(precioNum);
+
+  let precioBs = v.precio_bs === undefined ? null : v.precio_bs;
+  if (datos.precioBs !== undefined && datos.precioBs !== null && datos.precioBs !== "") {
+    const b = parseFloat(String(datos.precioBs).replace(",", "."));
+    if (isFinite(b) && b >= 0 && b <= 99999999) precioBs = redondear2(b);
+  } else if (precioBs !== null && Number(v.tasa_bs) > 0 && precio !== Number(v.precio)) {
+    precioBs = redondear2(precio * Number(v.tasa_bs));
+  }
+
+  const r = await env.DB.prepare("UPDATE ventas SET producto = ?1, precio = ?2, precio_bs = ?3 WHERE rowid = ?4")
+    .bind(producto, precio, precioBs, id).run();
+  if (!r.meta || !r.meta.changes) throw new Error("No se pudo actualizar la venta");
+  return { ok: true, idVenta: id, mensaje: "Venta actualizada" };
+}
+
 async function agregarGasto(env, datos) {
   const concepto = limpiar(datos.concepto, 120);
   const monto = dinero(datos.monto);
@@ -838,6 +866,7 @@ export async function despacharAdmin(env, accion, datos) {
     case "ventaFisica":
     case "ventaFisicaLote": return await ventaFisica(env, datos);
     case "marcarFiadoPagado": return await marcarFiadoPagado(env, datos);
+    case "editarVenta": return await editarVenta(env, datos);
     case "agregarGasto": return await agregarGasto(env, datos);
     case "eliminarGasto": return await eliminarGasto(env, datos);
     case "vaciarVentas": return await vaciarVentas(env);
