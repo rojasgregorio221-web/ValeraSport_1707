@@ -4,7 +4,7 @@
     <link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#16131F">
+    <meta name="theme-color" content="#0F172A">
     <title>Catálogo | Valera Sport</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,14 +17,14 @@
 
     <style>
         :root {|
-            --noche: #140F2E;
-            --brasa: #FF5A1F;
-            --fucsia: #FF2D87;
-            --violeta: #7C4DFF;
-            --hueso: #F6F3EC;
-            --tinta: #16131F;
-            --gris: #6b665d;
-            --gris-claro: #9a948a;
+            --noche: #0F172A;
+            --brasa: #0284C7;
+            --fucsia: #00A8E8;
+            --violeta: #38BDF8;
+            --hueso: #F4F8FC;
+            --tinta: #0F172A;
+            --gris: #475569;
+            --gris-claro: #7C8DA3;
             --suave: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -48,14 +48,14 @@
         ::selection { background: var(--fucsia); color: #fff; }
         ::-webkit-scrollbar { width: 9px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cfc9bd; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb { background: #C3D3E3; border-radius: 9999px; }
 
         /* ---- HEADER ---- */
         .barra {
             position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-            background: rgba(246, 243, 236, 0.85);
+            background: rgba(244, 248, 252, 0.85);
             backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-            border-bottom: 1px solid rgba(22, 19, 31, 0.08);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
             transition: transform 0.45s var(--suave);
         }
         .barra.oculta { transform: translateY(-101%); }
@@ -71,16 +71,16 @@
 
         /* ---- BUSCADOR ---- */
         .buscador-grande {
-            width: 100%; background: #fff; border: 1px solid rgba(22,19,31,0.12);
+            width: 100%; background: #fff; border: 1px solid rgba(15, 23, 42,0.12);
             border-radius: 9999px; padding: 18px 22px 18px 54px;
             font-size: 15px; outline: none;
             transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
-        .buscador-grande:focus { border-color: var(--fucsia); box-shadow: 0 0 0 4px rgba(255,45,135,0.10); }
+        .buscador-grande:focus { border-color: var(--fucsia); box-shadow: 0 0 0 4px rgba(0, 168, 232,0.10); }
         .buscador-grande::placeholder { color: var(--gris-claro); }
 
         /* ---- FILTROS ---- */
-        .grupo-filtro { border-top: 1px solid rgba(22,19,31,0.12); padding: 20px 0; }
+        .grupo-filtro { border-top: 1px solid rgba(15, 23, 42,0.12); padding: 20px 0; }
         .grupo-filtro summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none; }
         .grupo-filtro summary::-webkit-details-marker { display: none; }
         .titulo-filtro { font-family: 'Big Shoulders Display', sans-serif; font-weight: 800; font-size: 22px; text-transform: uppercase; letter-spacing: 0.01em; }
@@ -100,7 +100,7 @@
         .opcion-filtro:hover { color: var(--tinta); }
         .filtro-check {
             appearance: none; -webkit-appearance: none;
-            width: 18px; height: 18px; border: 1.5px solid rgba(22,19,31,0.25);
+            width: 18px; height: 18px; border: 1.5px solid rgba(15, 23, 42,0.25);
             border-radius: 6px; flex-shrink: 0; position: relative; cursor: pointer;
             transition: background-color 0.2s ease, border-color 0.2s ease;
         }
@@ -112,7 +112,7 @@
         }
         .filtro-check:checked + span { color: var(--tinta); font-weight: 600; }
         .campo-mini {
-            width: 100%; background: #fff; border: 1px solid rgba(22,19,31,0.12);
+            width: 100%; background: #fff; border: 1px solid rgba(15, 23, 42,0.12);
             border-radius: 12px; padding: 9px 12px; font-size: 13px; outline: none;
         }
         .campo-mini:focus { border-color: var(--fucsia); }
@@ -125,20 +125,20 @@
         }
         .marco {
             position: relative; overflow: hidden; border-radius: 20px;
-            background: #ece7dc; aspect-ratio: 4 / 5;
+            background: #E3EEF7; aspect-ratio: 4 / 5;
             display: flex; align-items: center; justify-content: center;
         }
         .marco img { max-width: 84%; max-height: 84%; object-fit: contain; transition: transform 0.7s var(--suave); }
         .tarjeta:hover .marco img { transform: scale(1.07) rotate(-1.2deg); }
         .marco::after {
             content: ""; position: absolute; inset: 0; pointer-events: none;
-            background: linear-gradient(140deg, rgba(255,90,31,0.18), rgba(124,77,255,0.18));
+            background: linear-gradient(140deg, rgba(2, 132, 199,0.18), rgba(56, 189, 248,0.18));
             opacity: 0; transition: opacity 0.5s ease;
         }
         .tarjeta:hover .marco::after { opacity: 1; }
         .sello {
             position: absolute; top: 12px; left: 12px; z-index: 2;
-            background: rgba(22,19,31,0.85); color: #fff;
+            background: rgba(15, 23, 42,0.85); color: #fff;
             font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
             padding: 5px 10px; border-radius: 9999px;
         }
@@ -162,7 +162,7 @@
         .palabra-pie {
             font-family: 'Big Shoulders Display', sans-serif; font-weight: 900;
             line-height: 0.78; text-transform: uppercase;
-            color: transparent; -webkit-text-stroke: 1px rgba(246,243,236,0.35);
+            color: transparent; -webkit-text-stroke: 1px rgba(244, 248, 252,0.35);
         }
 
         /* ---- MODAL ---- */
@@ -180,7 +180,7 @@
         .vs-foto-marco {
             position: relative; width: 100%; aspect-ratio: 4 / 5; max-height: 60vh;
             border-radius: 24px; overflow: hidden; background: #fff;
-            border: 1px solid rgba(22, 19, 31, 0.08);
+            border: 1px solid rgba(15, 23, 42, 0.08);
             display: flex; align-items: center; justify-content: center;
         }
         .vs-foto-img { width: 100%; height: 100%; object-fit: contain; display: block; }
@@ -197,8 +197,8 @@
         /* ---- TARJETAS DEL CATÁLOGO · diseño limpio ---- */
         .marco {
             border-radius: 22px; background: #fff;
-            border: 1px solid rgba(22, 19, 31, 0.07);
-            box-shadow: 0 1px 2px rgba(22, 19, 31, 0.04);
+            border: 1px solid rgba(15, 23, 42, 0.07);
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
             transition: box-shadow 0.45s var(--suave), transform 0.45s var(--suave), border-color 0.3s ease;
         }
         .marco::after { display: none; }
@@ -208,13 +208,13 @@
         }
         .tarjeta:hover .marco {
             transform: translateY(-4px);
-            border-color: rgba(255, 45, 135, 0.35);
-            box-shadow: 0 24px 40px -24px rgba(22, 19, 31, 0.35);
+            border-color: rgba(0, 168, 232, 0.35);
+            box-shadow: 0 24px 40px -24px rgba(15, 23, 42, 0.35);
         }
         .tarjeta:hover .marco img { transform: scale(1.04); }
 
         /* Sin foto cargada: el logo queda como marca de agua, no como una foto */
-        .marco.sin-foto { background: linear-gradient(160deg, #f6f3ec, #ece7dc); }
+        .marco.sin-foto { background: linear-gradient(160deg, #F4F8FC, #E3EEF7); }
         .marco.sin-foto img { width: 44%; height: auto; padding: 0; opacity: 0.4; }
         .tarjeta:hover .marco.sin-foto img { transform: scale(1.06); }
 
@@ -235,7 +235,7 @@
     
         /* PARCHE-FONDO-FOTO */
         /* Capa de fondo: la misma foto, estirada a todo el cuadro y difuminada */
-        .vs-foto-marco, .marco { background-color: #e9e6df; }
+        .vs-foto-marco, .marco { background-color: #E6EEF5; }
         .vs-foto-marco::before, .marco::before {
             content: ""; position: absolute; inset: -40px; z-index: 0;
             background-image: var(--fondo, none);
@@ -247,7 +247,7 @@
         .vs-foto-img, .marco img { position: relative; z-index: 1; }
         .vs-foto-img { background: transparent; }
         /* Tarjetas: la foto ocupa todo el cuadro, sin el margen blanco */
-        .marco { background-color: #e9e6df; }
+        .marco { background-color: #E6EEF5; }
         .marco img { padding: 0; }
         /* Sin foto (logo) o agotado */
         .marco.sin-foto::before { display: none; }
@@ -298,7 +298,7 @@
             </div>
             <div class="flex items-center gap-3 shrink-0">
                 <p id="contadorResultados" class="text-sm" style="color: var(--gris-claro)"></p>
-                <button onclick="toggleFiltrosMovil()" class="md:hidden text-[13px] font-semibold rounded-full px-5 py-2.5" style="border: 1px solid rgba(22,19,31,0.15)">
+                <button onclick="toggleFiltrosMovil()" class="md:hidden text-[13px] font-semibold rounded-full px-5 py-2.5" style="border: 1px solid rgba(15, 23, 42,0.15)">
                     <i class="fa-solid fa-sliders mr-1.5"></i> Filtros
                 </button>
             </div>
@@ -339,7 +339,7 @@
                         </div>
                     </details>
 
-                    <details open class="grupo-filtro" style="border-bottom: 1px solid rgba(22,19,31,0.12)">
+                    <details open class="grupo-filtro" style="border-bottom: 1px solid rgba(15, 23, 42,0.12)">
                         <summary>
                             <span class="titulo-filtro">Disponibilidad</span>
                             <span class="cruz"></span>
@@ -391,7 +391,7 @@
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Talla</label>
                 <div class="flex flex-wrap gap-2" id="detalleTallas"></div>
             </div>
-            <div class="rounded-[20px] p-4 flex justify-between items-center mb-5" style="background: var(--hueso); border: 1px solid rgba(22,19,31,0.08)">
+            <div class="rounded-[20px] p-4 flex justify-between items-center mb-5" style="background: var(--hueso); border: 1px solid rgba(15, 23, 42,0.08)">
                 <span class="text-xs text-gray-500 uppercase font-bold tracking-widest">Precio</span>
                 <div class="text-right">
                     <span class="text-3xl font-black text-gray-900 block" id="detallePrecio"></span>
@@ -466,7 +466,7 @@
     <footer class="pie pt-16 pb-10">
         <div class="max-w-[1400px] mx-auto px-5 md:px-8">
             <p class="palabra-pie text-[19vw] mb-12 select-none">Valera Sport</p>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm pb-12" style="border-bottom: 1px solid rgba(246,243,236,0.12)">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm pb-12" style="border-bottom: 1px solid rgba(244, 248, 252,0.12)">
                 <div>
                     <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">TIENDA</p>
                     <div class="flex flex-col gap-2.5">
@@ -783,14 +783,14 @@
 .vs-sws{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:9px}
 .vs-sws .vs-sw{margin:0;width:13px;height:13px}
 .vs-sws small{font-size:10px;font-weight:700;color:var(--gris-claro)}
-.vs-nfotos{position:absolute;right:10px;bottom:10px;z-index:3;display:inline-flex;align-items:center;gap:5px;background:rgba(22,19,31,.78);color:#fff;font-size:10px;font-weight:700;padding:4px 9px;border-radius:9999px}
+.vs-nfotos{position:absolute;right:10px;bottom:10px;z-index:3;display:inline-flex;align-items:center;gap:5px;background:rgba(15, 23, 42,.78);color:#fff;font-size:10px;font-weight:700;padding:4px 9px;border-radius:9999px}
 #vsTrack{position:absolute;inset:0;z-index:2;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
 #vsTrack::-webkit-scrollbar{display:none}
 #vsTrack img{flex:0 0 100%;width:100%;height:100%;object-fit:contain;scroll-snap-align:center;scroll-snap-stop:always;user-select:none;-webkit-user-drag:none}
-.vsg-flecha{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:36px;height:36px;border-radius:50%;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.88);color:#16131F;box-shadow:0 6px 16px -6px rgba(0,0,0,.4);font-size:13px}
+.vsg-flecha{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:36px;height:36px;border-radius:50%;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.88);color:#0F172A;box-shadow:0 6px 16px -6px rgba(0,0,0,.4);font-size:13px}
 .vsg-flecha:active{transform:translateY(-50%) scale(.94)}
 #vsPrev{left:8px}#vsNext{right:8px}
-#vsCount{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:3;background:rgba(22,19,31,.78);color:#fff;font-size:11px;font-weight:700;padding:4px 11px;border-radius:9999px;font-variant-numeric:tabular-nums}
+#vsCount{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:3;background:rgba(15, 23, 42,.78);color:#fff;font-size:11px;font-weight:700;padding:4px 11px;border-radius:9999px;font-variant-numeric:tabular-nums}
 #detalleGaleria{position:relative;scrollbar-width:thin}
 .vsg-th{flex:none;width:56px;height:56px;padding:0;border-radius:12px;overflow:hidden;border:2px solid transparent;background:#fff;cursor:pointer;opacity:.7;transition:opacity .2s,border-color .2s}
 .vsg-th img{width:100%;height:100%;object-fit:cover;display:block}

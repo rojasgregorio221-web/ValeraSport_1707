@@ -4,7 +4,7 @@
     <link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#16131F">
+    <meta name="theme-color" content="#0F172A">
     <title>Estado de mi pedido | Valera Sport</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,15 +16,15 @@
 
     <style>
         :root {
-            --noche: #140F2E;
-            --brasa: #FF5A1F;
-            --fucsia: #FF2D87;
-            --violeta: #7C4DFF;
-            --cyan: #22D3EE;
-            --hueso: #F6F3EC;
-            --tinta: #16131F;
-            --gris: #6b665d;
-            --gris-claro: #9a948a;
+            --noche: #0F172A;
+            --brasa: #0284C7;
+            --fucsia: #00A8E8;
+            --violeta: #38BDF8;
+            --cyan: #38BDF8;
+            --hueso: #F4F8FC;
+            --tinta: #0F172A;
+            --gris: #475569;
+            --gris-claro: #7C8DA3;
             --suave: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -48,13 +48,13 @@
         ::selection { background: var(--fucsia); color: #fff; }
         ::-webkit-scrollbar { width: 9px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cfc9bd; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb { background: #C3D3E3; border-radius: 9999px; }
 
         .barra {
             position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-            background: rgba(246, 243, 236, 0.85);
+            background: rgba(244, 248, 252, 0.85);
             backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-            border-bottom: 1px solid rgba(22, 19, 31, 0.08);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
         }
         .enlace-nav { position: relative; color: var(--tinta); }
         .enlace-nav::after {
@@ -67,13 +67,13 @@
         .icono-activo { color: var(--fucsia) !important; }
 
         .buscador-grande {
-            width: 100%; background: #fff; border: 1px solid rgba(22,19,31,0.12);
+            width: 100%; background: #fff; border: 1px solid rgba(15, 23, 42,0.12);
             border-radius: 9999px; padding: 18px 22px 18px 54px;
             font-size: 16px; outline: none; letter-spacing: 0.08em;
             font-variant-numeric: tabular-nums; text-transform: uppercase;
             transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
-        .buscador-grande:focus { border-color: var(--fucsia); box-shadow: 0 0 0 4px rgba(255,45,135,0.10); }
+        .buscador-grande:focus { border-color: var(--fucsia); box-shadow: 0 0 0 4px rgba(0, 168, 232,0.10); }
         .buscador-grande::placeholder { color: var(--gris-claro); letter-spacing: 0; text-transform: none; }
 
         .boton-solido {
@@ -90,7 +90,7 @@
 
         .boton-claro {
             background: #fff; color: var(--tinta);
-            border: 1px solid rgba(22,19,31,0.14);
+            border: 1px solid rgba(15, 23, 42,0.14);
             transition: border-color 0.25s ease, background-color 0.25s ease;
         }
         .boton-claro:hover { border-color: var(--tinta); }
@@ -101,12 +101,12 @@
         }
         .tarjeta-noche::before {
             content: ""; position: absolute; width: 360px; height: 360px; border-radius: 9999px;
-            background: radial-gradient(circle, rgba(124,77,255,0.45), transparent 62%);
+            background: radial-gradient(circle, rgba(56, 189, 248,0.45), transparent 62%);
             top: -170px; right: -130px; pointer-events: none;
         }
         .contenido-noche { position: relative; z-index: 1; }
 
-        .panel-blanco { background: #fff; border: 1px solid rgba(22,19,31,0.08); border-radius: 22px; }
+        .panel-blanco { background: #fff; border: 1px solid rgba(15, 23, 42,0.08); border-radius: 22px; }
 
         /* Línea de estado del pedido */
         .ruta { display: flex; align-items: flex-start; gap: 0; }
@@ -129,7 +129,7 @@
         .texto-paso { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
         .paso-ruta.hecho .texto-paso, .paso-ruta.fallo .texto-paso { color: #fff; }
 
-        .fila-prenda { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 13px 0; border-bottom: 1px solid rgba(22,19,31,0.08); }
+        .fila-prenda { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 13px 0; border-bottom: 1px solid rgba(15, 23, 42,0.08); }
         .fila-prenda:last-child { border-bottom: 0; }
 
         .pie { background: var(--tinta); color: var(--hueso); }
@@ -138,7 +138,7 @@
         .palabra-pie {
             font-family: 'Big Shoulders Display', sans-serif; font-weight: 900;
             line-height: 0.78; text-transform: uppercase;
-            color: transparent; -webkit-text-stroke: 1px rgba(246,243,236,0.35);
+            color: transparent; -webkit-text-stroke: 1px rgba(244, 248, 252,0.35);
         }
 
         .aparece { animation: subir 0.6s var(--suave) both; }
@@ -204,7 +204,7 @@
     <footer class="pie pt-16 pb-10">
         <div class="max-w-[1400px] mx-auto px-5 md:px-8">
             <p class="palabra-pie text-[19vw] mb-12 select-none">Valera Sport</p>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm pb-12" style="border-bottom: 1px solid rgba(246,243,236,0.12)">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm pb-12" style="border-bottom: 1px solid rgba(244, 248, 252,0.12)">
                 <div>
                     <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">TIENDA</p>
                     <div class="flex flex-col gap-2.5">
@@ -326,7 +326,7 @@
         function mostrarNoEncontrado(codigo) {
             resultado.innerHTML = `
                 <div class="aparece panel-blanco p-8 text-center">
-                    <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-5" style="background: #ece7dc">
+                    <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-5" style="background: #E3EEF7">
                         <i class="fa-solid fa-receipt text-xl" style="color: var(--gris-claro)"></i>
                     </div>
                     <p class="display text-[34px] mb-2">No aparece nada</p>
@@ -372,13 +372,13 @@
 
             let etiquetaEstado, textoEstado;
             if (orden.estado === 'aceptado') {
-                etiquetaEstado = `<span class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] px-3.5 py-2 rounded-full" style="background: rgba(34,211,238,0.14); color: var(--cyan)"><i class="fa-solid fa-circle-check"></i> Aceptado</span>`;
+                etiquetaEstado = `<span class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] px-3.5 py-2 rounded-full" style="background: rgba(56, 189, 248,0.14); color: var(--cyan)"><i class="fa-solid fa-circle-check"></i> Aceptado</span>`;
                 textoEstado = 'Tu pago fue revisado y aprobado. Ya podemos entregarte tus prendas.';
             } else if (orden.estado === 'rechazado') {
                 etiquetaEstado = `<span class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] px-3.5 py-2 rounded-full" style="background: rgba(244,63,94,0.16); color: #FDA4AF"><i class="fa-solid fa-circle-xmark"></i> Rechazado</span>`;
                 textoEstado = 'No pudimos confirmar este pago. Puedes volver a pedir las mismas prendas o escribirnos.';
             } else {
-                etiquetaEstado = `<span class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] px-3.5 py-2 rounded-full" style="background: rgba(255,90,31,0.18); color: #FDBA74"><i class="fa-regular fa-clock"></i> En revisión</span>`;
+                etiquetaEstado = `<span class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] px-3.5 py-2 rounded-full" style="background: rgba(2, 132, 199,0.18); color: #7DD3FC"><i class="fa-regular fa-clock"></i> En revisión</span>`;
                 textoEstado = 'Estamos revisando tu pago. Te avisamos por correo apenas esté listo; suele tardar unos minutos.';
             }
 
@@ -415,7 +415,7 @@
                         <p class="text-[11px] font-bold tracking-[0.2em] mb-4" style="color: var(--gris-claro)">LO QUE PEDISTE</p>
                         ${listaItems || '<p class="text-sm py-3" style="color: var(--gris-claro)">Sin prendas registradas.</p>'}
 
-                        <div class="flex justify-between items-end pt-5 mt-4" style="border-top: 1px solid rgba(22,19,31,0.10)">
+                        <div class="flex justify-between items-end pt-5 mt-4" style="border-top: 1px solid rgba(15, 23, 42,0.10)">
                             <span class="text-sm font-medium" style="color: var(--gris)">Total</span>
                             <div class="text-right">
                                 <span class="cifra display text-[38px]">$${total.toFixed(2)}</span>
@@ -423,7 +423,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-6 pt-5 space-y-3" style="border-top: 1px solid rgba(22,19,31,0.10)">
+                        <div class="mt-6 pt-5 space-y-3" style="border-top: 1px solid rgba(15, 23, 42,0.10)">
                             <div class="flex justify-between items-center text-xs">
                                 <span class="uppercase font-bold tracking-[0.16em]" style="color: var(--gris-claro)">Pagaste con</span>
                                 <span class="font-semibold">${escapeHTML(orden.metodoPago || 'No especificado')}</span>
@@ -439,7 +439,7 @@
                         <div class="mt-6">
                             <p class="text-[11px] font-bold tracking-[0.2em] mb-3" style="color: var(--gris-claro)">TU COMPROBANTE</p>
                             <a href="${escapeHTML(comprobanteUrl)}" target="_blank" rel="noopener noreferrer">
-                                <img src="${escapeHTML(comprobanteUrl)}" class="w-full max-h-72 object-contain rounded-2xl bg-white" style="border: 1px solid rgba(22,19,31,0.10)" alt="Comprobante de pago">
+                                <img src="${escapeHTML(comprobanteUrl)}" class="w-full max-h-72 object-contain rounded-2xl bg-white" style="border: 1px solid rgba(15, 23, 42,0.10)" alt="Comprobante de pago">
                             </a>
                         </div>` : ''}
                     </div>

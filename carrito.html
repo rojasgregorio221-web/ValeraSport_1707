@@ -4,7 +4,7 @@
     <link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#16131F">
+    <meta name="theme-color" content="#0F172A">
     <title>Carrito | Valera Sport</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,15 +17,15 @@
 
     <style>
         :root {
-            --noche: #140F2E;
-            --brasa: #FF5A1F;
-            --fucsia: #FF2D87;
-            --violeta: #7C4DFF;
-            --cyan: #22D3EE;
-            --hueso: #F6F3EC;
-            --tinta: #16131F;
-            --gris: #6b665d;
-            --gris-claro: #9a948a;
+            --noche: #0F172A;
+            --brasa: #0284C7;
+            --fucsia: #00A8E8;
+            --violeta: #38BDF8;
+            --cyan: #38BDF8;
+            --hueso: #F4F8FC;
+            --tinta: #0F172A;
+            --gris: #475569;
+            --gris-claro: #7C8DA3;
             --suave: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -50,14 +50,14 @@
         ::selection { background: var(--fucsia); color: #fff; }
         ::-webkit-scrollbar { width: 9px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cfc9bd; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb { background: #C3D3E3; border-radius: 9999px; }
 
         /* ---- HEADER ---- */
         .barra {
             position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-            background: rgba(246, 243, 236, 0.85);
+            background: rgba(244, 248, 252, 0.85);
             backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-            border-bottom: 1px solid rgba(22, 19, 31, 0.08);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
         }
         .enlace-nav { position: relative; color: var(--tinta); }
         .enlace-nav::after {
@@ -76,13 +76,13 @@
             text-transform: uppercase; transition: color 0.3s ease;
         }
         .paso-activo { color: var(--tinta); }
-        .paso-inactivo { color: rgba(22,19,31,0.25); }
-        .guion { flex: 1; max-width: 42px; height: 1px; background: rgba(22,19,31,0.18); }
+        .paso-inactivo { color: rgba(15, 23, 42,0.25); }
+        .guion { flex: 1; max-width: 42px; height: 1px; background: rgba(15, 23, 42,0.18); }
 
         /* ---- LISTA ---- */
         .fila-item {
             display: flex; align-items: center; gap: 18px;
-            padding: 22px 0; border-bottom: 1px solid rgba(22,19,31,0.10);
+            padding: 22px 0; border-bottom: 1px solid rgba(15, 23, 42,0.10);
             animation: entraFila 0.55s var(--suave) both;
         }
         @keyframes entraFila {
@@ -91,13 +91,13 @@
         }
         .miniatura {
             width: 92px; height: 92px; flex-shrink: 0; border-radius: 18px;
-            background: #ece7dc; overflow: hidden;
+            background: #E3EEF7; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
         }
         .miniatura img { width: 100%; height: 100%; object-fit: contain; }
         .pildora {
             display: inline-flex; align-items: center;
-            border: 1px solid rgba(22,19,31,0.15); border-radius: 9999px; background: #fff;
+            border: 1px solid rgba(15, 23, 42,0.15); border-radius: 9999px; background: #fff;
         }
         .pildora button {
             width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
@@ -115,19 +115,19 @@
         }
         .tarjeta-noche::before {
             content: ""; position: absolute; width: 380px; height: 380px; border-radius: 9999px;
-            background: radial-gradient(circle, rgba(124,77,255,0.45), transparent 62%);
+            background: radial-gradient(circle, rgba(56, 189, 248,0.45), transparent 62%);
             top: -160px; right: -140px; pointer-events: none;
         }
         .contenido-noche { position: relative; z-index: 1; }
         .panel-blanco { background: #fff; border-radius: 22px; padding: 20px; }
 
         .campo {
-            width: 100%; background: #fff; border: 1px solid rgba(22,19,31,0.14);
+            width: 100%; background: #fff; border: 1px solid rgba(15, 23, 42,0.14);
             border-radius: 14px; padding: 12px 14px; font-size: 14px;
             color: var(--tinta); outline: none;
             transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
-        .campo:focus { border-color: var(--fucsia); box-shadow: 0 0 0 3px rgba(255,45,135,0.12); }
+        .campo:focus { border-color: var(--fucsia); box-shadow: 0 0 0 3px rgba(0, 168, 232,0.12); }
         .campo::placeholder { color: var(--gris-claro); }
         .etiqueta { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gris-claro); display: block; margin-bottom: 8px; }
 
@@ -164,7 +164,7 @@
         .palabra-pie {
             font-family: 'Big Shoulders Display', sans-serif; font-weight: 900;
             line-height: 0.78; text-transform: uppercase;
-            color: transparent; -webkit-text-stroke: 1px rgba(246,243,236,0.35);
+            color: transparent; -webkit-text-stroke: 1px rgba(244, 248, 252,0.35);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -237,7 +237,7 @@
             </div>
 
             <div id="carritoVacio" class="hidden text-center py-24">
-                <div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6" style="background: #ece7dc">
+                <div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6" style="background: #E3EEF7">
                     <i class="fa-solid fa-bag-shopping text-2xl" style="color: var(--gris-claro)"></i>
                 </div>
                 <p class="display text-[42px] mb-2">Todavía no hay nada</p>
@@ -251,7 +251,7 @@
 
                 <!-- COLUMNA IZQUIERDA: PRODUCTOS -->
                 <div>
-                    <div class="flex items-center justify-between mb-2 pb-5" style="border-bottom: 1px solid rgba(22,19,31,0.10)">
+                    <div class="flex items-center justify-between mb-2 pb-5" style="border-bottom: 1px solid rgba(15, 23, 42,0.10)">
                         <p class="text-[11px] font-bold tracking-[0.2em]" style="color: var(--gris-claro)">TUS PRENDAS</p>
                         <a href="/catalogo" class="text-sm font-semibold flex items-center gap-2" style="color: var(--fucsia)">
                             <i class="fa-solid fa-plus text-xs"></i> Agregar más
@@ -314,7 +314,7 @@
                                     </div>
 
                                     <!-- Datos de la cuenta a la que debe pagar, según el método elegido -->
-                                    <div id="datosPagoBox" class="hidden rounded-2xl p-4 mb-4 space-y-1" style="background: var(--hueso); border: 1px solid rgba(22,19,31,0.08)"></div>
+                                    <div id="datosPagoBox" class="hidden rounded-2xl p-4 mb-4 space-y-1" style="background: var(--hueso); border: 1px solid rgba(15, 23, 42,0.08)"></div>
 
                                     <div class="mb-4 hidden" id="contenedorReferencia">
                                         <label class="etiqueta">Últimos 8 dígitos de la referencia</label>
@@ -337,7 +337,7 @@
             </div>
 
             <!-- HISTORIAL DE COMPRAS -->
-            <div id="seccionHistorial" class="hidden mt-20 pt-12 max-w-3xl" style="border-top: 1px solid rgba(22,19,31,0.10)">
+            <div id="seccionHistorial" class="hidden mt-20 pt-12 max-w-3xl" style="border-top: 1px solid rgba(15, 23, 42,0.10)">
                 <p class="rotulo mb-4">LO QUE HAS COMPRADO</p>
                 <h2 class="display text-[13vw] md:text-[4vw] mb-6">Tu historial</h2>
                 <p id="estadoHistorial" class="text-xs mb-4" style="color: var(--gris-claro)"></p>
@@ -363,7 +363,7 @@
             <a id="enlaceEstadoPedido" href="/pedido" class="boton-solido inline-flex items-center justify-center gap-2 mt-6 w-full font-semibold py-4 rounded-full text-sm">
                 <i class="fa-solid fa-receipt"></i> Ver estado de mi pedido
             </a>
-            <div id="avisoEnvioWhatsApp" class="hidden mt-4 rounded-[20px] px-5 py-4 text-xs leading-relaxed text-left" style="background: #fff; border: 1px solid rgba(22,19,31,0.08); color: var(--gris)">
+            <div id="avisoEnvioWhatsApp" class="hidden mt-4 rounded-[20px] px-5 py-4 text-xs leading-relaxed text-left" style="background: #fff; border: 1px solid rgba(15, 23, 42,0.08); color: var(--gris)">
                 Escríbenos por <a href="https://wa.me/584245939407" target="_blank" class="font-semibold" style="color: var(--fucsia)">WhatsApp</a> si necesitas que te hagamos un envío a cualquier parte de Venezuela, o si estás en Barquisimeto puedes pasar en nuestro horario de atención por la tienda para retirar tu pedido.
             </div>
             <a href="/catalogo" class="inline-block mt-7 text-sm font-semibold" style="color: var(--fucsia)">
@@ -375,7 +375,7 @@
     <footer class="pie pt-16 pb-10">
         <div class="max-w-[1400px] mx-auto px-5 md:px-8">
             <p class="palabra-pie text-[19vw] mb-12 select-none">Valera Sport</p>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm pb-12" style="border-bottom: 1px solid rgba(246,243,236,0.12)">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm pb-12" style="border-bottom: 1px solid rgba(244, 248, 252,0.12)">
                 <div>
                     <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">TIENDA</p>
                     <div class="flex flex-col gap-2.5">
@@ -574,7 +574,7 @@
                     descuentoBsEl.textContent = tasaBcvCarrito ? '-Bs ' + formatearBsCarrito((subtotal - total) * tasaBcvCarrito) : '';
                 }
                 aviso.className = 'mb-5 rounded-2xl border p-3.5 text-xs font-semibold leading-relaxed';
-                aviso.style.cssText = 'background: rgba(34,211,238,0.12); border-color: rgba(34,211,238,0.35); color: #a5f3fc;';
+                aviso.style.cssText = 'background: rgba(56, 189, 248,0.12); border-color: rgba(56, 189, 248,0.35); color: #BAE6FD;';
                 aviso.innerHTML = '🎉 ¡Descuento por mayor aplicado! Llevas ' + cantidadTotal + ' piezas: a partir de 3, cada una tiene $' + DESCUENTO_MAYOR_UNITARIO.toFixed(2) + ' de descuento.';
                 aviso.classList.remove('hidden');
             } else {
@@ -961,11 +961,11 @@
             const canal = c.canal || '';
             const fisica = canal.toLowerCase() === 'física' || canal.toLowerCase() === 'fisica';
             const estiloCanal = fisica
-                ? 'background: rgba(22,19,31,0.06); color: var(--gris);'
-                : 'background: rgba(255,45,135,0.10); color: var(--fucsia);';
+                ? 'background: rgba(15, 23, 42,0.06); color: var(--gris);'
+                : 'background: rgba(0, 168, 232,0.10); color: var(--fucsia);';
 
             return `
-                <div class="rounded-[20px] p-5 mb-3" style="background: #fff; border: 1px solid rgba(22,19,31,0.08)">
+                <div class="rounded-[20px] p-5 mb-3" style="background: #fff; border: 1px solid rgba(15, 23, 42,0.08)">
                     <div class="flex justify-between items-start mb-2">
                         <p class="text-xs" style="color: var(--gris-claro)">${escapeHTML(fecha)}</p>
                         ${canal ? `<span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="${estiloCanal}">${escapeHTML(canal)}</span>` : ''}
