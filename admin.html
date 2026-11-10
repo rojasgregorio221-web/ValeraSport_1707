@@ -2,7 +2,49 @@
 <html lang="es">
 <head>
 <!-- seguridad:capa2 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://code.jquery.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: https:; connect-src 'self'; media-src 'self' blob:; frame-src 'none'; worker-src 'none'; object-src 'none'; manifest-src 'self'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<!-- sec:capa1-memoria:inicio -->
+<script>
+(function () {
+  'use strict';
+  try {
+    var CLAVES = ['vs_admin_password'];
+    var mem = {};
+    var P = Storage.prototype, g = P.getItem, s = P.setItem, r = P.removeItem, c = P.clear;
+    function esSesion(o) { try { return o === window.sessionStorage; } catch (e) { return false; } }
+    P.getItem = function (k) {
+      if (esSesion(this) && CLAVES.indexOf(String(k)) !== -1) return Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null;
+      return g.call(this, k);
+    };
+    P.setItem = function (k, v) {
+      if (esSesion(this) && CLAVES.indexOf(String(k)) !== -1) { mem[k] = String(v); return; }
+      return s.call(this, k, v);
+    };
+    P.removeItem = function (k) {
+      if (esSesion(this) && CLAVES.indexOf(String(k)) !== -1) { delete mem[k]; return; }
+      return r.call(this, k);
+    };
+    P.clear = function () { if (esSesion(this)) { mem = {}; } return c.call(this); };
+    CLAVES.forEach(function (k) { try { r.call(window.sessionStorage, k); } catch (e) {} });
+  } catch (e) {}
+})();
+</script>
+<!-- sec:capa1-memoria:fin -->
+<!-- sec:capa2-meta:inicio -->
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Cache-Control" content="no-store">
+<!-- sec:capa2-meta:fin -->
+<!-- sec:capa2-antiframe:inicio -->
+<style id="sec-antiframe-css">html{visibility:hidden}</style>
+<script>
+(function () {
+  try {
+    if (window.self === window.top) { document.documentElement.style.visibility = 'visible'; }
+    else { window.top.location = window.self.location; }
+  } catch (e) {}
+})();
+</script>
+<!-- sec:capa2-antiframe:fin -->
 <link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1534,7 +1576,7 @@ body::after{display:none}
     <script>
         const PASSWORD_KEY = 'vs_admin_password';
         const ACTIVIDAD_KEY = 'vs_admin_actividad';   /* seguridad:capa1 */
-        const MINUTOS_INACTIVIDAD = 20;               // cambia este número si quieres más o menos tiempo
+        const MINUTOS_INACTIVIDAD = 10;               // cambia este número si quieres más o menos tiempo
         const INTERVALO_REFRESCO = 30000;
         const LLAVE_CACHE = 'valera_admin_datos';
 
@@ -1936,7 +1978,7 @@ body::after{display:none}
         function cerrarSesion() {
             sessionStorage.removeItem(PASSWORD_KEY);
             sessionStorage.removeItem(ACTIVIDAD_KEY);
-            try { localStorage.removeItem(LLAVE_CACHE); } catch (e) {}   // no dejar ventas guardadas en el equipo
+            try { sessionStorage.removeItem(LLAVE_CACHE); } catch (e) {}   // no dejar ventas guardadas en el equipo
             try { mostrarPantallaAccion(null); } catch (e) {}
             panelPrincipal.classList.add('hidden');
             pantallaLogin.classList.remove('hidden');
@@ -1968,9 +2010,9 @@ body::after{display:none}
         // ---------- CACHÉ LOCAL (CARGA INSTANTÁNEA MIENTRAS LLEGA LO NUEVO) ----------
         function guardarCache(datosNuevos) {
             try {
-                const actual = JSON.parse(localStorage.getItem(LLAVE_CACHE) || '{}');
+                const actual = JSON.parse(sessionStorage.getItem(LLAVE_CACHE) || '{}');
                 const combinado = Object.assign({}, actual, datosNuevos);
-                localStorage.setItem(LLAVE_CACHE, JSON.stringify(combinado));
+                sessionStorage.setItem(LLAVE_CACHE, JSON.stringify(combinado));
             } catch (e) {
                 // Si el navegador bloquea localStorage (modo privado, etc.), seguimos sin caché
             }
@@ -2118,7 +2160,7 @@ body::after{display:none}
         async function cargarTodo() {
             // 1. Si hay datos guardados en el navegador, mostrarlos de inmediato
             try {
-                const datosGuardados = localStorage.getItem(LLAVE_CACHE);
+                const datosGuardados = sessionStorage.getItem(LLAVE_CACHE);
                 if (datosGuardados) {
                     const datos = JSON.parse(datosGuardados);
                     if (datos.pedidos) renderizarPedidos(datos.pedidos);
@@ -6999,5 +7041,247 @@ body.vs-pantalla #panelPrincipal > :not(#scannerModalVenta) { visibility: hidden
 })();
 </script>
 <!-- vs-imagen:fin -->
+<!-- sec:capa1-login:inicio -->
+<script>
+(function () {
+  'use strict';
+  var MAX_INTENTOS = 5, BLOQUEO_BASE = 30, BLOQUEO_MAX = 900;
+  var SESION_MAX_MS = 8 * 3600000, OCULTO_MAX_MS = 5 * 60000;
+  var LONG_MAX = 128, RETARDO_MIN = 700;
+  var K_BLOQ = 'vs_sec_bloqueo', K_INI = 'vs_sec_inicio', K_PASS = 'vs_admin_password';
+
+  function leer() {
+    try { var o = JSON.parse(localStorage.getItem(K_BLOQ) || 'null'); if (o && typeof o.n === 'number' && typeof o.hasta === 'number') return o; } catch (e) {}
+    return { n: 0, hasta: 0 };
+  }
+  function guardar(o) { try { localStorage.setItem(K_BLOQ, JSON.stringify(o)); } catch (e) {} }
+  function limpiarBloqueo() { try { localStorage.removeItem(K_BLOQ); } catch (e) {} }
+  function fmt(ms) { var s = Math.ceil(ms / 1000); if (s < 60) return s + ' s'; var m = Math.floor(s / 60), r = s % 60; return m + ' min' + (r ? ' ' + r + ' s' : ''); }
+  function pausa(ms) { return new Promise(function (res) { setTimeout(res, ms); }); }
+  function sesionActiva() { try { return !!sessionStorage.getItem(K_PASS); } catch (e) { return false; } }
+  function cerrar(msg) {
+    try { if (typeof cerrarSesion === 'function') cerrarSesion(); } catch (e) {}
+    try { sessionStorage.removeItem(K_INI); } catch (e) {}
+    var er = document.getElementById('errorLogin');
+    if (er && msg) { er.textContent = msg; er.className = 'msg msg-warn'; }
+  }
+  window.__secCerrarSesion = cerrar;
+
+  /* Envuelve la comprobación de clave: bloqueo, retardo mínimo, validación de formato */
+  var orig = window.probarPassword;
+  if (typeof orig === 'function') {
+    window.probarPassword = async function (clave) {
+      var est = leer(), ahora = Date.now();
+      if (est.hasta > ahora) {
+        return { valida: false, mensaje: 'Demasiados intentos fallidos. Espera ' + fmt(est.hasta - ahora) + ' para volver a intentar.' };
+      }
+      if (typeof clave !== 'string' || !clave || clave.length > LONG_MAX) {
+        return { valida: false, mensaje: 'La clave no tiene un formato válido.' };
+      }
+      var t0 = Date.now(), res;
+      try { res = await orig(clave); } catch (e) { res = { valida: false, mensaje: 'No se pudo conectar con el servidor.' }; }
+      var resto = RETARDO_MIN - (Date.now() - t0);
+      if (resto > 0) await pausa(resto);
+
+      if (res && res.valida) {
+        limpiarBloqueo();
+        try { sessionStorage.setItem(K_INI, String(Date.now())); } catch (e) {}
+        setTimeout(function () { var i = document.getElementById('inputPassword'); if (i) i.value = ''; }, 900);
+      } else if (res && !res.mensaje) {
+        /* solo cuenta como fallo cuando el servidor dijo 401 (clave incorrecta) */
+        var n = est.n + 1, o = { n: n, hasta: 0 };
+        if (n >= MAX_INTENTOS) {
+          var exp = Math.min(BLOQUEO_BASE * Math.pow(2, n - MAX_INTENTOS), BLOQUEO_MAX);
+          o.hasta = Date.now() + exp * 1000;
+          res = { valida: false, mensaje: 'Clave incorrecta. Acceso bloqueado ' + fmt(exp * 1000) + ' por seguridad.' };
+        } else {
+          res = { valida: false, mensaje: 'Esa clave no es. Te quedan ' + (MAX_INTENTOS - n) + (MAX_INTENTOS - n === 1 ? ' intento.' : ' intentos.') };
+        }
+        guardar(o);
+      }
+      return res;
+    };
+  }
+
+  /* Duración máxima absoluta de la sesión */
+  setInterval(function () {
+    if (!sesionActiva()) return;
+    var ini = 0;
+    try { ini = Number(sessionStorage.getItem(K_INI) || 0); } catch (e) {}
+    if (!ini) { try { sessionStorage.setItem(K_INI, String(Date.now())); } catch (e) {} return; }
+    if (Date.now() - ini > SESION_MAX_MS) cerrar('Por seguridad, la sesión llegó a su duración máxima. Entra de nuevo.');
+  }, 30000);
+
+  /* Pestaña oculta demasiado tiempo */
+  var ocultoDesde = 0;
+  document.addEventListener('visibilitychange', function () {
+    if (!sesionActiva()) { ocultoDesde = 0; return; }
+    if (document.hidden) { ocultoDesde = Date.now(); }
+    else {
+      if (ocultoDesde && Date.now() - ocultoDesde > OCULTO_MAX_MS) cerrar('Por seguridad, la sesión se cerró porque dejaste la pestaña oculta mucho tiempo.');
+      ocultoDesde = 0;
+    }
+  });
+
+  /* Campo de clave */
+  var inp = document.getElementById('inputPassword');
+  if (inp) {
+    inp.setAttribute('maxlength', String(LONG_MAX));
+    inp.setAttribute('autocapitalize', 'off');
+    inp.setAttribute('autocorrect', 'off');
+    inp.setAttribute('spellcheck', 'false');
+    var av = document.getElementById('avisoMayusculas');
+    if (av) {
+      inp.addEventListener('keydown', function (e) {
+        if (e.getModifierState) av.classList.toggle('hidden', !e.getModifierState('CapsLock'));
+      });
+    }
+  }
+})();
+</script>
+<!-- sec:capa1-login:fin -->
+<!-- sec:capa2-interfaz:inicio -->
+<style id="sec-capa2-css">.sec-privado #panelPrincipal{filter:blur(16px);pointer-events:none}</style>
+<script>
+(function () {
+  'use strict';
+  var OK_IMG = /^(https:|data:image\/|blob:)/i;
+  var SEL = 'iframe,frame,object,embed,applet,base,a,img,form,input';
+
+  function uno(n) {
+    if (!n || n.nodeType !== 1) return;
+    var t = n.tagName;
+    if (t === 'IFRAME' || t === 'FRAME' || t === 'OBJECT' || t === 'EMBED' || t === 'APPLET' || t === 'BASE') { n.remove(); return; }
+    if (t === 'A') {
+      var h = n.getAttribute('href') || '';
+      if (/^\s*(javascript|data|vbscript):/i.test(h)) n.removeAttribute('href');
+      if (n.target === '_blank') n.rel = 'noopener noreferrer';
+      n.referrerPolicy = 'no-referrer';
+    } else if (t === 'IMG') {
+      var s = n.getAttribute('src');
+      if (s) {
+        var abs = null;
+        try { abs = new URL(s, location.href); } catch (e) {}
+        if (!abs || !(abs.origin === location.origin || OK_IMG.test(abs.href))) n.removeAttribute('src');
+      }
+      n.referrerPolicy = 'no-referrer';
+    } else if (t === 'FORM') {
+      var a = n.getAttribute('action');
+      if (a) { try { if (new URL(a, location.href).origin !== location.origin) n.removeAttribute('action'); } catch (e) { n.removeAttribute('action'); } }
+    } else if (t === 'INPUT') {
+      if (n.type !== 'password' && n.getAttribute('autocomplete') !== 'off') n.setAttribute('autocomplete', 'off');
+    }
+  }
+  function arbol(n) {
+    uno(n);
+    if (n && n.querySelectorAll) { var l = n.querySelectorAll(SEL); for (var i = 0; i < l.length; i++) uno(l[i]); }
+  }
+
+  arbol(document.documentElement);
+  if (window.MutationObserver) {
+    new MutationObserver(function (lista) {
+      for (var i = 0; i < lista.length; i++) {
+        var m = lista[i];
+        if (m.type === 'attributes') { uno(m.target); continue; }
+        for (var j = 0; j < m.addedNodes.length; j++) arbol(m.addedNodes[j]);
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'href', 'action'] });
+  }
+
+  /* Privacidad: al cambiar de app/pestaña el panel se desenfoca */
+  document.addEventListener('visibilitychange', function () {
+    document.documentElement.classList.toggle('sec-privado', document.hidden);
+  });
+})();
+</script>
+<!-- sec:capa2-interfaz:fin -->
+<!-- sec:capa3-red:inicio -->
+<script>
+(function () {
+  'use strict';
+  var API = '/api/admin-pedidos', TIMEOUT = 25 * 1000, expulsando = false;
+  var base = window.fetch.bind(window);
+
+  function sesionActiva() { try { return !!sessionStorage.getItem('vs_admin_password'); } catch (e) { return false; } }
+
+  window.fetch = function (input, init) {
+    var raw = (typeof input === 'string') ? input : ((input && input.url) || String(input || ''));
+    var u;
+    try { u = new URL(raw, location.href); } catch (e) { return Promise.reject(new TypeError('URL no válida.')); }
+    if (u.origin !== location.origin) {
+      return Promise.reject(new TypeError('Bloqueado por seguridad: solo se permiten peticiones al mismo sitio.'));
+    }
+    var o = Object.assign({}, init || {});
+    o.credentials = 'same-origin';
+    o.referrerPolicy = 'no-referrer';
+    var esAdmin = (u.pathname === API);
+    if (esAdmin) {
+      o.cache = 'no-store';
+      var h = new Headers(o.headers || {});
+      h.set('X-Requested-With', 'vs-admin');
+      o.headers = h;
+    }
+    var tm = null;
+    if (!o.signal && typeof AbortController !== 'undefined') {
+      var ctl = new AbortController();
+      o.signal = ctl.signal;
+      tm = setTimeout(function () { ctl.abort(); }, TIMEOUT);
+    }
+    return base(input, o).then(function (resp) {
+      if (tm) clearTimeout(tm);
+      if (esAdmin && resp.status === 401 && sesionActiva() && !expulsando) {
+        expulsando = true;
+        setTimeout(function () { expulsando = false; }, 3000);
+        if (typeof window.__secCerrarSesion === 'function') window.__secCerrarSesion('Tu sesión ya no es válida. Entra de nuevo.');
+        else { try { cerrarSesion(); } catch (e) {} }
+      }
+      return resp;
+    }, function (err) {
+      if (tm) clearTimeout(tm);
+      throw err;
+    });
+  };
+
+  /* Limpieza de restos antiguos en el disco */
+  try { localStorage.removeItem('vs_admin_password'); } catch (e) {}
+  try { localStorage.removeItem('valera_admin_datos'); } catch (e) {}
+})();
+</script>
+<!-- sec:capa3-red:fin -->
+<!-- sec:capa4-abuso:inicio -->
+<script>
+(function () {
+  'use strict';
+  var MAX = 60, VENTANA = 10000, marcas = [];
+  var f = window.fetch;
+  window.fetch = function (input) {
+    var raw = (typeof input === 'string') ? input : ((input && input.url) || '');
+    var esAdmin = false;
+    try { esAdmin = new URL(raw, location.href).pathname === '/api/admin-pedidos'; } catch (e) {}
+    if (esAdmin) {
+      var ahora = Date.now();
+      marcas = marcas.filter(function (t) { return ahora - t < VENTANA; });
+      if (marcas.length >= MAX) {
+        return Promise.resolve(new Response(JSON.stringify({ ok: false, error: 'Demasiadas solicitudes seguidas. Espera unos segundos.' }),
+          { status: 429, headers: { 'Content-Type': 'application/json' } }));
+      }
+      marcas.push(ahora);
+    }
+    return f.apply(this, arguments);
+  };
+  
+  try {
+    ['log', 'debug', 'info', 'trace'].forEach(function (k) { console[k] = function () {}; });
+  } catch (e) {}
+  
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      try { Object.defineProperty(window, 'fetch', { value: window.fetch, writable: false, configurable: false }); } catch (e) {}
+      try { if (typeof window.escapeHTML === 'function') Object.defineProperty(window, 'escapeHTML', { value: window.escapeHTML, writable: false, configurable: false }); } catch (e) {}
+    }, 2000);
+  });
+})();
+</script>
+<!-- sec:capa4-abuso:fin -->
 </body>
 </html>
