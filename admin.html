@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://code.jquery.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'self';">
+<!-- seguridad:capa2 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://code.jquery.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self';">
 <link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1532,6 +1533,8 @@ body::after{display:none}
 
     <script>
         const PASSWORD_KEY = 'vs_admin_password';
+        const ACTIVIDAD_KEY = 'vs_admin_actividad';   /* seguridad:capa1 */
+        const MINUTOS_INACTIVIDAD = 20;               // cambia este número si quieres más o menos tiempo
         const INTERVALO_REFRESCO = 30000;
         const LLAVE_CACHE = 'valera_admin_datos';
 
@@ -1862,6 +1865,7 @@ body::after{display:none}
             if (resultado.valida) {
                 if (textoEstadoCargando) textoEstadoCargando.textContent = 'Todo bien, abriendo el panel...';
                 sessionStorage.setItem(PASSWORD_KEY, clave);
+                sessionStorage.setItem(ACTIVIDAD_KEY, String(Date.now()));
                 setTimeout(() => {
                     setEstadoCargaLogin(false);
                     mostrarPanel();
@@ -1931,6 +1935,8 @@ body::after{display:none}
 
         function cerrarSesion() {
             sessionStorage.removeItem(PASSWORD_KEY);
+            sessionStorage.removeItem(ACTIVIDAD_KEY);
+            try { localStorage.removeItem(LLAVE_CACHE); } catch (e) {}   // no dejar ventas guardadas en el equipo
             try { mostrarPantallaAccion(null); } catch (e) {}
             panelPrincipal.classList.add('hidden');
             pantallaLogin.classList.remove('hidden');
@@ -1938,13 +1944,18 @@ body::after{display:none}
         }
 
         function obtenerPassword() {
+            const ultimaActividad = Number(sessionStorage.getItem(ACTIVIDAD_KEY) || 0);
+            if (ultimaActividad && Date.now() - ultimaActividad > MINUTOS_INACTIVIDAD * 60000) {
+                setTimeout(expirarSesion, 0);
+                return '';
+            }
             return sessionStorage.getItem(PASSWORD_KEY) || '';
         }
 
         function escapeHTML(str) {
             const div = document.createElement('div');
             div.textContent = str == null ? '' : String(str);
-            return div.innerHTML;
+            return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');   /* seguridad:capa3 */
         }
 
         function marcarActualizado() {
@@ -2893,7 +2904,7 @@ body::after{display:none}
                     </span>
                     ${f.nota ? `<p class="text-[11px] mt-2.5" style="color: var(--gris)"><i class="fa-solid fa-note-sticky mr-1.5" style="color: var(--tenue)"></i>${escapeHTML(f.nota)}</p>` : ''}
                     ${!pagado ? `
-                    <button type="button" onclick="marcarFiadoPagado('${idAttr}')" class="btn-hueso w-full mt-4 py-2.5 rounded-full text-xs">
+                    <button type="button" data-id="${idAttr}" onclick="marcarFiadoPagado(this.dataset.id)" class="btn-hueso w-full mt-4 py-2.5 rounded-full text-xs">
                         <i class="fa-solid fa-check mr-1.5"></i> Ya me pagó
                     </button>` : ''}
                 </div>
@@ -3069,7 +3080,7 @@ body::after{display:none}
                             <span class="cifra-grande text-[22px] block" style="color: #FDA4AF">-$${Number(g.monto || 0).toFixed(2)}</span>
                             ${montoBsNum ? `<span class="cifra text-[11px] font-bold block" style="color: rgba(253,164,175,0.7)">-Bs ${montoBsNum.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
                         </div>
-                        ${idAttr ? `<button type="button" onclick="eliminarGasto('${idAttr}')" title="Borrar" class="icon-btn w-9 h-9 flex items-center justify-center rounded-xl" style="color: var(--tenue)"><i class="fa-solid fa-trash-can text-xs"></i></button>` : ''}
+                        ${idAttr ? `<button type="button" data-id="${idAttr}" onclick="eliminarGasto(this.dataset.id)" title="Borrar" class="icon-btn w-9 h-9 flex items-center justify-center rounded-xl" style="color: var(--tenue)"><i class="fa-solid fa-trash-can text-xs"></i></button>` : ''}
                     </div>
                 </div>
             `;
@@ -4725,6 +4736,26 @@ body::after{display:none}
         })();
 
         window.addEventListener('resize', reposicionarGlider);
+
+        /* ---- seguridad:capa1 · cierre por inactividad ---- */
+        let _expirando = false;
+        function expirarSesion() {
+            if (_expirando) return;
+            _expirando = true;
+            try { cerrarSesion(); } catch (e) {}
+            const er = document.getElementById('errorLogin');
+            if (er) { er.textContent = 'Por seguridad, la sesión se cerró por inactividad. Entra de nuevo.'; er.className = 'msg msg-warn'; }
+            setTimeout(() => { _expirando = false; }, 1000);
+        }
+        const marcarActividad = () => { if (sessionStorage.getItem(PASSWORD_KEY)) sessionStorage.setItem(ACTIVIDAD_KEY, String(Date.now())); };
+        let _ultimoToque = 0;
+        ['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach((ev) => window.addEventListener(ev, () => {
+            const t = Date.now();
+            if (t - _ultimoToque > 15000) { _ultimoToque = t; marcarActividad(); }
+        }, { passive: true, capture: true }));
+        setInterval(() => { if (sessionStorage.getItem(PASSWORD_KEY)) obtenerPassword(); }, 30000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden && sessionStorage.getItem(PASSWORD_KEY)) obtenerPassword(); });
+        if (sessionStorage.getItem(PASSWORD_KEY) && !sessionStorage.getItem(ACTIVIDAD_KEY)) marcarActividad();
         window.addEventListener('load', () => setTimeout(reposicionarGlider, 100));
 
         setInterval(() => {
