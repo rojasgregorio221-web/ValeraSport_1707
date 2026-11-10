@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" type="image/jpg" href="imagenes/logo.jpg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#16131F">
+    <title>Catálogo | Valera Sport</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="firebase-auth.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {|
+            --noche: #140F2E;
+            --brasa: #FF5A1F;
+            --fucsia: #FF2D87;
+            --violeta: #7C4DFF;
+            --hueso: #F6F3EC;
+            --tinta: #16131F;
+            --gris: #6b665d;
+            --gris-claro: #9a948a;
+            --suave: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { -webkit-tap-highlight-color: transparent; }
+
+        html { overflow-x: hidden; overflow-x: clip; scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--hueso);
+            color: var(--tinta);
+            overflow-x: hidden; overflow-x: clip; width: 100%;
+        }
+
+        .display {
+            font-family: 'Big Shoulders Display', 'Inter', sans-serif;
+            font-weight: 900; line-height: 0.82;
+            letter-spacing: -0.01em; text-transform: uppercase;
+        }
+        .rotulo { font-size: 11px; font-weight: 700; letter-spacing: 0.28em; color: var(--fucsia); }
+
+        ::selection { background: var(--fucsia); color: #fff; }
+        ::-webkit-scrollbar { width: 9px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cfc9bd; border-radius: 9999px; }
+
+        /* ---- HEADER ---- */
+        .barra {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(246, 243, 236, 0.85);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(22, 19, 31, 0.08);
+            transition: transform 0.45s var(--suave);
+        }
+        .barra.oculta { transform: translateY(-101%); }
+        .enlace-nav { position: relative; color: var(--tinta); }
+        .enlace-nav::after {
+            content: ""; position: absolute; left: 0; bottom: -5px; height: 2px; width: 0;
+            background: var(--fucsia); transition: width 0.3s var(--suave);
+        }
+        .enlace-nav:hover::after { width: 100%; }
+        .boton-icono { color: var(--tinta); transition: opacity 0.2s ease, color 0.2s ease; }
+        .boton-icono:hover { opacity: 0.55; }
+        .icono-activo { color: var(--fucsia) !important; }
+
+        /* ---- BUSCADOR ---- */
+        .buscador-grande {
+            width: 100%; background: #fff; border: 1px solid rgba(22,19,31,0.12);
+            border-radius: 9999px; padding: 18px 22px 18px 54px;
+            font-size: 15px; outline: none;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .buscador-grande:focus { border-color: var(--fucsia); box-shadow: 0 0 0 4px rgba(255,45,135,0.10); }
+        .buscador-grande::placeholder { color: var(--gris-claro); }
+
+        /* ---- FILTROS ---- */
+        .grupo-filtro { border-top: 1px solid rgba(22,19,31,0.12); padding: 20px 0; }
+        .grupo-filtro summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none; }
+        .grupo-filtro summary::-webkit-details-marker { display: none; }
+        .titulo-filtro { font-family: 'Big Shoulders Display', sans-serif; font-weight: 800; font-size: 22px; text-transform: uppercase; letter-spacing: 0.01em; }
+        .grupo-filtro .cruz { position: relative; width: 12px; height: 12px; }
+        .grupo-filtro .cruz::before, .grupo-filtro .cruz::after {
+            content: ""; position: absolute; background: var(--tinta); transition: transform 0.3s var(--suave);
+        }
+        .grupo-filtro .cruz::before { top: 5.5px; left: 0; width: 12px; height: 1.5px; }
+        .grupo-filtro .cruz::after { left: 5.5px; top: 0; width: 1.5px; height: 12px; }
+        .grupo-filtro[open] .cruz::after { transform: rotate(90deg); }
+
+        .opcion-filtro {
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
+            font-size: 14px; color: var(--gris); padding: 4px 0;
+            transition: color 0.2s ease;
+        }
+        .opcion-filtro:hover { color: var(--tinta); }
+        .filtro-check {
+            appearance: none; -webkit-appearance: none;
+            width: 18px; height: 18px; border: 1.5px solid rgba(22,19,31,0.25);
+            border-radius: 6px; flex-shrink: 0; position: relative; cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .filtro-check:checked { background: var(--tinta); border-color: var(--tinta); }
+        .filtro-check:checked::after {
+            content: ""; position: absolute; left: 5.5px; top: 2px;
+            width: 4px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        .filtro-check:checked + span { color: var(--tinta); font-weight: 600; }
+        .campo-mini {
+            width: 100%; background: #fff; border: 1px solid rgba(22,19,31,0.12);
+            border-radius: 12px; padding: 9px 12px; font-size: 13px; outline: none;
+        }
+        .campo-mini:focus { border-color: var(--fucsia); }
+
+        /* ---- TARJETAS ---- */
+        .tarjeta { cursor: pointer; animation: entraTarjeta 0.6s var(--suave) both; }
+        @keyframes entraTarjeta {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: none; }
+        }
+        .marco {
+            position: relative; overflow: hidden; border-radius: 20px;
+            background: #ece7dc; aspect-ratio: 4 / 5;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .marco img { max-width: 84%; max-height: 84%; object-fit: contain; transition: transform 0.7s var(--suave); }
+        .tarjeta:hover .marco img { transform: scale(1.07) rotate(-1.2deg); }
+        .marco::after {
+            content: ""; position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(140deg, rgba(255,90,31,0.18), rgba(124,77,255,0.18));
+            opacity: 0; transition: opacity 0.5s ease;
+        }
+        .tarjeta:hover .marco::after { opacity: 1; }
+        .sello {
+            position: absolute; top: 12px; left: 12px; z-index: 2;
+            background: rgba(22,19,31,0.85); color: #fff;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+            padding: 5px 10px; border-radius: 9999px;
+        }
+
+        .boton-solido {
+            position: relative; overflow: hidden; isolation: isolate;
+            background: var(--tinta); color: var(--hueso);
+            transition: color 0.35s var(--suave);
+        }
+        .boton-solido::before {
+            content: ""; position: absolute; inset: 0; z-index: -1;
+            background: linear-gradient(120deg, var(--brasa), var(--fucsia));
+            transform: translateY(101%); transition: transform 0.45s var(--suave);
+        }
+        .boton-solido:hover::before { transform: translateY(0); }
+
+        /* ---- FOOTER ---- */
+        .pie { background: var(--tinta); color: var(--hueso); }
+        .pie a { transition: color 0.25s ease; }
+        .pie a:hover { color: var(--fucsia); }
+        .palabra-pie {
+            font-family: 'Big Shoulders Display', sans-serif; font-weight: 900;
+            line-height: 0.78; text-transform: uppercase;
+            color: transparent; -webkit-text-stroke: 1px rgba(246,243,236,0.35);
+        }
+
+        /* ---- MODAL ---- */
+        #detalleModalContainer::-webkit-scrollbar { width: 5px; }
+        #detalleModalContainer::-webkit-scrollbar-track { background: transparent; }
+        #detalleModalContainer::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 9999px; }
+        #detalleModalContainer { scrollbar-width: thin; scrollbar-color: #e5e7eb transparent; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tarjeta { animation: none !important; }
+            html { scroll-behavior: auto; }
+        }
+
+        /* ---- FOTO DEL DETALLE: se ve completa, sin recortar ---- */
+        .vs-foto-marco {
+            position: relative; width: 100%; aspect-ratio: 4 / 5; max-height: 60vh;
+            border-radius: 24px; overflow: hidden; background: #fff;
+            border: 1px solid rgba(22, 19, 31, 0.08);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .vs-foto-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+        /* ---- DETALLE EN DOS MITADES (foto | opciones) ---- */
+        @media (min-width: 768px) {
+            #detalleModalContainer { max-width: 900px; padding: 28px; }
+            .vs-det-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+            .vs-det-foto { position: sticky; top: 0; }
+            .vs-det-foto .vs-foto-marco { max-height: calc(90vh - 60px); margin-bottom: 12px; }
+            .vs-det-info { padding-top: 6px; }
+        }
+
+        /* ---- TARJETAS DEL CATÁLOGO · diseño limpio ---- */
+        .marco {
+            border-radius: 22px; background: #fff;
+            border: 1px solid rgba(22, 19, 31, 0.07);
+            box-shadow: 0 1px 2px rgba(22, 19, 31, 0.04);
+            transition: box-shadow 0.45s var(--suave), transform 0.45s var(--suave), border-color 0.3s ease;
+        }
+        .marco::after { display: none; }
+        .marco img {
+            width: 100%; height: 100%; max-width: none; max-height: none;
+            object-fit: contain; padding: 10px;
+        }
+        .tarjeta:hover .marco {
+            transform: translateY(-4px);
+            border-color: rgba(255, 45, 135, 0.35);
+            box-shadow: 0 24px 40px -24px rgba(22, 19, 31, 0.35);
+        }
+        .tarjeta:hover .marco img { transform: scale(1.04); }
+
+        /* Sin foto cargada: el logo queda como marca de agua, no como una foto */
+        .marco.sin-foto { background: linear-gradient(160deg, #f6f3ec, #ece7dc); }
+        .marco.sin-foto img { width: 44%; height: auto; padding: 0; opacity: 0.4; }
+        .tarjeta:hover .marco.sin-foto img { transform: scale(1.06); }
+
+        /* Agotadas: apagadas */
+        .marco.agotado img { opacity: 0.5; filter: grayscale(0.7); }
+        .marco.agotado.sin-foto img { opacity: 0.25; }
+
+        .ver-chip {
+            position: absolute; left: 50%; bottom: 14px; z-index: 2;
+            transform: translate(-50%, 10px); opacity: 0; pointer-events: none;
+            background: var(--tinta); color: #fff; white-space: nowrap;
+            font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+            padding: 9px 18px; border-radius: 9999px;
+            transition: opacity 0.3s ease, transform 0.4s var(--suave);
+        }
+        .tarjeta:hover .ver-chip { opacity: 1; transform: translate(-50%, 0); }
+        @media (hover: none) { .ver-chip { display: none; } }
+    
+        /* PARCHE-FONDO-FOTO */
+        /* Capa de fondo: la misma foto, estirada a todo el cuadro y difuminada */
+        .vs-foto-marco, .marco { background-color: #e9e6df; }
+        .vs-foto-marco::before, .marco::before {
+            content: ""; position: absolute; inset: -40px; z-index: 0;
+            background-image: var(--fondo, none);
+            background-size: cover; background-position: center;
+            filter: blur(26px) saturate(1.05);
+            transform: scale(1.15);
+            pointer-events: none;
+        }
+        .vs-foto-img, .marco img { position: relative; z-index: 1; }
+        .vs-foto-img { background: transparent; }
+        /* Tarjetas: la foto ocupa todo el cuadro, sin el margen blanco */
+        .marco { background-color: #e9e6df; }
+        .marco img { padding: 0; }
+        /* Sin foto (logo) o agotado */
+        .marco.sin-foto::before { display: none; }
+        .marco.agotado::before { filter: blur(26px) grayscale(0.7); opacity: 0.6; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- HEADER -->
+    <header id="barra" class="barra">
+        <div class="max-w-[1400px] mx-auto px-5 md:px-8 h-[72px] md:h-[88px] flex items-center justify-between">
+            <a href="/" class="display text-[26px] md:text-[32px] tracking-tight" style="color: var(--tinta)">
+                Valera<span style="color: var(--fucsia)">Sport</span>
+            </a>
+            <nav class="hidden lg:flex items-center gap-9 text-[13px] font-semibold tracking-wide">
+                <a href="/catalogo" class="enlace-nav">Catálogo</a>
+                <a href="/catalogo?categoria=Damas" class="enlace-nav">Damas</a>
+                <a href="/catalogo?categoria=Caballeros" class="enlace-nav">Caballeros</a>
+                <a href="/catalogo?categoria=Niños" class="enlace-nav">Niños</a>
+                <a href="/#contacto" class="enlace-nav">Tienda</a>
+            </nav>
+            <div class="flex items-center gap-1">
+                <button onclick="location.href='/carrito'" title="Carrito" class="boton-icono relative w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-bag-shopping text-[15px]"></i>
+                    <span id="contadorCarrito" class="hidden absolute top-0.5 right-0.5 text-white text-[9px] font-bold rounded-full min-w-[17px] h-[17px] px-1 flex items-center justify-center" style="background: var(--fucsia)">0</span>
+                </button>
+                <button id="btnMiPedido" onclick="location.href='/pedido'" title="Estado de mi pedido" class="boton-icono relative w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-receipt text-[15px]"></i>
+                    <span id="puntoMiPedido" class="hidden absolute top-2 right-2 w-2 h-2 rounded-full" style="background: var(--brasa)"></span>
+                </button>
+                <button id="btnCuenta" onclick="clicBotonCuenta()" title="Mi cuenta" class="boton-icono w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-user text-[15px]"></i>
+                </button>
+                <a href="https://wa.me/584245939407" target="_blank" title="WhatsApp" class="boton-icono w-10 h-10 flex items-center justify-center rounded-full">
+                    <i class="fa-brands fa-whatsapp text-[17px]"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-[1400px] mx-auto px-5 md:px-8 w-full flex-1 pt-[104px] md:pt-[128px] pb-20">
+
+        <!-- TÍTULO -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-9">
+            <div>
+                <p class="rotulo mb-4">TODAS LAS PRENDAS</p>
+                <h1 class="display text-[17vw] md:text-[7vw]">Catálogo</h1>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+                <p id="contadorResultados" class="text-sm" style="color: var(--gris-claro)"></p>
+                <button onclick="toggleFiltrosMovil()" class="md:hidden text-[13px] font-semibold rounded-full px-5 py-2.5" style="border: 1px solid rgba(22,19,31,0.15)">
+                    <i class="fa-solid fa-sliders mr-1.5"></i> Filtros
+                </button>
+            </div>
+        </div>
+
+        <!-- BUSCADOR -->
+        <div class="relative mb-10">
+            <i class="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-sm" style="color: var(--gris-claro)"></i>
+            <input type="text" id="buscadorPrincipal" oninput="sincronizarBusqueda(this.value)" placeholder="Busca una prenda, una categoría..." class="buscador-grande">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-10 md:gap-14">
+
+            <!-- FILTROS -->
+            <aside id="panelFiltros" class="hidden md:block order-1">
+                <div class="md:sticky md:top-[120px]">
+                    <div class="mb-5">
+                        <input type="text" id="buscador" oninput="aplicarFiltros()" placeholder="Buscar..." class="campo-mini rounded-full px-4 py-2.5">
+                    </div>
+
+                    <details open class="grupo-filtro">
+                        <summary>
+                            <span class="titulo-filtro">Categoría</span>
+                            <span class="cruz"></span>
+                        </summary>
+                        <div class="mt-4 space-y-1" id="filtroCategorias"></div>
+                    </details>
+
+                    <details open class="grupo-filtro">
+                        <summary>
+                            <span class="titulo-filtro">Precio</span>
+                            <span class="cruz"></span>
+                        </summary>
+                        <div class="mt-4 flex items-center gap-2">
+                            <input type="number" id="precioMin" placeholder="Mín" oninput="aplicarFiltros()" class="campo-mini">
+                            <span style="color: var(--gris-claro)">—</span>
+                            <input type="number" id="precioMax" placeholder="Máx" oninput="aplicarFiltros()" class="campo-mini">
+                        </div>
+                    </details>
+
+                    <details open class="grupo-filtro" style="border-bottom: 1px solid rgba(22,19,31,0.12)">
+                        <summary>
+                            <span class="titulo-filtro">Disponibilidad</span>
+                            <span class="cruz"></span>
+                        </summary>
+                        <label class="opcion-filtro mt-4">
+                            <input type="checkbox" id="soloDisponibles" onchange="aplicarFiltros()" class="filtro-check">
+                            <span>Solo disponibles</span>
+                        </label>
+                    </details>
+
+                    <button onclick="limpiarFiltros()" class="mt-5 text-xs font-semibold underline underline-offset-4" style="color: var(--gris-claro)">
+                        Limpiar filtros
+                    </button>
+                </div>
+            </aside>
+
+            <!-- GRID -->
+            <div class="order-2">
+                <p id="estadoCarga" class="text-center text-sm py-16" style="color: var(--gris-claro)">Cargando catálogo...</p>
+                <div id="gridProductos" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-10"></div>
+                <p id="sinResultados" class="hidden text-center text-sm py-20" style="color: var(--gris-claro)">No encontramos prendas con esos filtros.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL DETALLE / AGREGAR AL CARRITO -->
+    <div id="detalleModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] w-full max-w-md p-6 relative shadow-2xl scale-95 opacity-0 max-h-[90vh] overflow-y-auto overscroll-y-contain transition-all duration-200" id="detalleModalContainer">
+            <div class="sticky top-0 z-10 flex justify-end -mb-10 pointer-events-none">
+                <button onclick="cerrarDetalle()" class="pointer-events-auto flex items-center gap-1.5 pl-3 pr-2.5 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold shadow-sm">
+                    Cerrar <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            <div class="vs-det-grid">
+            <div class="vs-det-foto">
+            <div class="vs-foto-marco mb-3">
+                <img id="detalleImagen" src="" alt="" class="vs-foto-img">
+            </div>
+            <div id="detalleGaleria" class="hidden flex gap-2 mb-5 overflow-x-auto pb-1"></div>
+            </div>
+            <div class="vs-det-info">
+            <span id="detalleCategoria" class="text-[11px] font-semibold uppercase tracking-widest mb-1 block" style="color: var(--fucsia)"></span>
+            <h3 id="detalleNombre" class="display text-[34px] mb-4"></h3>
+            <div class="mb-5">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Colores disponibles</label>
+                <div class="flex flex-wrap gap-2" id="detalleColores"></div>
+            </div>
+            <div class="mb-5 hidden" id="detalleTallasContenedor">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Talla</label>
+                <div class="flex flex-wrap gap-2" id="detalleTallas"></div>
+            </div>
+            <div class="rounded-[20px] p-4 flex justify-between items-center mb-5" style="background: var(--hueso); border: 1px solid rgba(22,19,31,0.08)">
+                <span class="text-xs text-gray-500 uppercase font-bold tracking-widest">Precio</span>
+                <div class="text-right">
+                    <span class="text-3xl font-black text-gray-900 block" id="detallePrecio"></span>
+                    <span id="detallePrecioBs" class="block text-xs text-gray-400 font-normal"></span>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Cantidad</label>
+                <div class="inline-flex items-center border border-gray-200 rounded-full">
+                    <button type="button" onclick="cambiarCantidad(-1)" class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-900">−</button>
+                    <span id="detalleCantidad" class="w-8 text-center text-sm font-semibold text-gray-900">1</span>
+                    <button type="button" id="btnCantidadMas" onclick="cambiarCantidad(1)" class="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-gray-900">+</button>
+                </div>
+                <p id="detalleStock" class="text-xs text-gray-400 mt-2"></p>
+            </div>
+
+            <button id="detalleBotonCarrito" onclick="agregarAlCarritoDesdeModal()" class="boton-solido w-full font-semibold py-4 rounded-full text-sm flex items-center justify-center gap-2">
+                <i class="fa-solid fa-bag-shopping text-base"></i> Agregar al carrito
+            </button>
+            <a id="detalleBotonWA" href="#" target="_blank" class="w-full mt-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-4 rounded-full text-sm transition flex items-center justify-center gap-2">
+                <i class="fa-brands fa-whatsapp text-base"></i> Consultar por WhatsApp
+            </a>
+            <p id="detalleNoDisponible" class="hidden text-center text-sm text-gray-400 py-3">Actualmente no disponible</p>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aviso flotante fijo en pantalla: vive FUERA del modal (no como hijo suyo)
+         para que cerrar el modal no lo esconda a la fuerza -- así el cliente
+         puede cerrar la ficha del producto y seguir viendo su carrito. -->
+    <div id="detalleConfirmacion" class="hidden fixed top-20 right-4 z-[70] w-[calc(100%-2rem)] max-w-sm bg-white border border-gray-200 rounded-[1.75rem] shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between gap-2 px-4 py-3 bg-emerald-50 border-b border-emerald-100">
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-bag-shopping text-xs"></i>
+                </div>
+                <span id="detalleConfirmacionCantidad" class="text-sm font-semibold text-emerald-700 truncate"></span>
+            </div>
+            <button type="button" onclick="minimizarConfirmacion()" class="text-gray-400 hover:text-gray-700 text-sm shrink-0" title="Minimizar">➖</button>
+        </div>
+        <div id="miniCarritoLista" class="max-h-64 overflow-y-auto divide-y divide-gray-100"></div>
+        <div class="p-4 bg-gray-50 border-t border-gray-100">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-xs text-gray-500">Total</span>
+                <span id="miniCarritoTotal" class="text-lg font-black text-gray-900">$0.00</span>
+            </div>
+            <a href="/carrito" class="block text-center w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-full text-sm transition">Ir al carrito →</a>
+        </div>
+    </div>
+
+    <!-- Burbuja minimizada: aparece cuando el mini-carrito se achica, para no
+         perderlo de vista ni taparle el producto al cliente. -->
+    <button type="button" id="miniCarritoBurbuja" class="hidden fixed top-20 right-4 z-[70] w-14 h-14 rounded-full bg-gray-900 hover:bg-gray-700 text-white shadow-xl flex items-center justify-center transition cursor-grab active:cursor-grabbing touch-none" title="Ver carrito · mantén presionado para moverlo">
+        <i class="fa-solid fa-bag-shopping text-sm"></i>
+        <span id="miniCarritoBurbujaContador" class="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">0</span>
+    </button>
+
+    <!-- Aviso de bienvenida: solo se muestra una vez, la primera vez que alguien entra al sitio. -->
+    <div id="bienvenidaToast" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm bg-white border border-gray-200 text-gray-800 rounded-2xl shadow-xl px-4 py-3 text-sm">
+        <div class="flex items-start gap-2.5">
+            <span class="text-base leading-none">👋</span>
+            <div class="flex-1 min-w-0">
+                <p class="font-semibold">¡Bienvenido a Valera Sport!</p>
+                <p class="text-xs text-gray-500 mt-0.5">Toca cualquier prenda para elegir color, talla y cantidad. Puedes agregar varias antes de pagar.</p>
+            </div>
+            <button type="button" onclick="ocultarBienvenida()" class="text-gray-300 hover:text-gray-600 text-xs shrink-0" title="Cerrar">✕</button>
+        </div>
+    </div>
+
+    <footer class="pie pt-16 pb-10">
+        <div class="max-w-[1400px] mx-auto px-5 md:px-8">
+            <p class="palabra-pie text-[19vw] mb-12 select-none">Valera Sport</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm pb-12" style="border-bottom: 1px solid rgba(246,243,236,0.12)">
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">TIENDA</p>
+                    <div class="flex flex-col gap-2.5">
+                        <a href="/">Inicio</a>
+                        <a href="/carrito">Carrito</a>
+                        <a href="/pedido">Mi pedido</a>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">CATEGORÍAS</p>
+                    <div class="flex flex-col gap-2.5">
+                        <a href="/catalogo?categoria=Damas">Damas</a>
+                        <a href="/catalogo?categoria=Caballeros">Caballeros</a>
+                        <a href="/catalogo?categoria=Niños">Niños</a>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">CONTACTO</p>
+                    <div class="flex flex-col gap-2.5">
+                        <a href="https://wa.me/584245939407" target="_blank">WhatsApp</a>
+                        <a href="/#contacto">Ubicación</a>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold tracking-[0.2em] mb-4 text-white/40">LEGAL</p>
+                    <p class="text-white/60">RIF V221943100</p>
+                    <p class="text-white/60 mt-2.5">Envíos a toda Venezuela</p>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row items-center justify-between gap-3 pt-8 text-xs text-white/35">
+                <p>© 2026 Valera Sport. Todos los derechos reservados.</p>
+                <p>Sitio desarrollado por <span class="font-semibold" style="color: var(--fucsia)">Gregorio Yépez</span> · Ingeniería en Sistemas</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="tienda-comun.js"></script>
+    <script>
+        let categoriasSeleccionadas = new Set();
+
+        async function cargarProductosDesdeSheet() {
+            const estado = document.getElementById('estadoCarga');
+            if (estado) { estado.style.display = 'block'; estado.textContent = "Cargando catálogo..."; }
+            try {
+                const respuesta = await fetch('/api/obtener-productos');
+                if (!respuesta.ok) throw new Error("El servidor respondió con error " + respuesta.status);
+                const texto = await respuesta.text();
+                productos = parseCSV(texto);
+                if (estado) estado.style.display = 'none';
+                construirFiltroCategorias();
+                aplicarParametrosURL();
+                aplicarFiltros();
+                // Los precios ya se mostraron en dólares; en cuanto llegue la tasa
+                // del día se vuelve a pintar la grilla, ahora con el equivalente en
+                // bolívares junto a cada precio.
+                obtenerTasaBcv().then(() => aplicarFiltros());
+            } catch (error) {
+                console.error("Error al cargar el catálogo:", error);
+                if (estado) { estado.style.display = 'block'; estado.textContent = "No se pudo cargar el catálogo."; }
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarProductosDesdeSheet();
+            actualizarContadorCarrito();
+            actualizarIndicadorPedido();
+            mostrarBienvenidaSiEsNuevo();
+            iniciarBarra();
+        });
+
+        // La barra se esconde al bajar y vuelve apenas subes: más pantalla para ver prendas.
+        function iniciarBarra() {
+            const barra = document.getElementById('barra');
+            if (!barra) return;
+            let ultimoY = window.scrollY;
+            let pendiente = false;
+            window.addEventListener('scroll', () => {
+                if (pendiente) return;
+                pendiente = true;
+                requestAnimationFrame(() => {
+                    const y = window.scrollY;
+                    if (y > 220 && y > ultimoY) barra.classList.add('oculta');
+                    else barra.classList.remove('oculta');
+                    ultimoY = y;
+                    pendiente = false;
+                });
+            }, { passive: true });
+        }
+
+        // ---------- FILTROS ----------
+
+        function construirFiltroCategorias() {
+            const mapaCategorias = new Map();
+            productos.forEach(p => {
+                const cat = normalizarCategoria(p.categoria);
+                if (!cat) return;
+                const key = cat.toLowerCase();
+                if (!mapaCategorias.has(key)) mapaCategorias.set(key, cat);
+            });
+            const categoriasUnicas = [...mapaCategorias.values()].sort();
+            const cont = document.getElementById('filtroCategorias');
+            cont.innerHTML = categoriasUnicas.map(cat => `
+                <label class="opcion-filtro">
+                    <input type="checkbox" class="filtro-check" value="${escapeHTML(cat)}" onchange="toggleCategoria('${escapeJS(cat)}', this.checked)">
+                    <span>${escapeHTML(cat)}</span>
+                </label>
+            `).join('');
+        }
+
+        function toggleCategoria(cat, marcado) {
+            if (marcado) categoriasSeleccionadas.add(cat.toLowerCase());
+            else categoriasSeleccionadas.delete(cat.toLowerCase());
+            aplicarFiltros();
+        }
+
+        function sincronizarBusqueda(valor) {
+            const buscadorInterno = document.getElementById('buscador');
+            if (buscadorInterno) buscadorInterno.value = valor;
+            aplicarFiltros();
+        }
+
+        function aplicarParametrosURL() {
+            const params = new URLSearchParams(window.location.search);
+            const cat = params.get('categoria');
+            if (cat) {
+                categoriasSeleccionadas.add(cat.toLowerCase());
+                document.querySelectorAll('.filtro-check').forEach(chk => {
+                    if (chk.value.toLowerCase() === cat.toLowerCase()) chk.checked = true;
+                });
+            }
+            const buscar = params.get('buscar');
+            if (buscar) {
+                document.getElementById('buscador').value = buscar;
+                const buscadorPrincipal = document.getElementById('buscadorPrincipal');
+                if (buscadorPrincipal) buscadorPrincipal.value = buscar;
+            }
+            const codigo = params.get('codigo');
+            if (codigo) abrirDetallePorCodigo(codigo);
+        }
+
+        // Abre directo la ficha de un producto a partir de su "codigo" (el QR
+        // físico pegado en el estante). Así, si un cliente escanea ese QR con
+        // la cámara normal del celular -- sin pasar por el panel admin -- lo
+        // manda directo a ver esa prenda en el catálogo, en vez de no hacer
+        // nada. El mismo QR, escaneado desde el admin, sigue funcionando
+        // igual que antes para registrar una venta física.
+        function abrirDetallePorCodigo(codigoBuscado) {
+            const buscado = codigoBuscado.toLowerCase().trim();
+            const p = productos.find(prod => (prod.codigo || '').toLowerCase().trim() === buscado);
+            if (!p) return;
+
+            const nombreProducto = p.producto || p.nombre || "Producto sin nombre";
+            const textoImagen = p.imagen || "";
+            const precioFormateado = p.precio ? parseFloat(p.precio).toFixed(2) : "0.00";
+            const estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
+            const categoriaLabel = normalizarCategoria(p.categoria) || "Variados";
+            const coloresTexto = p.colores || "";
+            let stockDisponible = parseInt(p.stock, 10);
+            if (isNaN(stockDisponible)) stockDisponible = 99;
+            const stockColoresTexto = p.stock_colores || "";
+            const tallasTexto = p.tallas || "";
+            const stockVariantesTexto = p.stock_variantes || "";
+
+            abrirDetalle(nombreProducto, textoImagen, precioFormateado, categoriaLabel, coloresTexto, estaDisponible, stockDisponible, stockColoresTexto, tallasTexto, stockVariantesTexto);
+        }
+
+        function aplicarFiltros() {
+            const texto = document.getElementById('buscador').value.trim().toLowerCase();
+            const precioMin = parseFloat(document.getElementById('precioMin').value) || 0;
+            const precioMax = parseFloat(document.getElementById('precioMax').value) || Infinity;
+            const soloDisponibles = document.getElementById('soloDisponibles').checked;
+
+            const filtrados = productos.filter(p => {
+                const nombre = (p.producto || p.nombre || '').toLowerCase();
+                if (!nombre.trim()) return false; // fila vacía o a medio llenar en el Sheet -- nunca se muestra
+                const categoriaNormalizada = normalizarCategoria(p.categoria);
+                const categoria = categoriaNormalizada ? categoriaNormalizada.toLowerCase() : '';
+                const precio = parseFloat(p.precio) || 0;
+                const disponible = (p.disponible || '').toLowerCase().trim() === 'si';
+
+                const coincideTexto = !texto || nombre.includes(texto) || categoria.includes(texto);
+                const coincideCategoria = categoriasSeleccionadas.size === 0 || [...categoriasSeleccionadas].some(c => categoria.includes(c));
+                const coincidePrecio = precio >= precioMin && precio <= precioMax;
+                const coincideDisponible = !soloDisponibles || disponible;
+
+                return coincideTexto && coincideCategoria && coincidePrecio && coincideDisponible;
+            });
+
+            renderizarGrid(filtrados);
+        }
+
+        function limpiarFiltros() {
+            categoriasSeleccionadas.clear();
+            document.querySelectorAll('.filtro-check').forEach(chk => chk.checked = false);
+            document.getElementById('buscador').value = '';
+            const buscadorPrincipal = document.getElementById('buscadorPrincipal');
+            if (buscadorPrincipal) buscadorPrincipal.value = '';
+            document.getElementById('precioMin').value = '';
+            document.getElementById('precioMax').value = '';
+            document.getElementById('soloDisponibles').checked = false;
+            aplicarFiltros();
+        }
+
+        function toggleFiltrosMovil() {
+            document.getElementById('panelFiltros').classList.toggle('hidden');
+        }
+
+        // ---------- GRID ----------
+
+        function renderizarGrid(lista) {
+            const grid = document.getElementById('gridProductos');
+            const vacio = document.getElementById('sinResultados');
+            const contador = document.getElementById('contadorResultados');
+
+            contador.textContent = lista.length + (lista.length === 1 ? ' prenda' : ' prendas');
+
+            if (!lista.length) {
+                grid.innerHTML = '';
+                vacio.classList.remove('hidden');
+                return;
+            }
+            vacio.classList.add('hidden');
+            grid.innerHTML = lista.map(crearTarjetaGrid).join('');
+        }
+
+        function crearTarjetaGrid(p, i) {
+            let nombreProducto = p.producto || p.nombre || "Producto sin nombre";
+            let textoImagen = p.imagen || "";
+            let imagenUrl = obtenerListaImagenes(textoImagen)[0];
+            let precioFormateado = p.precio ? parseFloat(p.precio).toFixed(2) : "0.00";
+            let estaDisponible = (p.disponible && p.disponible.toLowerCase().trim() === "si");
+            let categoriaLabel = normalizarCategoria(p.categoria) || "Variados";
+            let coloresTexto = p.colores || "";
+            let stockDisponible = parseInt(p.stock, 10);
+            if (isNaN(stockDisponible)) stockDisponible = 99;
+            let stockColoresTexto = p.stock_colores || "";
+            let tallasTexto = p.tallas || "";
+            let stockVariantesTexto = p.stock_variantes || "";
+            let argsAbrirDetalle = `'${escapeJS(nombreProducto)}', '${escapeJS(textoImagen)}', '${escapeJS(precioFormateado)}', '${escapeJS(categoriaLabel)}', '${escapeJS(coloresTexto)}', ${estaDisponible}, ${stockDisponible}, '${escapeJS(stockColoresTexto)}', '${escapeJS(tallasTexto)}', '${escapeJS(stockVariantesTexto)}'`;
+            // El retraso se corta a los 12 primeros: si no, las últimas prendas
+            // de una lista larga tardarían demasiado en aparecer.
+            let retraso = Math.min(i || 0, 11) * 45;
+            const sinFoto = !imagenUrl || /logo\.jpg/i.test(imagenUrl);
+
+            return `
+                <div class="tarjeta group" style="animation-delay: ${retraso}ms" onclick="abrirDetalle(${argsAbrirDetalle})">
+                    <div class="marco${sinFoto ? ' sin-foto' : ''}${!estaDisponible ? ' agotado' : ''}">
+                        ${!estaDisponible ? '<span class="sello">AGOTADO</span>' : ''}
+                        <img src="${escapeHTML(imagenUrl)}" alt="${escapeHTML(nombreProducto)}" loading="lazy" onerror="this.onerror=null;this.src='imagenes/logo.jpg';this.parentNode.classList.add('sin-foto')">
+                        <span class="ver-chip">Ver prenda</span>
+                    </div>
+                    <div class="pt-4">
+                        <p class="text-[10px] font-bold tracking-[0.18em] mb-1.5" style="color: var(--gris-claro)">${escapeHTML(categoriaLabel.toUpperCase())}</p>
+                        <h3 class="text-[15px] font-semibold leading-snug line-clamp-1">${escapeHTML(nombreProducto)}</h3>
+                        <p class="text-[15px] font-bold mt-1.5">$${precioFormateado}<span class="font-normal text-xs" style="color: var(--gris-claro)">${textoPrecioBs(parseFloat(precioFormateado))}</span></p>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+
+    <!-- PARCHE-FONDO-FOTO-JS -->
+    <script>
+    (function () {
+        function poner(marco, img) {
+            if (!marco || !img) return;
+            var src = img.currentSrc || img.getAttribute('src') || '';
+            if (!src || /logo\.jpg/i.test(src)) {
+                marco.style.removeProperty('--fondo');
+                return;
+            }
+            marco.style.setProperty('--fondo', 'url("' + src.replace(/"/g, '%22') + '")');
+        }
+
+        // Detalle del producto (también cuando se cambia de foto en la galería)
+        function vigilarDetalle() {
+            var img = document.getElementById('detalleImagen');
+            if (!img) return;
+            var marco = img.closest('.vs-foto-marco');
+            var actualizar = function () { poner(marco, img); };
+            new MutationObserver(actualizar).observe(img, { attributes: true, attributeFilter: ['src'] });
+            img.addEventListener('load', actualizar);
+            actualizar();
+        }
+
+        // Tarjetas del catálogo (se vuelven a crear con cada filtro)
+        function procesarTarjetas() {
+            document.querySelectorAll('#gridProductos .marco').forEach(function (marco) {
+                var img = marco.querySelector('img');
+                if (!img || marco.dataset.fondo === '1') return;
+                marco.dataset.fondo = '1';
+                poner(marco, img);
+                img.addEventListener('load', function () { poner(marco, img); });
+                // Si la foto falla y cae al logo, la clase sin-foto oculta el fondo
+            });
+        }
+
+        function iniciar() {
+            vigilarDetalle();
+            var grid = document.getElementById('gridProductos');
+            if (grid) {
+                new MutationObserver(procesarTarjetas).observe(grid, { childList: true });
+                procesarTarjetas();
+            }
+        }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
+        else iniciar();
+    })();
+    </script>
+<!-- vs-galeria:inicio -->
+<style id="vsg-css">
+.vs-sw{display:inline-block;width:14px;height:14px;border-radius:50%;flex:none;margin-right:7px;vertical-align:-2px;border:1.5px solid rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(0,0,0,.28)}
+.vs-sws{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:9px}
+.vs-sws .vs-sw{margin:0;width:13px;height:13px}
+.vs-sws small{font-size:10px;font-weight:700;color:var(--gris-claro)}
+.vs-nfotos{position:absolute;right:10px;bottom:10px;z-index:3;display:inline-flex;align-items:center;gap:5px;background:rgba(22,19,31,.78);color:#fff;font-size:10px;font-weight:700;padding:4px 9px;border-radius:9999px}
+#vsTrack{position:absolute;inset:0;z-index:2;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+#vsTrack::-webkit-scrollbar{display:none}
+#vsTrack img{flex:0 0 100%;width:100%;height:100%;object-fit:contain;scroll-snap-align:center;scroll-snap-stop:always;user-select:none;-webkit-user-drag:none}
+.vsg-flecha{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:36px;height:36px;border-radius:50%;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.88);color:#16131F;box-shadow:0 6px 16px -6px rgba(0,0,0,.4);font-size:13px}
+.vsg-flecha:active{transform:translateY(-50%) scale(.94)}
+#vsPrev{left:8px}#vsNext{right:8px}
+#vsCount{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:3;background:rgba(22,19,31,.78);color:#fff;font-size:11px;font-weight:700;padding:4px 11px;border-radius:9999px;font-variant-numeric:tabular-nums}
+#detalleGaleria{position:relative;scrollbar-width:thin}
+.vsg-th{flex:none;width:56px;height:56px;padding:0;border-radius:12px;overflow:hidden;border:2px solid transparent;background:#fff;cursor:pointer;opacity:.7;transition:opacity .2s,border-color .2s}
+.vsg-th img{width:100%;height:100%;object-fit:cover;display:block}
+.vsg-th.on{border-color:var(--fucsia);opacity:1}
+</style>
+<script id="vsg-js">
+(function () {
+    'use strict';
+    if (window.VSG) return;
+    window.VSG = {};
+    var $ = function (id) { return document.getElementById(id); };
+    var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+
+    /* ---------- 1. Partir varias URLs en un solo texto ---------- */
+    function partir(t) {
+        return String(t == null ? '' : t).split(/[\s,;|]+/).filter(function (u) {
+            return /^(https?:\/\/|\/|imagenes\/)\S+/i.test(u) || /\.(jpe?g|png|webp|gif|avif)(\?\S*)?$/i.test(u);
+        });
+    }
+    window.VSG.partir = partir;
+
+    if (typeof obtenerListaImagenes === 'function' && !obtenerListaImagenes.__vsg) {
+        var original = obtenerListaImagenes;
+        var nueva = function (t) { var l = partir(t); return l.length > 1 ? l : original.apply(this, arguments); };
+        nueva.__vsg = true;
+        try { obtenerListaImagenes = nueva; } catch (e) { window.obtenerListaImagenes = nueva; }
+    }
+
+    /* ---------- 2. Tonos de color ---------- */
+    var BASE = {
+        negro: '#111111', blanco: '#FFFFFF', gris: '#9CA3AF', plomo: '#8A8F98', plateado: '#C0C0C0', grafito: '#3F4350',
+        rojo: '#DC2626', vinotinto: '#6D1A2B', vino: '#722F37', guinda: '#7B1E3A', bordo: '#6D1A2B', burgundy: '#7B1E3A',
+        rosado: '#F9A8C9', rosa: '#F472B6', fucsia: '#E11D8F', magenta: '#D1177F', ciclamen: '#C2185B',
+        naranja: '#F97316', coral: '#FF6F61', salmon: '#FA8072', durazno: '#FDBA8C', melon: '#FDBA74',
+        amarillo: '#FACC15', mostaza: '#D4A017', dorado: '#D4AF37', limon: '#BEE33B', neon: '#A3E635',
+        beige: '#E8D9BD', crema: '#F5EBD7', hueso: '#F3EEE1', arena: '#D9C3A0', kaki: '#B7A36B', camel: '#C19A6B',
+        marron: '#7B4A2A', chocolate: '#4E2A1A', cafe: '#6F4E37',
+        verde: '#16A34A', militar: '#4B5320', oliva: '#6B7A2A', menta: '#A7F3D0', esmeralda: '#0F9D6B',
+        turquesa: '#14B8A6', aqua: '#22D3EE', celeste: '#7DD3FC',
+        azul: '#2563EB', marino: '#14213D', navy: '#14213D', royal: '#1D4ED8', rey: '#1D4ED8', jean: '#5B7DB1', denim: '#5B7DB1',
+        morado: '#7C3AED', violeta: '#8B5CF6', lila: '#C4B5FD', lavanda: '#C4B5FD', purpura: '#6D28D9'
+    };
+    function norm(s) { return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim(); }
+    function mezcla(a, b, t) {
+        function h(x) { return [1, 3, 5].map(function (i) { return parseInt(x.substr(i, 2), 16); }); }
+        var A = h(a), B = h(b);
+        return '#' + A.map(function (v, i) { return ('0' + Math.round(v + (B[i] - v) * t).toString(16)).slice(-2); }).join('');
+    }
+    function palabra(w) {
+        var c = [w, w.replace(/a$/, 'o'), w.replace(/s$/, ''), w.replace(/as$/, 'o'), w.replace(/os$/, 'o')];
+        for (var i = 0; i < c.length; i++) if (BASE[c[i]]) return BASE[c[i]];
+        return null;
+    }
+    function uno(p) {
+        var hex = null, mod = null;
+        p.split(/\s+/).forEach(function (w) {
+            var c = palabra(w);
+            if (c) hex = c;
+            else if (/^(claro|clara|claros|pastel|suave|bebe)$/.test(w)) mod = 'c';
+            else if (/^(oscuro|oscura|oscuros|profundo|profunda)$/.test(w)) mod = 'o';
+        });
+        if (!hex) return null;
+        if (mod === 'c') hex = mezcla(hex, '#FFFFFF', 0.5);
+        if (mod === 'o') hex = mezcla(hex, '#000000', 0.35);
+        return hex;
+    }
+    function tono(nombre) {
+        var t = norm(nombre).replace(/\(.*?\)/g, ' ').replace(/[:\d]+/g, ' ').trim();
+        if (!t) return null;
+        if (/^(variado|variados|surtido|surtidos|varios|multicolor|multicolores|multi)\b/.test(t))
+            return 'conic-gradient(#ef4444,#f59e0b,#facc15,#22c55e,#06b6d4,#6366f1,#d946ef,#ef4444)';
+        var cols = t.split(/\s*(?:\/|\+|&|\sy\s)\s*/).filter(Boolean).map(uno).filter(Boolean);
+        if (!cols.length) return null;
+        if (cols.length === 1) return cols[0];
+        var n = cols.length;
+        return 'linear-gradient(90deg,' + cols.map(function (c, i) { return c + ' ' + (i * 100 / n) + '% ' + ((i + 1) * 100 / n) + '%'; }).join(',') + ')';
+    }
+    function coloresDe(txt) {
+        var vistos = {}, out = [];
+        String(txt || '').split(/[,;]+/).forEach(function (x) {
+            var n = x.replace(/:\s*\d+\s*$/, '').replace(/\(.*?\)/g, '').trim();
+            if (!n || vistos[norm(n)]) return;
+            vistos[norm(n)] = 1;
+            out.push({ n: n, bg: tono(n) });
+        });
+        return out;
+    }
+    window.VSG.tono = tono;
+
+    // Tarjetas del catálogo: puntitos de color + contador de fotos
+    var tarjeta0 = window.crearTarjetaGrid;
+    if (typeof tarjeta0 === 'function') {
+        window.crearTarjetaGrid = function (p) {
+            var h = tarjeta0.apply(this, arguments);
+            try {
+                var fotos = partir(p && p.imagen).length;
+                if (fotos > 1) h = h.replace('<span class="ver-chip">', '<span class="vs-nfotos"><i class="fa-solid fa-images"></i> ' + fotos + '</span><span class="ver-chip">');
+                var cols = coloresDe(p && p.colores).filter(function (c) { return c.bg; });
+                if (cols.length) {
+                    var ver = cols.slice(0, 6).map(function (c) { return '<span class="vs-sw" title="' + esc(c.n) + '" style="background:' + c.bg + '"></span>'; }).join('');
+                    if (cols.length > 6) ver += '<small>+' + (cols.length - 6) + '</small>';
+                    var k = h.lastIndexOf('</p>');
+                    if (k !== -1) h = h.slice(0, k + 4) + '<div class="vs-sws">' + ver + '</div>' + h.slice(k + 4);
+                }
+            } catch (e) { console.error('[VSG] tarjeta', e); }
+            return h;
+        };
+    }
+
+    // Ficha: tono en cada botón de color
+    function pintarColores() {
+        var cont = $('detalleColores');
+        if (!cont) return;
+        Array.prototype.forEach.call(cont.children, function (b) {
+            if (b.getAttribute('data-vsg')) return;
+            b.setAttribute('data-vsg', '1');
+            var bg = tono(b.textContent);
+            if (!bg) return;
+            var s = document.createElement('span');
+            s.className = 'vs-sw';
+            s.style.background = bg;
+            b.insertBefore(s, b.firstChild);
+        });
+    }
+    var contCol = $('detalleColores');
+    if (contCol && window.MutationObserver) new MutationObserver(pintarColores).observe(contCol, { childList: true });
+
+    /* ---------- 3. Carrusel en la ficha ---------- */
+    var estado = { imgs: [], idx: 0 };
+
+    function limpiar() {
+        ['vsTrack', 'vsPrev', 'vsNext', 'vsCount'].forEach(function (id) { var e = $(id); if (e && e.parentNode) e.parentNode.removeChild(e); });
+        var im = $('detalleImagen');
+        if (im) im.style.display = '';
+        var g = $('detalleGaleria');
+        if (g && g.getAttribute('data-vsg')) {
+            g.removeAttribute('data-vsg');
+            g.innerHTML = '';
+            g.style.display = '';
+            g.classList.add('hidden');
+        }
+        estado.imgs = []; estado.idx = 0;
+    }
+
+    function marcar(idx) {
+        estado.idx = idx;
+        var c = $('vsCount');
+        if (c) c.textContent = (idx + 1) + ' / ' + estado.imgs.length;
+        var g = $('detalleGaleria');
+        if (g) {
+            Array.prototype.forEach.call(g.querySelectorAll('.vsg-th'), function (t, i) {
+                t.classList.toggle('on', i === idx);
+                if (i === idx) g.scrollTo({ left: t.offsetLeft - (g.clientWidth - t.offsetWidth) / 2, behavior: 'smooth' });
+            });
+        }
+        var im = $('detalleImagen');
+        if (im && estado.imgs[idx]) im.src = estado.imgs[idx]; // mantiene el fondo difuminado al día
+    }
+
+    function ir(i) {
+        var t = $('vsTrack');
+        if (!t) return;
+        var n = estado.imgs.length;
+        i = ((i % n) + n) % n;
+        t.scrollTo({ left: i * t.clientWidth, behavior: 'smooth' });
+    }
+
+    function montar(texto) {
+        var imgs = partir(texto);
+        if (imgs.length < 2) return;
+        var im = $('detalleImagen');
+        var marco = im && im.closest ? im.closest('.vs-foto-marco') : null;
+        if (!marco) return;
+        estado.imgs = imgs; estado.idx = 0;
+
+        var track = document.createElement('div');
+        track.id = 'vsTrack';
+        imgs.forEach(function (u) {
+            var f = document.createElement('img');
+            f.src = u; f.alt = ''; f.decoding = 'async'; f.draggable = false;
+            f.onerror = function () { this.style.opacity = '.2'; };
+            track.appendChild(f);
+        });
+        marco.appendChild(track);
+        im.style.display = 'none';
+        im.src = imgs[0];
+
+        var prev = document.createElement('button');
+        prev.type = 'button'; prev.id = 'vsPrev'; prev.className = 'vsg-flecha'; prev.setAttribute('aria-label', 'Foto anterior');
+        prev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+        prev.addEventListener('click', function () { ir(estado.idx - 1); });
+        var next = document.createElement('button');
+        next.type = 'button'; next.id = 'vsNext'; next.className = 'vsg-flecha'; next.setAttribute('aria-label', 'Foto siguiente');
+        next.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+        next.addEventListener('click', function () { ir(estado.idx + 1); });
+        var cuenta = document.createElement('div');
+        cuenta.id = 'vsCount';
+        marco.appendChild(prev); marco.appendChild(next); marco.appendChild(cuenta);
+
+        var g = $('detalleGaleria');
+        if (g) {
+            g.innerHTML = '';
+            imgs.forEach(function (u, i) {
+                var b = document.createElement('button');
+                b.type = 'button'; b.className = 'vsg-th'; b.setAttribute('aria-label', 'Ver foto ' + (i + 1));
+                var f = document.createElement('img');
+                f.src = u; f.alt = ''; f.loading = 'lazy';
+                b.appendChild(f);
+                b.addEventListener('click', function () { ir(i); });
+                g.appendChild(b);
+            });
+            g.classList.remove('hidden');
+            g.style.display = 'flex';
+            g.setAttribute('data-vsg', '1');
+        }
+
+        var raf = 0;
+        track.addEventListener('scroll', function () {
+            if (raf) return;
+            raf = requestAnimationFrame(function () {
+                raf = 0;
+                var w = track.clientWidth || 1;
+                var i = Math.round(track.scrollLeft / w);
+                if (i !== estado.idx && i >= 0 && i < estado.imgs.length) marcar(i);
+            });
+        }, { passive: true });
+        marcar(0);
+    }
+
+    var abrir0 = window.abrirDetalle;
+    if (typeof abrir0 === 'function') {
+        window.abrirDetalle = function (nombre, textoImagen) {
+            limpiar();
+            var r = abrir0.apply(this, arguments);
+            try { montar(textoImagen); } catch (e) { console.error('[VSG] galería', e); }
+            setTimeout(pintarColores, 0);
+            return r;
+        };
+    }
+
+    document.addEventListener('keydown', function (e) {
+        var modal = $('detalleModal');
+        if (!estado.imgs.length || !modal || modal.classList.contains('hidden')) return;
+        if (e.key === 'ArrowRight') { e.preventDefault(); ir(estado.idx + 1); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); ir(estado.idx - 1); }
+    });
+
+    console.log('[VSG] galería y tonos de color activos');
+})();
+</script>
+<!-- vs-galeria:fin -->
+
+</body>
+</html>

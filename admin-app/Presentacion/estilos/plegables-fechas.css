@@ -1,0 +1,13 @@
+/* Presentacion/estilos/plegables-fechas.css · generado por separar-capas.js · el código está igual que en admin.html */
+.vsx-cab { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; background: none; border: 0;
+  padding: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; touch-action: manipulation; }
+.vsx-cab .rotulo { margin: 0 !important; }
+.vsx-chev { font-size: 11px; color: var(--tenue); transition: transform .25s; }
+.vsx-abierto .vsx-chev { transform: rotate(180deg); }
+.vsx-cuerpo { display: none; margin-top: 16px; }
+.vsx-abierto .vsx-cuerpo { display: block; }
+.vsx-dia { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.vsx-dia.hidden { display: none; }
+.vsx-dia .campo { flex: 1; min-width: 0; text-align: center; height: 44px; }
+.vsx-flecha { flex: none; width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+.vsx-hoy { flex: none; height: 44px; padding: 0 14px; border-radius: 14px; font-size: 12px; }

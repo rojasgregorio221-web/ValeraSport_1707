@@ -1,0 +1,77 @@
+/* Presentacion/estilos/venta-simple.css · generado por separar-capas.js · el código está igual que en admin.html */
+/* ===== Venta en la tienda · versión simple ===== */
+#formularioFisica .pantalla-cuerpo { gap: 14px; }
+#csAviso { display: none !important; }
+
+.vsv-hint { display: none; text-align: center; font-size: 13px; line-height: 1.5; color: var(--gris);
+  padding: 26px 14px; border: 1px dashed var(--linea-fuerte); border-radius: 20px; }
+#formularioFisica.vsv-vacio .vsv-hint { display: block; }
+
+/* Hasta que no haya una prenda, no se muestra nada de cobro */
+#formularioFisica.vsv-vacio #vsvPago,
+#formularioFisica.vsv-vacio #cpBloque,
+#formularioFisica.vsv-vacio #bloqueVuelto,
+#formularioFisica.vsv-vacio #camposFiadoFisica,
+#formularioFisica.vsv-vacio .vsv-mas { display: none !important; }
+
+/* El vuelto solo para pagos normales */
+#formularioFisica.vsv-m-cashea #bloqueVuelto,
+#formularioFisica.vsv-m-fiado #bloqueVuelto { display: none !important; }
+
+/* Subtotal solo si hay descuento (el total ya se ve grande) */
+#carritoFisicaContenedor .space-y-2.text-xs:has(#carritoFisicaLineaDescuento.hidden) { display: none; }
+
+/* ---- ¿Cómo paga? ---- */
+.vsv-pago { display: flex; flex-direction: column; gap: 14px; }
+.vsv-tit { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--tenue); }
+.vsv-grupo { display: flex; flex-direction: column; gap: 7px; }
+.vsv-gl { font-size: 11px; font-weight: 700; color: var(--gris); }
+.vsv-fila { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.vsv-fila.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (min-width: 560px) { .vsv-fila.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.vsv-chip { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 13px 6px; border-radius: 14px;
+  border: 1px solid var(--linea-fuerte); background: #fff; color: #0F172A; font-size: 13px; font-weight: 700; line-height: 1.1;
+  cursor: pointer; touch-action: manipulation; transition: background-color .15s, color .15s, border-color .15s, transform .15s; }
+.vsv-chip i { font-size: 13px; color: #64748B; }
+.vsv-chip:active { transform: scale(.97); }
+.vsv-chip.on { background: linear-gradient(135deg, #0284C7, #00A8E8); border-color: transparent; color: #fff;
+  box-shadow: 0 10px 20px -10px rgba(0, 150, 230, .9); }
+.vsv-chip.on i { color: #fff; }
+
+/* ---- Plan Cashea ---- */
+#cpBloque { background: #F0F9FF !important; border-color: rgba(0, 168, 232, .35) !important; display: flex; flex-direction: column; gap: 14px; }
+#cpBloque.hidden { display: none !important; }
+#cpBloque > * { margin: 0 !important; }
+.vsv-cs-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 800; }
+.vsv-cs-cab i { color: var(--fucsia); margin-right: 6px; }
+.vsv-sub { font-size: 11px; color: var(--gris); }
+.vsv-pcts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.vsv-pct { padding: 9px 15px; border-radius: 9999px; border: 1px solid var(--linea-fuerte); background: #fff; color: #0F172A;
+  font-size: 12px; font-weight: 800; cursor: pointer; touch-action: manipulation; }
+.vsv-pct.on { background: #0F172A; border-color: #0F172A; color: #fff; }
+.vsv-otro { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; font-size: 12px; font-weight: 800; color: var(--gris); }
+.vsv-otro input { width: 64px; padding: 8px 10px; border-radius: 12px; text-align: center; }
+.vsv-cs-resumen { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vsv-caja { background: #fff; border: 1px solid var(--linea); border-radius: 16px; padding: 13px 14px; min-width: 0; }
+.vsv-caja span { display: block; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .65; }
+.vsv-caja b { display: block; margin-top: 5px; font-family: 'Big Shoulders Display', 'Inter', sans-serif; font-size: 30px; line-height: .95;
+  font-weight: 900; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.vsv-caja small { display: block; margin-top: 4px; font-size: 11px; font-weight: 700; color: #0284C7; font-variant-numeric: tabular-nums; }
+.vsv-caja.fuerte { background: #0F172A; border-color: #0F172A; color: #fff; }
+.vsv-caja.fuerte small { color: #7DD3FC; }
+#cpCuotasDetalle { font-size: 12px; color: var(--gris); }
+
+/* ---- Más datos ---- */
+.vsv-mas { padding: 14px 16px; }
+.vsv-mas > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; font-weight: 700; color: var(--gris); user-select: none; }
+.vsv-mas > summary::-webkit-details-marker { display: none; }
+.vsv-mas[open] > summary .fa-chevron-down { transform: rotate(180deg); }
+.vsv-mas > summary .fa-chevron-down { font-size: 10px; transition: transform .2s; }
+.vsv-mas-cuerpo { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--linea); }
+
+/* ---- Botón de guardar pegado abajo ---- */
+#btnRegistrarVentaFisica { position: sticky; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 4;
+  padding-top: 16px !important; padding-bottom: 16px !important; font-size: 15px;
+  box-shadow: 0 18px 32px -14px rgba(15, 23, 42, .6); }
+#mensajeFisica { margin-top: 0; }

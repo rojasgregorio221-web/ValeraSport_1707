@@ -1,0 +1,18 @@
+/* Presentacion/estilos/venta-autosuma.css · generado por separar-capas.js · el código está igual que en admin.html */
+/* ===== 6.2.0 · sin botón de sumar, más compacto ===== */
+#formularioFisica button[onclick="agregarItemCarritoFisica()"] { display: none !important; }
+.vsv2-nota { font-size: 11px; line-height: 1.4; color: var(--tenue); text-align: center; margin: 0; }
+
+#formularioFisica .pantalla-cuerpo { gap: 12px; }
+.vsv-pago { gap: 10px; }
+.vsv-grupo { gap: 5px; }
+.vsv-gl { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); }
+.vsv-chip { padding: 12px 6px; border-radius: 13px; }
+#cpBloque { gap: 12px; }
+#cpBloque .vsv-sub { display: none; }
+.vsv-caja b { font-size: 28px; }
+
+#vsv2Toast { position: fixed; left: 50%; top: 76px; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; z-index: 60;
+  background: #0F172A; color: #fff; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 9999px;
+  box-shadow: 0 14px 28px -12px rgba(15, 23, 42, .6); transition: opacity .2s, transform .2s; white-space: nowrap; }
+#vsv2Toast.on { opacity: 1; transform: translate(-50%, 0); }
